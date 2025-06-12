@@ -618,161 +618,231 @@ const PcaClusterView = ({ onNavigate }) => {
                     padding: "20px",
                   }}
                 >
-                  {" "}
-                  <Title
-                    level={5}
-                    style={{
-                      marginTop: "0px",
-                      marginBottom: "12px",
-                      textAlign: "center",
-                    }}
-                  >
-                    Componentes principales
-                  </Title>{" "}
-                  <Table
-                    columns={[
-                      {
-                        title: "Variable",
-                        dataIndex: "variable",
-                        key: "variable",
-                        width: "30%",
-                      },
-                      {
-                        title: "Coeficiente",
-                        dataIndex: "coeficiente",
-                        key: "coeficiente",
-                        width: "18%",
-                        render: (value) => value.toFixed(4),
-                      },
-                      {
-                        title: "P-valor",
-                        dataIndex: "pvalor",
-                        key: "pvalor",
-                        width: "15%",
-                        render: (value) => (
-                          <span
-                            style={{
-                              color: value < 0.05 ? "#52c41a" : "#ff4d4f",
-                            }}
-                          >
-                            {value.toFixed(3)}
-                          </span>
-                        ),
-                      },
-                      {
-                        title: "Error estándar",
-                        dataIndex: "errorEstandar",
-                        key: "errorEstandar",
-                        width: "18%",
-                        render: (value) => value.toFixed(4),
-                      },
-                      {
-                        title: "VIF",
-                        dataIndex: "vif",
-                        key: "vif",
-                        width: "19%",
-                        render: (value) => (
-                          <span
-                            style={{
-                              color:
-                                value > 10
-                                  ? "#ff4d4f"
-                                  : value > 5
-                                  ? "#fa8c16"
-                                  : "#52c41a",
-                            }}
-                          >
-                            {value.toFixed(2)}
-                          </span>
-                        ),
-                      },
-                    ]}
-                    dataSource={[
-                      {
-                        key: 1,
-                        variable: "Número de Camas",
-                        coeficiente: 0.0234,
-                        pvalor: 0.002,
-                        errorEstandar: 0.0078,
-                        vif: 2.34,
-                      },
-                      {
-                        key: 2,
-                        variable: "Personal Médico",
-                        coeficiente: 0.0156,
-                        pvalor: 0.001,
-                        errorEstandar: 0.0045,
-                        vif: 3.21,
-                      },
-                      {
-                        key: 3,
-                        variable: "Presupuesto Anual",
-                        coeficiente: 0.0089,
-                        pvalor: 0.023,
-                        errorEstandar: 0.0039,
-                        vif: 1.87,
-                      },
-                      {
-                        key: 4,
-                        variable: "Ubicación Urbana",
-                        coeficiente: 0.0445,
-                        pvalor: 0.0,
-                        errorEstandar: 0.0123,
-                        vif: 1.45,
-                      },
-                      {
-                        key: 5,
-                        variable: "Años de Operación",
-                        coeficiente: 0.0012,
-                        pvalor: 0.156,
-                        errorEstandar: 0.0008,
-                        vif: 1.23,
-                      },
-                      {
-                        key: 6,
-                        variable: "Tipo de Hospital",
-                        coeficiente: 0.0267,
-                        pvalor: 0.008,
-                        errorEstandar: 0.0098,
-                        vif: 2.67,
-                      },
-                      {
-                        key: 7,
-                        variable: "Tecnología Disponible",
-                        coeficiente: 0.0198,
-                        pvalor: 0.012,
-                        errorEstandar: 0.0076,
-                        vif: 4.12,
-                      },
-                      {
-                        key: 8,
-                        variable: "Especialización",
-                        coeficiente: 0.0334,
-                        pvalor: 0.003,
-                        errorEstandar: 0.0112,
-                        vif: 1.98,
-                      },
-                    ]}
-                    pagination={false}
-                    size="small"
-                    scroll={{ y: "calc(100% - 80px)" }}
-                    style={{ flex: 1 }}
-                  />
+                  {/* Primera tabla - Matriz de componentes */}
                   <div
                     style={{
-                      marginTop: "16px",
-                      padding: "12px",
-                      background: "#f8f9fa",
-                      borderRadius: "4px",
-                      fontSize: "12px",
-                      color: "#666",
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      marginBottom: "16px",
                     }}
                   >
-                    <strong>Estadísticas del modelo:</strong> R² = 0.847 | R²
-                    ajustado = 0.823 | F-estadístico = 12.45 (p &lt; 0.001)
-                    <br />
-                    <strong>Significancia:</strong> *** p&lt;0.001, **
-                    p&lt;0.01, * p&lt;0.05, NS = No significativo
+                    <div
+                      style={{
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        marginBottom: "12px",
+                        color: "#333",
+                        textAlign: "center",
+                      }}
+                    >
+                      Matriz de Componentes Principales
+                    </div>
+                    <Table
+                      columns={[
+                        {
+                          title: "",
+                          dataIndex: "component",
+                          key: "component",
+                          width: "15%",
+                          render: (value) => (
+                            <span style={{ fontWeight: "600", color: "#333" }}>
+                              {value}
+                            </span>
+                          ),
+                        },
+                        {
+                          title: "Bienes y servicios",
+                          dataIndex: "bienes",
+                          key: "bienes",
+                          width: "21%",
+                          render: (value) => (
+                            <span
+                              style={{
+                                color: value < 0 ? "#ff4d4f" : "#52c41a",
+                              }}
+                            >
+                              {value.toFixed(6)}
+                            </span>
+                          ),
+                        },
+                        {
+                          title: "Remuneraciones",
+                          dataIndex: "remuneraciones",
+                          key: "remuneraciones",
+                          width: "21%",
+                          render: (value) => (
+                            <span
+                              style={{
+                                color: value < 0 ? "#ff4d4f" : "#52c41a",
+                              }}
+                            >
+                              {value.toFixed(6)}
+                            </span>
+                          ),
+                        },
+                        {
+                          title: "Consultas",
+                          dataIndex: "consultas",
+                          key: "consultas",
+                          width: "21%",
+                          render: (value) => (
+                            <span
+                              style={{
+                                color: value < 0 ? "#ff4d4f" : "#52c41a",
+                              }}
+                            >
+                              {value.toFixed(6)}
+                            </span>
+                          ),
+                        },
+                        {
+                          title: "Quirófanos",
+                          dataIndex: "quirofanos",
+                          key: "quirofanos",
+                          width: "22%",
+                          render: (value) => (
+                            <span
+                              style={{
+                                color: value < 0 ? "#ff4d4f" : "#52c41a",
+                              }}
+                            >
+                              {value.toFixed(6)}
+                            </span>
+                          ),
+                        },
+                      ]}
+                      dataSource={[
+                        {
+                          key: 1,
+                          component: "PC1",
+                          bienes: -0.56245,
+                          remuneraciones: -0.50885,
+                          consultas: 0.35,
+                          quirofanos: 0.28305,
+                        },
+                        {
+                          key: 2,
+                          component: "PC2",
+                          bienes: -0.189417,
+                          remuneraciones: -0.180269,
+                          consultas: -0.180767,
+                          quirofanos: 0.95752,
+                        },
+                      ]}
+                      pagination={false}
+                      size="small"
+                      scroll={{ y: "calc(50% - 40px)" }}
+                      style={{ flex: 1 }}
+                    />
+                  </div>{" "}
+                  {/* Segunda tabla - Centroides */}
+                  <div
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    {" "}
+                    <div
+                      style={{
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        marginBottom: "12px",
+                        color: "#333",
+                        textAlign: "center",
+                      }}
+                    >
+                      Caracterización de los clústeres
+                    </div>
+                    <Table
+                      columns={[
+                        {
+                          title: "Clúster",
+                          dataIndex: "cluster",
+                          key: "cluster",
+                          width: "15%",
+                          render: (value) => (
+                            <span style={{ fontWeight: "600", color: "#333" }}>
+                              {value}
+                            </span>
+                          ),
+                        },
+                        {
+                          title: "N° Hospitales",
+                          dataIndex: "n_hospitales",
+                          key: "n_hospitales",
+                          width: "20%",
+                          render: (value) => (
+                            <span style={{ color: "#1890ff" }}>{value}</span>
+                          ),
+                        },
+                        {
+                          title: "ET Media",
+                          dataIndex: "te_media",
+                          key: "te_media",
+                          width: "20%",
+                          render: (value) => (
+                            <span style={{ color: "#52c41a" }}>
+                              {value.toFixed(2)}
+                            </span>
+                          ),
+                        },
+                        {
+                          title: "Media PC1",
+                          dataIndex: "pc1_media",
+                          key: "pc1_media",
+                          width: "22%",
+                          render: (value) => (
+                            <span
+                              style={{
+                                color: value < 0 ? "#ff4d4f" : "#52c41a",
+                              }}
+                            >
+                              {value.toFixed(2)}
+                            </span>
+                          ),
+                        },
+                        {
+                          title: "Media PC2",
+                          dataIndex: "pc2_media",
+                          key: "pc2_media",
+                          width: "23%",
+                          render: (value) => (
+                            <span
+                              style={{
+                                color: value < 0 ? "#ff4d4f" : "#52c41a",
+                              }}
+                            >
+                              {value.toFixed(2)}
+                            </span>
+                          ),
+                        },
+                      ]}
+                      dataSource={[
+                        {
+                          key: 1,
+                          cluster: 0,
+                          n_hospitales: 34,
+                          te_media: 0.35,
+                          pc1_media: -8.97,
+                          pc2_media: 0.09,
+                        },
+                        {
+                          key: 2,
+                          cluster: 1,
+                          n_hospitales: 17,
+                          te_media: 0.3,
+                          pc1_media: 1.94,
+                          pc2_media: -9.48,
+                        },
+                      ]}
+                      pagination={false}
+                      size="small"
+                      scroll={{ y: "calc(50% - 40px)" }}
+                      style={{ flex: 1 }}
+                    />
                   </div>
                 </div>
               </Col>
