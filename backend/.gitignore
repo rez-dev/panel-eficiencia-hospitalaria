@@ -1,0 +1,132 @@
+# ===== ARCHIVOS PYTHON =====
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+
+# ===== ENTORNOS VIRTUALES =====
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# ===== CONFIGURACIÓN Y SECRETOS =====
+# Variables de entorno (ya tienes .env)
+.env.local
+.env.production
+.env.development
+config.ini
+secrets.json
+.secrets
+
+# ===== BASE DE DATOS =====
+# Bases de datos locales SQLite (si usas para testing)
+*.db
+*.sqlite
+*.sqlite3
+db.sqlite3
+
+# ===== LOGS Y TEMPORALES =====
+# Archivos de log
+*.log
+logs/
+log/
+
+# Archivos temporales
+*.tmp
+*.temp
+temp/
+tmp/
+
+# ===== DEPENDENCIAS Y BUILDS =====
+# Pip
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ===== TESTING Y COVERAGE =====
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.cache
+coverage.xml
+*.cover
+
+# ===== JUPYTER NOTEBOOKS =====
+.ipynb_checkpoints/
+*.ipynb
+
+# ===== IDEs Y EDITORES =====
+# VS Code
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+
+# Sublime Text
+*.sublime-*
+
+# ===== SISTEMA OPERATIVO =====
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+*~
+
+# ===== DOCKER =====
+# Docker override files (si los usas)
+docker-compose.override.yml
+.dockerignore
+
+# ===== DATOS Y OUTPUTS =====
+# Archivos de datos (descomenta si no quieres versionarlos)
+# *.csv
+# *.xlsx
+# *.json
+# data/
+
+# Archivos de salida/resultados
+output/
+results/
+exports/
+
+# Plots y gráficos generados
+plots/
+charts/
+*.png
+*.jpg
+*.jpeg
+*.pdf
+*.svg
+
+# ===== BACKUPS =====
+*.bak
+*.backup
+*~
+
+# ===== ESPECÍFICO DEL PROYECTO =====
+# Archivos específicos que no quieres versionar
+# analytics_results/
+# temp_files/
