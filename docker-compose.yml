@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15
+    container_name: db
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: panel-eficiencia-hospitalaria
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ./backend # Ruta al directorio donde está tu Dockerfile y código del backend
+      dockerfile: Dockerfile
+    container_name: backend
+    restart: always
+    ports:
+      - "8000:8000" # Mapea el puerto 8000 del host al 8000 del contenedor
+    volumes:
+      - ./backend:/app # Monta el código del backend para hot-reloading (opcional, bueno para desarrollo)
+    environment:
+      # Pasa las mismas variables de entorno que tu aplicación necesita para conectarse a la BD
+      # Asegúrate de que POSTGRES_HOST apunte al nombre del servicio de la BD en Docker Compose (en este caso, 'db')
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=panel-eficiencia-hospitalaria
+      - POSTGRES_HOST=db # Nombre del servicio de la base de datos en Docker Compose
+      - POSTGRES_PORT=5432
+      # Si tienes un archivo .env que tu backend usa, considera cómo manejarlo.
+      # Podrías montarlo como un volumen o usar la directiva env_file en Docker Compose.
+    depends_on:
+      - db # Asegura que el servicio 'db' se inicie antes que el 'backend'
+
+volumes:
+  pgdata:
