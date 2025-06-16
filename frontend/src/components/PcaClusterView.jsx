@@ -35,6 +35,7 @@ const PcaClusterView = ({ onNavigate }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [selectedYear, setSelectedYear] = useState(2024);
   const [selectedVariable, setSelectedVariable] = useState("eficiencia");
+  const [salidas, setSalidas] = useState([]);
   const [calculationMethod, setCalculationMethod] = useState("DEA");
   const [numComponents, setNumComponents] = useState(3);
   const [numClusters, setNumClusters] = useState(4);
@@ -122,7 +123,7 @@ const PcaClusterView = ({ onNavigate }) => {
                   fontSize: "18px",
                   color: "#722ed1",
                 }}
-                title="Variables Independientes"
+                title="Entradas"
               />
               <Button
                 type="text"
@@ -136,7 +137,7 @@ const PcaClusterView = ({ onNavigate }) => {
                   fontSize: "18px",
                   color: "#1890ff",
                 }}
-                title="Variable Dependiente"
+                title="Salidas"
               />
             </div>
           ) : (
@@ -265,7 +266,7 @@ const PcaClusterView = ({ onNavigate }) => {
                   }}
                 />
                 <Title level={5} style={{ margin: 0, color: "#333" }}>
-                  Variables Independientes
+                  Entradas
                 </Title>
               </div>
               <Select
@@ -299,18 +300,30 @@ const PcaClusterView = ({ onNavigate }) => {
                     color: "#1890ff",
                     marginRight: "8px",
                   }}
-                />
+                />{" "}
                 <Title level={5} style={{ margin: 0, color: "#333" }}>
-                  Variable Dependiente
+                  Salidas
                 </Title>
-              </div>{" "}
+              </div>
               <Select
-                placeholder="Variable a explicar"
-                value={selectedVariable}
-                onChange={setSelectedVariable}
-                disabled={true}
-                style={{ width: "100%", marginBottom: "16px" }}
-                options={[{ value: "eficiencia", label: "Eficiencia Técnica" }]}
+                mode="multiple"
+                placeholder="Seleccionar salidas"
+                value={salidas}
+                onChange={setSalidas}
+                style={{ width: "100%", marginBottom: "24px" }}
+                options={[
+                  {
+                    value: "consultas-emergencia",
+                    label: "Consultas emergencia",
+                  },
+                  { value: "egresos-grd", label: "Egresos x GRD" },
+                  { value: "consultas-medicas", label: "Consultas médicas" },
+                  { value: "examenes", label: "Exámenes" },
+                  {
+                    value: "intervenciones-quirurgicas",
+                    label: "Intervenciones quirúrgicas",
+                  },
+                ]}
               />
               <Button
                 type="primary"
