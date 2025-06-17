@@ -5,7 +5,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: hospital-frontend
+    container_name: frontend
     restart: always
     ports:
       - "5173:5173"

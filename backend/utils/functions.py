@@ -2,6 +2,10 @@ import numpy as np
 import pandas as pd
 from pysfa import SFA
 
+import numpy as np
+import pandas as pd
+from pysfa import SFA
+
 def calculate_sfa_metrics(df: pd.DataFrame,
                           input_cols: list[str],
                           output_col: list[str],
@@ -27,72 +31,84 @@ def calculate_sfa_metrics(df: pd.DataFrame,
       Función a usar (SFA.FUN_PROD o FUN_COST).
     method : str
       Método de eficiencia (SFA.TE_teJ, TE_te, TE_teMod).
-    
-    Retorna:
-    --------
-    df_out : DataFrame
-      df con la nueva columna 'Eff_SFA'.
-    metrics : dict
-      {
-        'ET_promedio': float,      # eficiencia técnica promedio
-        'pct_criticos': float,     # % de CRÍTICOS (TE < te_threshold)
-        'variable_clave': str,     # insumo con β más alto y p<0.05
-        'sigma2': float,           # varianza total del error
-        'betas': np.ndarray,       # todos los β incl. intercept y λ
-        'p_values': np.ndarray     # todos los p-values
-      }
     """
-    # solo conservar las filas donde los inputs y outputs son mayores que 0
-    df = df[(df[input_cols] > 0).all(axis=1) & (df[output_col] > 0).all(axis=1)]
+    # 1) CREAR MÁSCARA de hospitales válidos (inputs y outputs > 0)
+    mask_validos = (df[input_cols] > 0).all(axis=1) & (df[output_col] > 0).all(axis=1)
+    
+    # 2) SEPARAR hospitales válidos e inválidos
+    df_validos = df[mask_validos].copy()
+    df_invalidos = df[~mask_validos].copy()
+    
+    # print(f"Hospitales válidos: {len(df_validos)}")
+    # print(f"Hospitales inválidos (ET SFA = 0): {len(df_invalidos)}")
+    
+    # 3) EJECUTAR SFA solo en hospitales válidos
+    if len(df_validos) > 0:
+        x = np.log(df_validos[input_cols]).to_numpy()
+        y = np.log(df_validos[output_col]).to_numpy()
 
-    x = np.log(df[input_cols]).to_numpy()   # aplicar logaritmo a los inputs
-    y = np.log(df[output_col]).to_numpy()   # aplicar logaritmo a los outputs
-
-    sfa = SFA.SFA(y, x, fun=fun, method=method)
-    sfa.optimize()
-    
-    # Extraer eficiencia y añadirla
-    te = np.array(sfa.get_technical_efficiency())
-    df_out = df.copy()
-    df_out['ET SFA'] = te
-    
-    # Extraer parámetros
-    all_betas = np.array(sfa.get_beta())     # [β0, β1..βk, λ]
-    all_pvals = np.array(sfa.get_pvalue())
-    sigma2    = sfa.get_sigma2()
-    
-    # ET promedio y % críticos
-    et_promedio = float(te.mean())
-    pct_crit    = float((te < te_threshold).mean() * 100)
-    
-    # Determinar variable clave
-    k = len(input_cols)
-    betas_in = all_betas[1:1+k]
-    pvals_in = all_pvals[1:1+k]
-    df_coef = pd.DataFrame({
-        'input':   input_cols,
-        'beta':    betas_in,
-        'p_value': pvals_in
-    })
-    df_sign = df_coef[df_coef.p_value < 0.05].copy()
-    if not df_sign.empty:
-        df_sign['abs_beta'] = df_sign.beta.abs()
-        var_clave = df_sign.sort_values('abs_beta', ascending=False).iloc[0].input
+        sfa = SFA.SFA(y, x, fun=fun, method=method)
+        sfa.optimize()
+        
+        # Extraer eficiencia
+        te = np.array(sfa.get_technical_efficiency())
+        df_validos['ET SFA'] = te
+        
+        # Extraer parámetros
+        all_betas = np.array(sfa.get_beta())
+        all_pvals = np.array(sfa.get_pvalue())
+        lambda_varianza = sfa.get_lambda()
+        
+        # Calcular métricas solo de hospitales válidos
+        et_promedio = float(te.mean())
+        pct_crit = float((te < te_threshold).mean() * 100)
+        
+        # Determinar variable clave
+        k = len(input_cols)
+        betas_in = all_betas[1:1+k]
+        pvals_in = all_pvals[1:1+k]
+        df_coef = pd.DataFrame({
+            'input': input_cols,
+            'beta': betas_in,
+            'p_value': pvals_in
+        })
+        df_sign = df_coef[df_coef.p_value < 0.05].copy()
+        if not df_sign.empty:
+            df_sign['abs_beta'] = df_sign.beta.abs()
+            var_clave = df_sign.sort_values('abs_beta', ascending=False).iloc[0].input
+        else:
+            var_clave = "No determinada"
+        
+        # Calcular percentiles solo de hospitales válidos
+        df_validos['percentil'] = pd.qcut(df_validos['ET SFA'], 100, labels=False, duplicates='drop') + 1
+        
     else:
-        var_clave = None
+        # No hay hospitales válidos
+        et_promedio = 0.0
+        pct_crit = 100.0
+        var_clave = "No determinada"
+        lambda_varianza = 0.0
+    
+    # 4) ASIGNAR ET SFA = 0 a hospitales inválidos
+    if len(df_invalidos) > 0:
+        df_invalidos['ET SFA'] = 0.0
+        df_invalidos['percentil'] = 0  # Percentil 0 para inválidos
+    
+    # 5) COMBINAR ambos DataFrames
+    df_out = pd.concat([df_validos, df_invalidos], ignore_index=True)
+    
+    # 6) RECALCULAR métricas incluyendo hospitales con ET SFA = 0
+    te_total = df_out['ET SFA'].values
+    et_promedio_total = float(te_total.mean())
+    pct_crit_total = float((te_total < te_threshold).mean() * 100)
     
     # Empaquetar métricas
     metrics = {
-        'ET_promedio':    et_promedio,
-        'pct_criticos':   pct_crit,
+        'et_promedio': et_promedio_total,      # Promedio incluyendo 0s
+        'pct_criticos': pct_crit_total,        # % críticos incluyendo 0s
         'variable_clave': var_clave,
-        'sigma2':         float(sigma2),
-        'betas':          all_betas,
-        'p_values':       all_pvals
+        'varianza': float(lambda_varianza)
     }
-
-    # imprimir summary de sfa
-    # print(sfa.summary())
     
     return df_out, metrics
 
@@ -188,8 +204,8 @@ def calculate_dea_metrics(df: pd.DataFrame,
         "et_promedio": et_promedio_total,           # Promedio incluyendo 0s
         "pct_criticos": pct_crit_total,             # % críticos incluyendo 0s
         "top_slack_promedio": var_slack_clave,
-        "hospitales_validos": len(df_validos),
-        "hospitales_invalidos": len(df_invalidos)
+        # "hospitales_validos": len(df_validos),
+        # "hospitales_invalidos": len(df_invalidos)
     }
     
     return df_out, metrics

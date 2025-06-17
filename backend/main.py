@@ -247,38 +247,73 @@ def run_sfa(year: int = 2014, db: Session = Depends(get_db)):
         
         # Ejecutar SFA
         df_out, metrics = utils.calculate_sfa_metrics(df, input_cols, output_cols)
-        
-        print (f"Resultados del SFA:\n{df_out.head()}")
-        print(f"Métricas SFA:\n{metrics}")
-        print(f"Eficiencia promedio: {metrics['ET_promedio']:.2%}")
-        print(f"% críticos:         {metrics['pct_criticos']:.2f}%")
-        print(f"Variable clave:     {metrics['variable_clave']}")
-        print(f"Varianza σ²:        {metrics['sigma2']:.2f}")
 
-        # pasar columna 'ET SFA' a json
-        df_out['ET SFA'] = df_out['ET SFA'].astype(float).round(4).tolist()
-
-        resultado = df_out[['hospital_alternative_name', 'ET SFA']].to_dict('records')
-
-        return {"data": resultado}
-        # retornar solo columna 
-        # return {
-        #     "efficiency": df_out['ET SFA'].tolist(),
-        #     "metrics": {
-        #         "ET_promedio": metrics['ET_promedio'],
-        #         "pct_criticos": metrics['pct_criticos'],
-        #         "variable_clave": metrics['variable_clave'],
-        #         "sigma2": metrics['sigma2'],
-        #         "betas": metrics['betas'].tolist(),
-        #         "p_values": metrics['p_values'].tolist()
-        #     }
-        # }
+        # Convertir resultados a lista de diccionarios para respuesta JSON
+        results = df_out.to_dict(orient='records')
+        metrics['year'] = year  # Añadir año a las métricas
+        metrics['input_cols'] = input_cols  
+        metrics['output_cols'] = output_cols
+        logger.info(f"Resultados SFA para el año {year}: {metrics}")
+        return {
+            "results": results,
+            "metrics": metrics
+        }
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error al ejecutar SFA: {e}")
         raise HTTPException(status_code=500, detail="Error interno del servidor al procesar el análisis SFA.")
+    
+@app.get("/dea")
+def run_dea(year: int = 2014, db: Session = Depends(get_db)):
+    """
+    Ejecuta el análisis DEA para los hospitales del año especificado.
+
+    Args:
+        year: Año de los hospitales a analizar (por defecto 2014)
+    Returns:
+        Resultados del análisis DEA incluyendo eficiencia técnica y métricas
+    """ 
+    try:
+        # Obtener hospitales del año especificado
+        hospitals = db.query(models.Hospital).filter(models.Hospital.año == year).all()
+
+        if not hospitals:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No se encontraron hospitales para el año {year}."
+            )
+
+        # Convertir a DataFrame para análisis
+        import pandas as pd
+        df = pd.DataFrame([h.__dict__ for h in hospitals])
+        df.drop(columns=['_sa_instance_state'], inplace=True)  # Eliminar columna interna de SQLAlchemy
+        print(f"DataFrame para DEA:\n{df.head()}")
+
+        # Definir columnas de entrada y salida
+        input_cols = ['bienesyservicios', 'remuneraciones', 'diascamadisponibles']
+        output_cols = ['consultas']  # ID del hospital como salida
+
+        # Ejecutar DEA
+        df_out, metrics = utils.calculate_dea_metrics(df, input_cols, output_cols)
+
+        # Convertir resultados a lista de diccionarios para respuesta JSON
+        results = df_out.to_dict(orient='records')
+        metrics['year'] = year  # Añadir año a las métricas
+        metrics['input_cols'] = input_cols
+        metrics['output_cols'] = output_cols
+        logger.info(f"Resultados DEA para el año {year}: {metrics}")
+        return {
+            "results": results,
+            "metrics": metrics
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error al ejecutar DEA: {e}")
+        raise HTTPException(status_code=500, detail="Error interno del servidor al procesar el análisis DEA.")
 
 if __name__ == "__main__":
     import uvicorn
