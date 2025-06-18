@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import List
@@ -12,6 +13,20 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Panel Eficiencia Hospitalaria API", version="1.0.0")
+
+# Configurar CORS para permitir comunicación con el frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",  # React dev server
+        "http://localhost:5173",  # Vite dev server
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Crear las tablas
 models.Base.metadata.create_all(bind=engine) # Asegurar que las tablas de los modelos se creen
@@ -216,66 +231,27 @@ def say_hello(name: str = "XD"):
     
 # usar funcion sf calculate_sfa_metrics de utls/functions.py con hospitales filtrados 2014
 @app.get("/sfa")
-def run_sfa(year: int = 2014, db: Session = Depends(get_db)):
+def run_sfa(
+    year: int = 2014,
+    input_cols: str = Query(default='bienesyservicios,remuneraciones,diascamadisponibles'),
+    output_cols: str = Query(default='consultas'),
+    db: Session = Depends(get_db)
+):
     """
-    Ejecuta el análisis SFA para los hospitales del año especificado.
-    
+    Ejecuta el análisis SFA para los hospitales del año especificado y columnas seleccionadas.
+
     Args:
         year: Año de los hospitales a analizar (por defecto 2014)
+        input_cols: Columnas de entrada separadas por comas (ej: 'col1,col2,col3')
+        output_cols: Columnas de salida separadas por comas (ej: 'col1,col2')
     Returns:
         Resultados del análisis SFA incluyendo eficiencia técnica y métricas
     """
     try:
-        # Obtener hospitales del año especificado
-        hospitals = db.query(models.Hospital).filter(models.Hospital.año == year).all()
+        # Convertir strings separadas por comas a listas
+        input_cols_list = [col.strip() for col in input_cols.split(',')]
+        output_cols_list = [col.strip() for col in output_cols.split(',')]
         
-        if not hospitals:
-            raise HTTPException(
-                status_code=404, 
-                detail=f"No se encontraron hospitales para el año {year}."
-            )
-        
-        # Convertir a DataFrame para análisis
-        import pandas as pd
-        df = pd.DataFrame([h.__dict__ for h in hospitals])
-        df.drop(columns=['_sa_instance_state'], inplace=True)  # Eliminar columna interna de SQLAlchemy
-        print(f"DataFrame para SFA:\n{df.head()}")
-        
-        # Definir columnas de entrada y salida
-        input_cols = ['bienesyservicios', 'remuneraciones', 'diascamadisponibles']
-        output_cols = ['consultas']  # ID del hospital como salida
-        
-        # Ejecutar SFA
-        df_out, metrics = utils.calculate_sfa_metrics(df, input_cols, output_cols)
-
-        # Convertir resultados a lista de diccionarios para respuesta JSON
-        results = df_out.to_dict(orient='records')
-        metrics['year'] = year  # Añadir año a las métricas
-        metrics['input_cols'] = input_cols  
-        metrics['output_cols'] = output_cols
-        logger.info(f"Resultados SFA para el año {year}: {metrics}")
-        return {
-            "results": results,
-            "metrics": metrics
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error al ejecutar SFA: {e}")
-        raise HTTPException(status_code=500, detail="Error interno del servidor al procesar el análisis SFA.")
-    
-@app.get("/dea")
-def run_dea(year: int = 2014, db: Session = Depends(get_db)):
-    """
-    Ejecuta el análisis DEA para los hospitales del año especificado.
-
-    Args:
-        year: Año de los hospitales a analizar (por defecto 2014)
-    Returns:
-        Resultados del análisis DEA incluyendo eficiencia técnica y métricas
-    """ 
-    try:
         # Obtener hospitales del año especificado
         hospitals = db.query(models.Hospital).filter(models.Hospital.año == year).all()
 
@@ -289,26 +265,95 @@ def run_dea(year: int = 2014, db: Session = Depends(get_db)):
         import pandas as pd
         df = pd.DataFrame([h.__dict__ for h in hospitals])
         df.drop(columns=['_sa_instance_state'], inplace=True)  # Eliminar columna interna de SQLAlchemy
-        print(f"DataFrame para DEA:\n{df.head()}")
 
-        # Definir columnas de entrada y salida
-        input_cols = ['bienesyservicios', 'remuneraciones', 'diascamadisponibles']
-        output_cols = ['consultas']  # ID del hospital como salida
+        # Validar que las columnas existan en el DataFrame
+        missing_inputs = [col for col in input_cols_list if col not in df.columns]
+        missing_outputs = [col for col in output_cols_list if col not in df.columns]
+        if missing_inputs or missing_outputs:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Columnas no encontradas. Inputs faltantes: {missing_inputs}, Outputs faltantes: {missing_outputs}"
+            )
 
-        # Ejecutar DEA
-        df_out, metrics = utils.calculate_dea_metrics(df, input_cols, output_cols)
+        # Ejecutar SFA
+        df_out, metrics = utils.calculate_sfa_metrics(df, input_cols_list, output_cols_list)
 
         # Convertir resultados a lista de diccionarios para respuesta JSON
         results = df_out.to_dict(orient='records')
         metrics['year'] = year  # Añadir año a las métricas
-        metrics['input_cols'] = input_cols
-        metrics['output_cols'] = output_cols
-        logger.info(f"Resultados DEA para el año {year}: {metrics}")
+        metrics['input_cols'] = input_cols_list
+        metrics['output_cols'] = output_cols_list
+        logger.info(f"Resultados SFA para el año {year}: {metrics}")
         return {
             "results": results,
             "metrics": metrics
         }
 
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error al ejecutar SFA: {e}")
+        raise HTTPException(status_code=500, detail="Error interno del servidor al procesar el análisis SFA.")
+    
+@app.get("/dea")
+def run_dea(
+    year: int = 2014,
+    input_cols: str = Query(default='bienesyservicios,remuneraciones,diascamadisponibles'),
+    output_cols: str = Query(default='consultas'),
+    db: Session = Depends(get_db)
+):
+    """
+    Ejecuta el análisis DEA para los hospitales del año especificado y columnas seleccionadas.
+    
+    Args:
+        year: Año de los hospitales a analizar (por defecto 2014)
+        input_cols: Columnas de entrada separadas por comas (ej: 'col1,col2,col3')
+        output_cols: Columnas de salida separadas por comas (ej: 'col1,col2')
+    Returns:
+        Resultados del análisis DEA incluyendo eficiencia técnica y métricas
+    """
+    try:
+        # Convertir strings separadas por comas a listas
+        input_cols_list = [col.strip() for col in input_cols.split(',')]
+        output_cols_list = [col.strip() for col in output_cols.split(',')]
+        
+        # Obtener hospitales del año especificado
+        hospitals = db.query(models.Hospital).filter(models.Hospital.año == year).all()
+        
+        if not hospitals:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"No se encontraron hospitales para el año {year}."
+            )
+        
+        # Convertir a DataFrame para análisis
+        import pandas as pd
+        df = pd.DataFrame([h.__dict__ for h in hospitals])
+        df.drop(columns=['_sa_instance_state'], inplace=True)  # Eliminar columna interna de SQLAlchemy
+        
+        # Validar que las columnas existan en el DataFrame
+        missing_inputs = [col for col in input_cols_list if col not in df.columns]
+        missing_outputs = [col for col in output_cols_list if col not in df.columns]
+        if missing_inputs or missing_outputs:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Columnas no encontradas. Inputs faltantes: {missing_inputs}, Outputs faltantes: {missing_outputs}"
+            )
+        
+        # Ejecutar DEA
+        df_out, metrics = utils.calculate_dea_metrics(df, input_cols_list, output_cols_list)
+
+        # Convertir resultados a lista de diccionarios para respuesta JSON
+        results = df_out.to_dict(orient='records')
+        metrics['year'] = year  # Añadir año a las métricas
+        metrics['input_cols'] = input_cols_list  
+        metrics['output_cols'] = output_cols_list
+        logger.info(f"Resultados DEA para el año {year}: {metrics}")
+        return {
+            "results": results,
+            "metrics": metrics
+        }
+        
     except HTTPException:
         raise
     except Exception as e:
