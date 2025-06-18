@@ -229,9 +229,9 @@ const EficienciaView = ({ onNavigate }) => {
         border: "#fff1f0",
       },
       {
-        title: "SE Promedio",
-        value: 0.923,
-        precision: 3,
+        title: "Total Hospitales",
+        value: 0,
+        precision: 0,
         color: "#722ed1",
         icon: <ClockCircleOutlined />,
         gradient: "linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)",
@@ -1170,37 +1170,49 @@ const EficienciaView = ({ onNavigate }) => {
                       <TileLayer
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      />
+                      />{" "}
                       <MapLegend />
-                      {tableData.map((hospital) => (
-                        <Marker
-                          key={hospital.key}
-                          position={[hospital.lat, hospital.lng]}
-                          icon={getMarkerIcon(hospital.eficiencia)}
-                        >
-                          <Popup>
-                            <div
-                              style={{ textAlign: "center", minWidth: "150px" }}
-                            >
-                              <strong>{hospital.hospital}</strong>
-                              <br />
-                              <span style={{ color: "#666" }}>
-                                {hospital.region}
-                              </span>
-                              <br />
-                              <span
-                                style={{ color: "#1890ff", fontWeight: "bold" }}
+                      {tableData
+                        .filter(
+                          (hospital) =>
+                            selectedRows.length === 0 ||
+                            selectedRows.includes(hospital.key)
+                        )
+                        .map((hospital) => (
+                          <Marker
+                            key={hospital.key}
+                            position={[hospital.lat, hospital.lng]}
+                            icon={getMarkerIcon(hospital.eficiencia)}
+                          >
+                            <Popup>
+                              <div
+                                style={{
+                                  textAlign: "center",
+                                  minWidth: "150px",
+                                }}
                               >
-                                Eficiencia: {hospital.eficiencia}%
-                              </span>
-                              <br />
-                              <span style={{ color: "#666" }}>
-                                Percentil: {hospital.percentil}°
-                              </span>
-                            </div>
-                          </Popup>
-                        </Marker>
-                      ))}
+                                <strong>{hospital.hospital}</strong>
+                                <br />
+                                <span style={{ color: "#666" }}>
+                                  {hospital.region}
+                                </span>
+                                <br />
+                                <span
+                                  style={{
+                                    color: "#1890ff",
+                                    fontWeight: "bold",
+                                  }}
+                                >
+                                  Eficiencia: {hospital.eficiencia}%
+                                </span>
+                                <br />
+                                <span style={{ color: "#666" }}>
+                                  Percentil: {hospital.percentil}°
+                                </span>
+                              </div>
+                            </Popup>
+                          </Marker>
+                        ))}
                     </MapContainer>{" "}
                   </div>
                 </Col>{" "}

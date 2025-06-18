@@ -49,25 +49,28 @@ def calculate_sfa_metrics(df: pd.DataFrame,
 
         sfa = SFA.SFA(y, x, fun=fun, method=method)
         sfa.optimize()
-          # Extraer eficiencia
+        
+        # Extraer eficiencia
         te = np.array(sfa.get_technical_efficiency())
-        df_validos['ET SFA'] = np.round(te, 2)
+        df_validos['ET SFA'] = te
         
         # Extraer parámetros
         all_betas = np.array(sfa.get_beta())
         all_pvals = np.array(sfa.get_pvalue())
         lambda_varianza = sfa.get_lambda()
-          # Calcular métricas solo de hospitales válidos
-        et_promedio = round(float(te.mean()), 2)
-        pct_crit = round(float((te < te_threshold).mean() * 100), 2)
-          # Determinar variable clave
+        
+        # Calcular métricas solo de hospitales válidos
+        et_promedio = float(te.mean())
+        pct_crit = float((te < te_threshold).mean() * 100)
+        
+        # Determinar variable clave
         k = len(input_cols)
         betas_in = all_betas[1:1+k]
         pvals_in = all_pvals[1:1+k]
         df_coef = pd.DataFrame({
             'input': input_cols,
-            'beta': np.round(betas_in, 2),
-            'p_value': np.round(pvals_in, 4)
+            'beta': betas_in,
+            'p_value': pvals_in
         })
         df_sign = df_coef[df_coef.p_value < 0.05].copy()
         if not df_sign.empty:
@@ -75,34 +78,36 @@ def calculate_sfa_metrics(df: pd.DataFrame,
             var_clave = df_sign.sort_values('abs_beta', ascending=False).iloc[0].input
         else:
             var_clave = "No determinada"
-          # Calcular percentiles solo de hospitales válidos
+        
+        # Calcular percentiles solo de hospitales válidos
         df_validos['percentil'] = pd.qcut(df_validos['ET SFA'], 100, labels=False, duplicates='drop') + 1
         
     else:
         # No hay hospitales válidos
-        et_promedio = 0.00
-        pct_crit = 100.00
+        et_promedio = 0.0
+        pct_crit = 100.0
         var_clave = "No determinada"
-        lambda_varianza = 0.00
+        lambda_varianza = 0.0
     
     # 4) ASIGNAR ET SFA = 0 a hospitales inválidos
     if len(df_invalidos) > 0:
-        df_invalidos['ET SFA'] = 0.00
+        df_invalidos['ET SFA'] = 0.0
         df_invalidos['percentil'] = 0  # Percentil 0 para inválidos
     
     # 5) COMBINAR ambos DataFrames
     df_out = pd.concat([df_validos, df_invalidos], ignore_index=True)
-      # 6) RECALCULAR métricas incluyendo hospitales con ET SFA = 0
+    
+    # 6) RECALCULAR métricas incluyendo hospitales con ET SFA = 0
     te_total = df_out['ET SFA'].values
-    et_promedio_total = round(float(te_total.mean()), 2)
-    pct_crit_total = round(float((te_total < te_threshold).mean() * 100), 2)
+    et_promedio_total = float(te_total.mean())
+    pct_crit_total = float((te_total < te_threshold).mean() * 100)
     
     # Empaquetar métricas
     metrics = {
         'et_promedio': et_promedio_total,      # Promedio incluyendo 0s
         'pct_criticos': pct_crit_total,        # % críticos incluyendo 0s
         'variable_clave': var_clave,
-        'varianza': round(float(lambda_varianza), 2)
+        'varianza': float(lambda_varianza)
     }
     
     return df_out, metrics
@@ -117,7 +122,7 @@ def calculate_dea_metrics(df: pd.DataFrame,
                           orientation: str = "in",
                           rts: str = "CRS",
                           te_threshold: float = 0.6,
-                          n_jobs: int = 4
+                          n_jobs: int = 1
                          ) -> tuple[pd.DataFrame, dict]:
     """
     Ejecuta un DEA y devuelve:
@@ -132,6 +137,7 @@ def calculate_dea_metrics(df: pd.DataFrame,
       rts          : 'CRS' o 'VRS'
       te_threshold : umbral para % críticos (score < te_threshold)
     """
+    
     # 1) CREAR MÁSCARA de hospitales válidos (inputs y outputs > 0)
     mask_validos = (df[input_cols] > 0).all(axis=1) & (df[output_cols] > 0).all(axis=1)
     
@@ -155,12 +161,13 @@ def calculate_dea_metrics(df: pd.DataFrame,
         # Scores y slacks
         scores_crs = np.array([res.score for res in dea_crs.result])
         slacks_crs = np.stack([res.x_slack for res in dea_crs.result], axis=0)  # shape (n, k)
-          # Asignar scores a hospitales válidos
-        df_validos["ET DEA"] = np.round(scores_crs, 2)
+        
+        # Asignar scores a hospitales válidos
+        df_validos["ET DEA"] = scores_crs
         
         # KPI: promedio y críticos (solo de hospitales válidos)
-        et_promedio = round(float(scores_crs.mean()), 2)
-        pct_crit = round(float((scores_crs < te_threshold).mean() * 100), 2)
+        et_promedio = float(scores_crs.mean())
+        pct_crit = float((scores_crs < te_threshold).mean() * 100)
         
         # Variable slack clave: el input cuyo slack medio es mayor
         mean_slacks = np.nanmean(np.where(slacks_crs==0, np.nan, slacks_crs), axis=0)
@@ -169,26 +176,28 @@ def calculate_dea_metrics(df: pd.DataFrame,
             var_slack_clave = input_cols[idx_max]
         else:
             var_slack_clave = "No determinado"
-          # Calcular percentiles solo de hospitales válidos
+        
+        # Calcular percentiles solo de hospitales válidos
         df_validos['percentil'] = pd.qcut(df_validos['ET DEA'], 100, labels=False, duplicates='drop') + 1
         
     else:
         # No hay hospitales válidos
-        et_promedio = 0.00
-        pct_crit = 100.00
+        et_promedio = 0.0
+        pct_crit = 100.0
         var_slack_clave = "No determinado"
     
     # 4) ASIGNAR ET DEA = 0 a hospitales inválidos
     if len(df_invalidos) > 0:
-        df_invalidos['ET DEA'] = 0.00
+        df_invalidos['ET DEA'] = 0.0
         df_invalidos['percentil'] = 0  # Percentil 0 para inválidos
     
     # 5) COMBINAR ambos DataFrames
     df_out = pd.concat([df_validos, df_invalidos], ignore_index=True)
-      # 6) RECALCULAR métricas incluyendo hospitales con ET DEA = 0
+    
+    # 6) RECALCULAR métricas incluyendo hospitales con ET DEA = 0
     te_total = df_out['ET DEA'].values
-    et_promedio_total = round(float(te_total.mean()), 2)
-    pct_crit_total = round(float((te_total < te_threshold).mean() * 100), 2)
+    et_promedio_total = float(te_total.mean())
+    pct_crit_total = float((te_total < te_threshold).mean() * 100)
     
     # 7) Empaquetar métricas
     metrics = {
