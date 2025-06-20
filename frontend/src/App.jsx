@@ -5,6 +5,7 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, theme, Typography } from "antd";
+import { GlobalStateProvider } from "./contexts/GlobalStateContext";
 import InicioView from "./components/InicioView";
 import EficienciaView from "./components/EficienciaView";
 import ComparacionView from "./components/ComparacionView";
@@ -66,7 +67,7 @@ const App = () => {
       case "eficiencia":
         return <EficienciaView onNavigate={handleNavigate} />;
       case "comparar":
-        return <ComparacionView selectedHospitals={selectedHospitals} />;
+        return <ComparacionView />;
       case "determinantes":
         return <DeterminantesView onNavigate={handleNavigate} />;
       case "pca-cluster":
@@ -78,32 +79,34 @@ const App = () => {
     }
   };
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Header
-        style={{ display: "flex", alignItems: "center", padding: "0 16px" }}
-      >
-        <div
-          style={{
-            color: "white",
-            fontSize: "20px",
-            fontWeight: "bold",
-            marginRight: "24px",
-            whiteSpace: "nowrap",
-          }}
+    <GlobalStateProvider>
+      <Layout style={{ minHeight: "100vh" }}>
+        <Header
+          style={{ display: "flex", alignItems: "center", padding: "0 16px" }}
         >
-          ET Dashboard
-        </div>
-        <Menu
-          theme="dark"
-          mode="horizontal"
-          selectedKeys={[currentView]}
-          items={items1}
-          style={{ flex: 1, minWidth: 0 }}
-          onClick={handleMenuClick}
-        />
-      </Header>
-      {renderView()}
-    </Layout>
+          <div
+            style={{
+              color: "white",
+              fontSize: "20px",
+              fontWeight: "bold",
+              marginRight: "24px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            ET Dashboard
+          </div>
+          <Menu
+            theme="dark"
+            mode="horizontal"
+            selectedKeys={[currentView]}
+            items={items1}
+            style={{ flex: 1, minWidth: 0 }}
+            onClick={handleMenuClick}
+          />
+        </Header>
+        {renderView()}
+      </Layout>
+    </GlobalStateProvider>
   );
 };
 export default App;

@@ -32,6 +32,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import ApiService from "../services/api";
+import { useGlobalState } from "../contexts/GlobalStateContext";
+import StateIndicator from "./StateIndicator";
 
 // Componente de leyenda personalizado para Leaflet
 const MapLegend = () => {
@@ -142,23 +144,68 @@ const mediumEfficiencyIcon = createCustomIcon("#1890ff");
 const lowEfficiencyIcon = createCustomIcon("#fa8c16");
 
 const EficienciaView = ({ onNavigate }) => {
+  // Contexto global
+  const { state, actions } = useGlobalState();
+  // Estados locales (mantener algunos para transición gradual)
   const [collapsed, setCollapsed] = useState(false);
-  const [entradas, setEntradas] = useState([]);
-  const [salidas, setSalidas] = useState([]);
-  const [selectedYear, setSelectedYear] = useState(2014);
-  const [calculationMethod, setCalculationMethod] = useState("DEA");
+  // selectedRows se sincroniza con el estado global
   const [selectedRows, setSelectedRows] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const [anoInicial, setAnoInicial] = useState(2014);
   const [anoFinal, setAnoFinal] = useState(2018);
 
-  // Estados para la API
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  // Sincronizar selectedRows con hospitalesSeleccionados del estado global
+  useEffect(() => {
+    const selectedKeys = state.hospitalesSeleccionados.map(
+      (h) => h.key || h.id
+    );
+    setSelectedRows(selectedKeys);
+  }, [state.hospitalesSeleccionados]);
+  // Estados para la API (gradualmente migrar al contexto global)
   const [sfaData, setSfaData] = useState(null);
   const [deaData, setDeaData] = useState(null);
-  const [hospitalsData, setHospitalsData] = useState([]);
+  // Usar estado global para algunos valores
+  const entradas = state.inputcols;
+  const salidas = state.outputcols;
+  const selectedYear = state.año;
+  const calculationMethod = state.metodologia;
+  const loading = state.loading;
+  const error = state.error;
+  // Función para agregar hospitales a comparación
+  const handleAddToComparison = () => {
+    console.log("Agregar hospitales a comparación:", selectedRows);
+
+    // Obtener los datos completos de los hospitales seleccionados
+    const selectedHospitals = tableData.filter((hospital) =>
+      selectedRows.includes(hospital.key)
+    );
+
+    // Limpiar selecciones anteriores y agregar las nuevas
+    actions.clearHospitalesSeleccionados();
+
+    // Agregar cada hospital al estado global
+    selectedHospitals.forEach((hospital) => {
+      const hospitalData = {
+        id: hospital.key,
+        hospital: hospital.hospital,
+        eficiencia: hospital.eficiencia,
+        percentil: hospital.percentil,
+        region: hospital.region,
+        lat: hospital.lat,
+        lng: hospital.lng,
+        año: selectedYear,
+        // Agregar todos los datos adicionales del hospital
+        ...hospital,
+      };
+      actions.addHospitalSeleccionado(hospitalData);
+    });
+
+    // Navegar a la vista de comparación
+    if (onNavigate) {
+      onNavigate("comparar");
+    }
+  };
 
   // Configuración de KPIs por método de cálculo
   const kpiConfigs = {
@@ -280,12 +327,15 @@ const EficienciaView = ({ onNavigate }) => {
       },
     ],
   };
-
   // Función para generar KPIs dinámicamente basándose en los datos de la API
   const getCurrentKpis = () => {
     const currentData = calculationMethod === "SFA" ? sfaData : deaData;
 
     if (!currentData || !currentData.metrics) {
+      // Si no hay datos locales, usar los KPIs del estado global o la configuración por defecto
+      if (state.kpis && state.kpis.length > 0) {
+        return state.kpis;
+      }
       return kpiConfigs[calculationMethod] || [];
     }
 
@@ -475,12 +525,10 @@ const EficienciaView = ({ onNavigate }) => {
       ) : (
         text
       ),
-  });
-
-  // Funciones para manejar la API
+  }); // Funciones para manejar la API
   const fetchData = async () => {
-    setLoading(true);
-    setError(null);
+    actions.setLoading(true);
+    actions.setError(null);
 
     try {
       const inputCols =
@@ -489,6 +537,9 @@ const EficienciaView = ({ onNavigate }) => {
           : ["bienesyservicios", "remuneraciones", "diascamadisponibles"];
       const outputCols = salidas.length > 0 ? salidas : ["consultas"];
 
+      // Actualizar estado global con los parámetros usados en el cálculo
+      actions.setInputCols(inputCols);
+      actions.setOutputCols(outputCols);
       if (calculationMethod === "SFA") {
         const response = await ApiService.fetchSFAMetrics(
           selectedYear,
@@ -496,7 +547,10 @@ const EficienciaView = ({ onNavigate }) => {
           outputCols
         );
         setSfaData(response);
-        setHospitalsData(response.results || []);
+
+        // Guardar en estado global
+        actions.setHospitales(response.results || []);
+        actions.setKpis(response.kpis || []);
       } else if (calculationMethod === "DEA") {
         const response = await ApiService.fetchDEAMetrics(
           selectedYear,
@@ -504,13 +558,16 @@ const EficienciaView = ({ onNavigate }) => {
           outputCols
         );
         setDeaData(response);
-        setHospitalsData(response.results || []);
+
+        // Guardar en estado global
+        actions.setHospitales(response.results || []);
+        actions.setKpis(response.kpis || []);
       }
     } catch (err) {
-      setError(err.message);
+      actions.setError(err.message);
       console.error("Error fetching data:", err);
     } finally {
-      setLoading(false);
+      actions.setLoading(false);
     }
   };
   // Effect para cargar datos cuando cambian los parámetros (comentado para que solo se ejecute con el botón Calcular)
@@ -534,11 +591,17 @@ const EficienciaView = ({ onNavigate }) => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken(); // Función para transformar datos de la API para la tabla
   const getTableData = () => {
-    if (!hospitalsData || hospitalsData.length === 0) {
+    // Usar el estado global en lugar del estado local
+    const hospitalesFromState = state.hospitales;
+    // Asegurar que siempre sea un array
+    if (
+      !Array.isArray(hospitalesFromState) ||
+      hospitalesFromState.length === 0
+    ) {
       return [];
     }
 
-    return hospitalsData.map((hospital, index) => {
+    return hospitalesFromState.map((hospital, index) => {
       const eficienciaField = calculationMethod === "SFA" ? "ET SFA" : "ET DEA";
       const eficiencia = hospital[eficienciaField] || 0;
       // Usar hospital_name como nombre principal
@@ -565,14 +628,54 @@ const EficienciaView = ({ onNavigate }) => {
     if (eficiencia >= 90) return highEfficiencyIcon;
     if (eficiencia >= 80) return mediumEfficiencyIcon;
     return lowEfficiencyIcon;
-  };
-  // Configuración de selección de filas
+  }; // Configuración de selección de filas
   const rowSelection = {
     selectedRowKeys: selectedRows,
     onChange: (selectedRowKeys, selectedRowsData) => {
       // Limitar a máximo 2 selecciones
       if (selectedRowKeys.length <= 2) {
         setSelectedRows(selectedRowKeys);
+
+        // Sincronizar con el estado global
+        const currentHospitals = state.hospitalesSeleccionados;
+        const tableDataMap = tableData.reduce((acc, hospital) => {
+          acc[hospital.key] = hospital;
+          return acc;
+        }, {});
+
+        // Determinar qué hospital fue agregado o removido
+        const newKeys = selectedRowKeys.filter(
+          (key) => !selectedRows.includes(key)
+        );
+        const removedKeys = selectedRows.filter(
+          (key) => !selectedRowKeys.includes(key)
+        );
+
+        // Agregar nuevos hospitales
+        newKeys.forEach((key) => {
+          const hospital = tableDataMap[key];
+          if (hospital) {
+            const hospitalData = {
+              id: hospital.key,
+              key: hospital.key,
+              hospital: hospital.hospital,
+              eficiencia: hospital.eficiencia,
+              percentil: hospital.percentil,
+              region: hospital.region,
+              lat: hospital.lat,
+              lng: hospital.lng,
+              año: selectedYear,
+              ...hospital,
+            };
+            actions.addHospitalSeleccionado(hospitalData);
+          }
+        });
+
+        // Remover hospitales deseleccionados
+        removedKeys.forEach((key) => {
+          actions.removeHospitalSeleccionado(key);
+        });
+
         console.log("Filas seleccionadas:", selectedRowKeys, selectedRowsData);
       }
     },
@@ -830,7 +933,7 @@ const EficienciaView = ({ onNavigate }) => {
                 mode="multiple"
                 placeholder="Seleccionar entradas"
                 value={entradas}
-                onChange={setEntradas}
+                onChange={actions.setInputCols}
                 style={{ width: "100%", marginBottom: "16px" }}
                 options={[
                   { value: "bienesyservicios", label: "Bienes y Servicios" },
@@ -863,7 +966,7 @@ const EficienciaView = ({ onNavigate }) => {
                 mode="multiple"
                 placeholder="Seleccionar salidas"
                 value={salidas}
-                onChange={setSalidas}
+                onChange={actions.setOutputCols}
                 style={{ width: "100%", marginBottom: "24px" }}
                 options={[
                   { value: "consultas", label: "Consultas" },
@@ -942,7 +1045,12 @@ const EficienciaView = ({ onNavigate }) => {
             height: "calc(100vh - 128px)",
           }}
         >
+          {" "}
           <Spin spinning={loading} tip="Cargando datos...">
+            {/* Indicador de Estado Global */}
+            <div style={{ width: "100%", maxWidth: "1200px" }}>
+              <StateIndicator />
+            </div>
             {/* Header con título y selector de año */}
             <div
               style={{
@@ -969,7 +1077,7 @@ const EficienciaView = ({ onNavigate }) => {
                 {calculationMethod !== "DEA-M" && (
                   <Select
                     value={selectedYear}
-                    onChange={setSelectedYear}
+                    onChange={actions.setAño}
                     style={{ width: 120 }}
                     options={[
                       { value: 2014, label: "2014" },
@@ -979,10 +1087,10 @@ const EficienciaView = ({ onNavigate }) => {
                       { value: 2018, label: "2018" },
                     ]}
                   />
-                )}
+                )}{" "}
                 <Radio.Group
                   value={calculationMethod}
-                  onChange={(e) => setCalculationMethod(e.target.value)}
+                  onChange={(e) => actions.setMetodologia(e.target.value)}
                   size="middle"
                 >
                   <Radio.Button value="SFA">SFA</Radio.Button>
@@ -1072,21 +1180,7 @@ const EficienciaView = ({ onNavigate }) => {
                           marginBottom: "4px",
                           minWidth: "220px",
                         }}
-                        onClick={() => {
-                          console.log(
-                            "Comparar hospitales seleccionados:",
-                            selectedRows
-                          );
-                          // Obtener los datos completos de los hospitales seleccionados
-                          const selectedHospitals = tableData.filter(
-                            (hospital) => selectedRows.includes(hospital.key)
-                          );
-
-                          // Navegar a la vista de comparación
-                          if (onNavigate) {
-                            onNavigate("comparar", selectedHospitals);
-                          }
-                        }}
+                        onClick={handleAddToComparison}
                       >
                         Comparar{" "}
                         {selectedRows.length === 1 ? "Hospital" : "Hospitales"}{" "}
