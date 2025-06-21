@@ -11,7 +11,7 @@ class ApiService {
       }
       if (outputCols.length > 0) {
         params.append('output_cols', outputCols.join(','));
-      }
+      }      console.log(`Fetching SFA metrics for year ${year} with inputs: ${inputCols.join(', ')} and outputs: ${outputCols.join(', ')}`);
 
       const response = await fetch(`${API_BASE_URL}/sfa?${params}`);
       if (!response.ok) {

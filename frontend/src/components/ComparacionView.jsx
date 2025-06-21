@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -26,6 +26,7 @@ import {
   Space,
   Empty,
   Alert,
+  Spin,
 } from "antd";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
@@ -151,6 +152,7 @@ const ComparacionView = () => {
     año: selectedYear,
     metodologia: calculationMethod,
     hospitalesSeleccionados,
+    hospitalTemporalData,
     loading,
     error,
   } = state;
@@ -159,8 +161,8 @@ const ComparacionView = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
-  const [hospitalAYear, setHospitalAYear] = useState(2024);
-  const [hospitalBYear, setHospitalBYear] = useState(2023); // Preparar hospitales para comparación usando el estado global
+  const [hospitalAYear, setHospitalAYear] = useState(2018);
+  const [hospitalBYear, setHospitalBYear] = useState(2014); // Preparar hospitales para comparación usando el estado global
   const hospitalsToCompare = () => {
     if (hospitalesSeleccionados && hospitalesSeleccionados.length > 0) {
       // Buscar los valores actualizados de eficiencia en state.hospitales si están disponibles
@@ -231,11 +233,23 @@ const ComparacionView = () => {
         );
         return selectedHospital;
       };
-
       if (hospitalesSeleccionados.length === 1) {
-        // Si solo hay uno, duplicarlo para comparación temporal
-        const hospital = getUpdatedHospital(hospitalesSeleccionados[0]);
-        return [hospital, hospital];
+        // Comparación temporal: mismo hospital, diferentes años
+        const baseHospital = hospitalesSeleccionados[0];
+
+        // Hospital Año A: usar datos temporales si están disponibles, sino usar datos base
+        const hospitalYearA = hospitalTemporalData.yearA || {
+          ...baseHospital,
+          año: hospitalAYear,
+        };
+
+        // Hospital Año B: usar datos temporales si están disponibles, sino usar datos base
+        const hospitalYearB = hospitalTemporalData.yearB || {
+          ...baseHospital,
+          año: hospitalBYear,
+        };
+
+        return [hospitalYearA, hospitalYearB];
       } else {
         // Si hay dos o más, usar los primeros dos con valores actualizados
         return hospitalesSeleccionados.slice(0, 2).map(getUpdatedHospital);
@@ -243,82 +257,7 @@ const ComparacionView = () => {
     }
     return [];
   };
-
   const compareHospitals = hospitalsToCompare();
-
-  // Funciones para calcular KPIs de comparación
-  const calculateComparisonKPIs = () => {
-    if (compareHospitals.length < 2) {
-      return {
-        insumoGap: 0,
-        salidaGap: 0,
-        eficienciaGap: 0,
-      };
-    }    const hospital1 = compareHospitals[0];
-    const hospital2 = compareHospitals[1];
-
-    // Si es el mismo hospital (comparación temporal), los gaps serán 0
-    if (hospital1.id === hospital2.id || hospital1.key === hospital2.key) {
-      return {
-        insumoGap: 0,
-        salidaGap: 0,
-        eficienciaGap: 0
-      };
-    }
-
-    // Calcular Gap de Eficiencia (diferencia en puntos porcentuales)
-    const eficiencia1 = parseFloat(hospital1.eficiencia) || 0;
-    const eficiencia2 = parseFloat(hospital2.eficiencia) || 0;
-    const eficienciaGap = Math.abs(eficiencia1 - eficiencia2);    // Calcular Gap de Insumos (máxima diferencia relativa entre entradas)
-    let insumoGap = 0;
-    let maxInsumoVariable = '';
-    if (inputcols.length > 0) {      const insumoGaps = inputcols.map((col) => {
-        const val1 = parseFloat(hospital1[col]) || 0;
-        const val2 = parseFloat(hospital2[col]) || 0;
-        const max = Math.max(val1, val2);
-        const min = Math.min(val1, val2);
-        const gap = max > 0 ? ((max - min) / max) * 100 : 0;
-        return { variable: col, gap: gap, val1: val1, val2: val2 };
-      });
-      // Encontrar la máxima diferencia entre todas las entradas
-      const maxInsumoGap = insumoGaps.reduce((max, current) => 
-        current.gap > max.gap ? current : max, { gap: 0 }
-      );
-      insumoGap = maxInsumoGap.gap;
-      maxInsumoVariable = maxInsumoGap.variable;
-      console.log('Mayor gap en insumos:', maxInsumoGap);
-    }    // Calcular Gap de Salidas (máxima diferencia relativa entre salidas)
-    let salidaGap = 0;
-    let maxSalidaVariable = '';
-    if (outputcols.length > 0) {      const salidaGaps = outputcols.map((col) => {
-        const val1 = parseFloat(hospital1[col]) || 0;
-        const val2 = parseFloat(hospital2[col]) || 0;
-        const max = Math.max(val1, val2);
-        const min = Math.min(val1, val2);
-        const gap = max > 0 ? ((max - min) / max) * 100 : 0;
-        return { variable: col, gap: gap, val1: val1, val2: val2 };
-      });
-      // Encontrar la máxima diferencia entre todas las salidas
-      const maxSalidaGap = salidaGaps.reduce((max, current) => 
-        current.gap > max.gap ? current : max, { gap: 0 }
-      );
-      salidaGap = maxSalidaGap.gap;
-      maxSalidaVariable = maxSalidaGap.variable;
-      console.log('Mayor gap en salidas:', maxSalidaGap);
-    }    return {
-      insumoGap: insumoGap,
-      salidaGap: salidaGap,
-      eficienciaGap: eficienciaGap,
-      maxInsumoVariable: maxInsumoVariable,
-      maxSalidaVariable: maxSalidaVariable
-    };
-  };
-  // Calcular KPIs de comparación
-  const comparisonKPIs = calculateComparisonKPIs();
-  
-  // Log para verificar los cálculos
-  console.log("KPIs de comparación calculados:", comparisonKPIs);
-  console.log("Hospitales para comparación:", compareHospitals);
 
   // Verificar si estamos comparando el mismo hospital (comparación temporal)
   const isSameHospitalComparison = () => {
@@ -330,6 +269,169 @@ const ComparacionView = () => {
   };
 
   const isTemporalComparison = isSameHospitalComparison();
+
+  // Calcular KPIs de comparación usando useMemo para recalcular automáticamente
+  const comparisonKPIs = useMemo(() => {
+    if (compareHospitals.length < 2) {
+      return {
+        insumoGap: 0,
+        salidaGap: 0,
+        eficienciaGap: 0,
+      };
+    }
+    const hospital1 = compareHospitals[0];
+    const hospital2 = compareHospitals[1];
+
+    // Si es el mismo hospital (comparación temporal), calcular los gaps temporales
+    if (hospital1.id === hospital2.id || hospital1.key === hospital2.key) {
+      // En comparación temporal, los gaps representan la diferencia entre años
+      // Calcular Gap de Eficiencia temporal
+      const eficiencia1 = parseFloat(hospital1.eficiencia) || 0;
+      const eficiencia2 = parseFloat(hospital2.eficiencia) || 0;
+      const eficienciaGap = Math.abs(eficiencia1 - eficiencia2);
+
+      // Calcular Gap de Insumos temporal
+      let insumoGap = 0;
+      let maxInsumoVariable = "";
+      if (inputcols.length > 0) {
+        const insumoGaps = inputcols.map((col) => {
+          const val1 = parseFloat(hospital1[col]) || 0;
+          const val2 = parseFloat(hospital2[col]) || 0;
+          const max = Math.max(val1, val2);
+          const min = Math.min(val1, val2);
+          const gap = max > 0 ? ((max - min) / max) * 100 : 0;
+          return { variable: col, gap: gap, val1: val1, val2: val2 };
+        });
+        const maxInsumoGap = insumoGaps.reduce(
+          (max, current) => (current.gap > max.gap ? current : max),
+          { gap: 0 }
+        );
+        insumoGap = maxInsumoGap.gap;
+        maxInsumoVariable = maxInsumoGap.variable;
+      }
+
+      // Calcular Gap de Salidas temporal
+      let salidaGap = 0;
+      let maxSalidaVariable = "";
+      if (outputcols.length > 0) {
+        const salidaGaps = outputcols.map((col) => {
+          const val1 = parseFloat(hospital1[col]) || 0;
+          const val2 = parseFloat(hospital2[col]) || 0;
+          const max = Math.max(val1, val2);
+          const min = Math.min(val1, val2);
+          const gap = max > 0 ? ((max - min) / max) * 100 : 0;
+          return { variable: col, gap: gap, val1: val1, val2: val2 };
+        });
+        const maxSalidaGap = salidaGaps.reduce(
+          (max, current) => (current.gap > max.gap ? current : max),
+          { gap: 0 }
+        );
+        salidaGap = maxSalidaGap.gap;
+        maxSalidaVariable = maxSalidaGap.variable;
+      }
+
+      return {
+        insumoGap: insumoGap,
+        salidaGap: salidaGap,
+        eficienciaGap: eficienciaGap,
+        maxInsumoVariable: maxInsumoVariable,
+        maxSalidaVariable: maxSalidaVariable,
+      };
+    }
+
+    // Calcular Gap de Eficiencia (diferencia en puntos porcentuales)
+    const eficiencia1 = parseFloat(hospital1.eficiencia) || 0;
+    const eficiencia2 = parseFloat(hospital2.eficiencia) || 0;
+    const eficienciaGap = Math.abs(eficiencia1 - eficiencia2); // Calcular Gap de Insumos (máxima diferencia relativa entre entradas)
+    let insumoGap = 0;
+    let maxInsumoVariable = "";
+    if (inputcols.length > 0) {
+      const insumoGaps = inputcols.map((col) => {
+        const val1 = parseFloat(hospital1[col]) || 0;
+        const val2 = parseFloat(hospital2[col]) || 0;
+        const max = Math.max(val1, val2);
+        const min = Math.min(val1, val2);
+        const gap = max > 0 ? ((max - min) / max) * 100 : 0;
+        return { variable: col, gap: gap, val1: val1, val2: val2 };
+      });
+      // Encontrar la máxima diferencia entre todas las entradas
+      const maxInsumoGap = insumoGaps.reduce(
+        (max, current) => (current.gap > max.gap ? current : max),
+        { gap: 0 }
+      );
+      insumoGap = maxInsumoGap.gap;
+      maxInsumoVariable = maxInsumoGap.variable;
+      console.log("Mayor gap en insumos:", maxInsumoGap);
+    } // Calcular Gap de Salidas (máxima diferencia relativa entre salidas)
+    let salidaGap = 0;
+    let maxSalidaVariable = "";
+    if (outputcols.length > 0) {
+      const salidaGaps = outputcols.map((col) => {
+        const val1 = parseFloat(hospital1[col]) || 0;
+        const val2 = parseFloat(hospital2[col]) || 0;
+        const max = Math.max(val1, val2);
+        const min = Math.min(val1, val2);
+        const gap = max > 0 ? ((max - min) / max) * 100 : 0;
+        return { variable: col, gap: gap, val1: val1, val2: val2 };
+      });
+      // Encontrar la máxima diferencia entre todas las salidas
+      const maxSalidaGap = salidaGaps.reduce(
+        (max, current) => (current.gap > max.gap ? current : max),
+        { gap: 0 }
+      );
+      salidaGap = maxSalidaGap.gap;
+      maxSalidaVariable = maxSalidaGap.variable;
+      console.log("Mayor gap en salidas:", maxSalidaGap);
+    }
+    return {
+      insumoGap: insumoGap,
+      salidaGap: salidaGap,
+      eficienciaGap: eficienciaGap,
+      maxInsumoVariable: maxInsumoVariable,
+      maxSalidaVariable: maxSalidaVariable,
+    };
+  }, [
+    compareHospitals,
+    hospitalTemporalData.yearA,
+    hospitalTemporalData.yearB,
+    isTemporalComparison,
+    inputcols,
+    outputcols,
+  ]); // Effect para inicializar datos temporales cuando se carga por primera vez
+  useEffect(() => {
+    if (isTemporalComparison && hospitalesSeleccionados.length === 1) {
+      const baseHospital = hospitalesSeleccionados[0];
+
+      // Solo inicializar si es la primera vez que se entra en modo temporal
+      // y no hay datos temporales previos
+      if (!hospitalTemporalData.yearA && !hospitalTemporalData.yearB) {
+        // Usar el año del hospital base si está disponible, sino usar los valores por defecto
+        const yearAToUse = baseHospital.año || hospitalAYear;
+        const yearBToUse = baseHospital.año || hospitalBYear;
+
+        actions.setTemporalYearA({
+          ...baseHospital,
+          año: yearAToUse,
+        });
+
+        actions.setTemporalYearB({
+          ...baseHospital,
+          año: yearBToUse,
+        });
+
+        // Solo actualizar los estados locales si es necesario
+        if (baseHospital.año && baseHospital.año !== hospitalAYear) {
+          setHospitalAYear(baseHospital.año);
+        }
+        if (baseHospital.año && baseHospital.año !== hospitalBYear) {
+          setHospitalBYear(baseHospital.año);
+        }
+      }
+    } else {
+      // Si no es comparación temporal, limpiar datos temporales
+      actions.clearTemporalData();
+    }
+  }, [isTemporalComparison, hospitalesSeleccionados, actions]);
 
   // Función para obtener las props del filtro de búsqueda
   const getColumnSearchProps = (dataIndex) => ({
@@ -573,6 +675,117 @@ const ComparacionView = () => {
       console.error("Error fetching data:", err);
     } finally {
       actions.setLoading(false);
+    }
+  };
+
+  // Función para obtener datos de un hospital específico para un año
+  const fetchTemporalData = async (hospital, year) => {
+    actions.setTemporalLoading(true);
+    actions.setTemporalError(null);
+
+    try {
+      const inputCols =
+        inputcols.length > 0
+          ? inputcols
+          : ["bienesyservicios", "remuneraciones", "diascamadisponibles"];
+      const outputCols = outputcols.length > 0 ? outputcols : ["consultas"];
+
+      console.log(
+        `Obteniendo datos temporales para ${hospital.hospital} año ${year}`
+      );
+
+      if (calculationMethod === "SFA") {
+        const response = await ApiService.fetchSFAMetrics(
+          year,
+          inputCols,
+          outputCols
+        );
+
+        // Buscar el hospital específico en los resultados
+        const hospitalData = response.results?.find(
+          (h) =>
+            h.hospital_name === hospital.hospital ||
+            h.id === hospital.id ||
+            h.key === hospital.key
+        );
+
+        return hospitalData;
+      } else if (calculationMethod === "DEA") {
+        const response = await ApiService.fetchDEAMetrics(
+          year,
+          inputCols,
+          outputCols
+        );
+
+        // Buscar el hospital específico en los resultados
+        const hospitalData = response.results?.find(
+          (h) =>
+            h.hospital_name === hospital.hospital ||
+            h.id === hospital.id ||
+            h.key === hospital.key
+        );
+
+        return hospitalData;
+      }
+    } catch (err) {
+      actions.setTemporalError(err.message);
+      console.error("Error fetching temporal data:", err);
+      return null;
+    } finally {
+      actions.setTemporalLoading(false);
+    }
+  };
+
+  // Función para manejar cambios de año en comparación temporal
+  const handleYearChange = async (year, hospitalIndex) => {
+    if (!isTemporalComparison || !hospitalesSeleccionados[0]) return;
+
+    const baseHospital = hospitalesSeleccionados[0];
+    console.log(
+      `Cambiando año ${
+        hospitalIndex === 0 ? "A" : "B"
+      } a ${year} para hospital ${baseHospital.hospital}`
+    );
+
+    // Actualizar el estado local del año
+    if (hospitalIndex === 0) {
+      setHospitalAYear(year);
+    } else {
+      setHospitalBYear(year);
+    }
+
+    // Obtener datos del hospital para el nuevo año
+    const hospitalData = await fetchTemporalData(baseHospital, year);
+
+    if (hospitalData) {
+      // Calcular eficiencia como se hace en EficienciaView
+      const eficienciaField = calculationMethod === "SFA" ? "ET SFA" : "ET DEA";
+      const eficiencia = hospitalData[eficienciaField] || 0;
+      const eficienciaFormatted = (eficiencia * 100).toFixed(1);
+
+      // Crear objeto hospital con datos actualizados
+      const updatedHospitalData = {
+        ...baseHospital,
+        ...hospitalData,
+        eficiencia: eficienciaFormatted,
+        año: year,
+        percentil: hospitalData.percentil || baseHospital.percentil,
+        region: hospitalData.region || baseHospital.region,
+        lat: hospitalData.latitud || baseHospital.lat,
+        lng: hospitalData.longitud || baseHospital.lng,
+      };
+
+      // Guardar en el estado global
+      if (hospitalIndex === 0) {
+        actions.setTemporalYearA(updatedHospitalData);
+      } else {
+        actions.setTemporalYearB(updatedHospitalData);
+      }
+
+      console.log(
+        `Datos actualizados para año ${hospitalIndex === 0 ? "A" : "B"}:`,
+        updatedHospitalData
+      );
     }
   };
 
@@ -913,7 +1126,9 @@ const ComparacionView = () => {
                           "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
                         boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                       }}
-                    >                      <Statistic
+                    >
+                      {" "}
+                      <Statistic
                         title="Gap Insumos"
                         value={comparisonKPIs.insumoGap}
                         precision={1}
@@ -936,7 +1151,9 @@ const ComparacionView = () => {
                           "linear-gradient(135deg, #f6ffed 0%, #f0f9e8 100%)",
                         boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                       }}
-                    >                      <Statistic
+                    >
+                      {" "}
+                      <Statistic
                         title="Gap Productos"
                         value={comparisonKPIs.salidaGap}
                         precision={1}
@@ -959,7 +1176,9 @@ const ComparacionView = () => {
                           "linear-gradient(135deg, #fff2f0 0%, #ffebe6 100%)",
                         boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                       }}
-                    >                      <Statistic
+                    >
+                      {" "}
+                      <Statistic
                         title="Gap Eficiencia"
                         value={comparisonKPIs.eficienciaGap}
                         precision={1}
@@ -971,6 +1190,25 @@ const ComparacionView = () => {
                   </Col>{" "}
                 </Row>{" "}
               </div>{" "}
+              {/* Manejo de errores para datos temporales */}
+              {hospitalTemporalData.error && (
+                <div
+                  style={{
+                    width: "100%",
+                    maxWidth: "1200px",
+                    marginTop: "16px",
+                  }}
+                >
+                  <Alert
+                    message="Error al cargar datos temporales"
+                    description={hospitalTemporalData.error}
+                    type="warning"
+                    showIcon
+                    closable
+                    onClose={() => actions.setTemporalError(null)}
+                  />
+                </div>
+              )}
               {/* Sección de Mapa y Tabla */}
               <div
                 style={{ width: "100%", maxWidth: "1200px", marginTop: "32px" }}
@@ -1058,606 +1296,623 @@ const ComparacionView = () => {
                   </Col>{" "}
                   {/* Cards de Hospitales para Comparación */}
                   <Col xs={24} lg={14} style={{ display: "flex" }}>
-                    <Row gutter={[24, 0]} style={{ flex: 1 }}>
-                      {compareHospitals.map((hospital, index) => (
-                        <Col
-                          xs={24}
-                          md={12}
-                          key={`${hospital.key}-${index}`}
-                          style={{ display: "flex" }}
-                        >
-                          <Card
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              display: "flex",
-                              flexDirection: "column",
-                              border: "2px solid #f0f0f0",
-                              borderRadius: "12px",
-                              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                            }}
-                            bodyStyle={{
-                              flex: 1,
-                              display: "flex",
-                              flexDirection: "column",
-                              padding: "16px",
-                            }}
+                    <Spin
+                      spinning={hospitalTemporalData.loading}
+                      tip="Cargando datos temporales..."
+                    >
+                      <Row gutter={[24, 0]} style={{ flex: 1 }}>
+                        {compareHospitals.map((hospital, index) => (
+                          <Col
+                            xs={24}
+                            md={12}
+                            key={`${hospital.key}-${index}`}
+                            style={{ display: "flex" }}
                           >
-                            {" "}
-                            {/* Header del Hospital */}
-                            <div
+                            <Card
                               style={{
-                                textAlign: "center",
-                                marginBottom: "12px",
-                                paddingBottom: "10px",
-                                borderBottom: "1px solid #f0f0f0",
+                                width: "100%",
+                                height: "100%",
+                                display: "flex",
+                                flexDirection: "column",
+                                border: "2px solid #f0f0f0",
+                                borderRadius: "12px",
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                              }}
+                              bodyStyle={{
+                                flex: 1,
+                                display: "flex",
+                                flexDirection: "column",
+                                padding: "16px",
                               }}
                             >
-                              <Title
-                                level={5}
+                              {" "}
+                              {/* Header del Hospital */}
+                              <div
                                 style={{
-                                  margin: 0,
-                                  marginBottom: "4px",
-                                  color: "#1890ff",
-                                  fontSize: "14px",
+                                  textAlign: "center",
+                                  marginBottom: "12px",
+                                  paddingBottom: "10px",
+                                  borderBottom: "1px solid #f0f0f0",
                                 }}
                               >
-                                {isTemporalComparison
-                                  ? index === 0
-                                    ? `${hospital.hospital} - Año A`
-                                    : `${hospital.hospital} - Año B`
-                                  : index === 0
-                                  ? "Hospital A"
-                                  : "Hospital B"}
-                              </Title>
-                              <Title
-                                level={4}
-                                style={{
-                                  margin: 0,
-                                  fontSize: "14px",
-                                  fontWeight: "600",
-                                  lineHeight: "1.2",
-                                  marginBottom: isTemporalComparison
-                                    ? "8px"
-                                    : "0px",
-                                }}
-                              >
-                                {!isTemporalComparison ? hospital.hospital : ""}
-                              </Title>
-
-                              {/* Selector de año solo para comparación temporal */}
-                              {isTemporalComparison && (
-                                <Select
-                                  value={
-                                    index === 0 ? hospitalAYear : hospitalBYear
-                                  }
-                                  onChange={(value) => {
-                                    if (index === 0) {
-                                      setHospitalAYear(value);
-                                    } else {
-                                      setHospitalBYear(value);
-                                    }
+                                <Title
+                                  level={5}
+                                  style={{
+                                    margin: 0,
+                                    marginBottom: "4px",
+                                    color: "#1890ff",
+                                    fontSize: "14px",
                                   }}
-                                  size="small"
-                                  style={{ width: "100px" }}
-                                  options={[
-                                    { value: 2024, label: "2024" },
-                                    { value: 2023, label: "2023" },
-                                    { value: 2022, label: "2022" },
-                                    { value: 2021, label: "2021" },
-                                    { value: 2020, label: "2020" },
-                                  ]}
-                                />
-                              )}
-                            </div>{" "}
-                            {/* Métricas del Hospital */}
-                            <div style={{ flex: 1 }}>
-                              <Row gutter={[0, 10]}>
-                                {/* Eficiencia Técnica */}
-                                <Col span={24}>
-                                  <div
-                                    style={{
-                                      background:
-                                        "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
-                                      padding: "12px",
-                                      borderRadius: "6px",
-                                      textAlign: "center",
+                                >
+                                  {isTemporalComparison
+                                    ? index === 0
+                                      ? `${hospital.hospital} - Año A`
+                                      : `${hospital.hospital} - Año B`
+                                    : index === 0
+                                    ? "Hospital A"
+                                    : "Hospital B"}
+                                </Title>
+                                <Title
+                                  level={4}
+                                  style={{
+                                    margin: 0,
+                                    fontSize: "14px",
+                                    fontWeight: "600",
+                                    lineHeight: "1.2",
+                                    marginBottom: isTemporalComparison
+                                      ? "8px"
+                                      : "0px",
+                                  }}
+                                >
+                                  {!isTemporalComparison
+                                    ? hospital.hospital
+                                    : ""}
+                                </Title>{" "}
+                                {/* Selector de año solo para comparación temporal */}
+                                {isTemporalComparison && (
+                                  <Select
+                                    value={
+                                      index === 0
+                                        ? hospitalAYear
+                                        : hospitalBYear
+                                    }
+                                    onChange={(value) => {
+                                      handleYearChange(value, index);
                                     }}
-                                  >
+                                    size="small"
+                                    style={{ width: "100px" }}
+                                    options={[
+                                      { value: 2024, label: "2024" },
+                                      { value: 2023, label: "2023" },
+                                      { value: 2022, label: "2022" },
+                                      { value: 2021, label: "2021" },
+                                      { value: 2020, label: "2020" },
+                                      { value: 2019, label: "2019" },
+                                      { value: 2018, label: "2018" },
+                                      { value: 2017, label: "2017" },
+                                      { value: 2016, label: "2016" },
+                                      { value: 2015, label: "2015" },
+                                      { value: 2014, label: "2014" },
+                                    ]}
+                                  />
+                                )}
+                              </div>{" "}
+                              {/* Métricas del Hospital */}
+                              <div style={{ flex: 1 }}>
+                                <Row gutter={[0, 10]}>
+                                  {/* Eficiencia Técnica */}
+                                  <Col span={24}>
                                     <div
                                       style={{
-                                        fontSize: "20px",
-                                        fontWeight: "bold",
-                                        color: "#1890ff",
-                                      }}
-                                    >
-                                      {hospital.eficiencia}%
-                                    </div>
-                                    <div
-                                      style={{
-                                        fontSize: "11px",
-                                        color: "#666",
-                                        marginTop: "2px",
-                                      }}
-                                    >
-                                      Eficiencia Técnica
-                                    </div>
-                                  </div>
-                                </Col>
-
-                                {/* Percentil */}
-                                <Col span={24}>
-                                  <div
-                                    style={{
-                                      background:
-                                        "linear-gradient(135deg, #f6ffed 0%, #f0f9e8 100%)",
-                                      padding: "12px",
-                                      borderRadius: "6px",
-                                      textAlign: "center",
-                                    }}
-                                  >
-                                    <div
-                                      style={{
-                                        fontSize: "18px",
-                                        fontWeight: "bold",
-                                        color: "#52c41a",
-                                      }}
-                                    >
-                                      {hospital.percentil}°
-                                    </div>
-                                    <div
-                                      style={{
-                                        fontSize: "11px",
-                                        color: "#666",
-                                        marginTop: "2px",
-                                      }}
-                                    >
-                                      Percentil Nacional
-                                    </div>
-                                  </div>
-                                </Col>
-
-                                {/* Información General */}
-                                <Col span={24}>
-                                  <div
-                                    style={{
-                                      background: "#f8f9fa",
-                                      padding: "12px",
-                                      borderRadius: "6px",
-                                      border: "1px solid #e9ecef",
-                                    }}
-                                  >
-                                    <div
-                                      style={{
-                                        fontSize: "11px",
-                                        color: "#666",
-                                        marginBottom: "8px",
-                                        fontWeight: "600",
-                                      }}
-                                    >
-                                      Información General
-                                    </div>
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        gap: "4px",
+                                        background:
+                                          "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+                                        padding: "12px",
+                                        borderRadius: "6px",
+                                        textAlign: "center",
                                       }}
                                     >
                                       <div
                                         style={{
-                                          display: "flex",
-                                          justifyContent: "space-between",
+                                          fontSize: "20px",
+                                          fontWeight: "bold",
+                                          color: "#1890ff",
                                         }}
                                       >
-                                        <span
-                                          style={{
-                                            fontSize: "10px",
-                                            color: "#666",
-                                          }}
-                                        >
-                                          Región:
-                                        </span>
-                                        <span
-                                          style={{
-                                            fontSize: "10px",
-                                            fontWeight: "500",
-                                          }}
-                                        >
-                                          {hospital.region}
-                                        </span>
+                                        {hospital.eficiencia}%
+                                      </div>
+                                      <div
+                                        style={{
+                                          fontSize: "11px",
+                                          color: "#666",
+                                          marginTop: "2px",
+                                        }}
+                                      >
+                                        Eficiencia Técnica
+                                      </div>
+                                    </div>
+                                  </Col>
+
+                                  {/* Percentil */}
+                                  <Col span={24}>
+                                    <div
+                                      style={{
+                                        background:
+                                          "linear-gradient(135deg, #f6ffed 0%, #f0f9e8 100%)",
+                                        padding: "12px",
+                                        borderRadius: "6px",
+                                        textAlign: "center",
+                                      }}
+                                    >
+                                      <div
+                                        style={{
+                                          fontSize: "18px",
+                                          fontWeight: "bold",
+                                          color: "#52c41a",
+                                        }}
+                                      >
+                                        {hospital.percentil}°
+                                      </div>
+                                      <div
+                                        style={{
+                                          fontSize: "11px",
+                                          color: "#666",
+                                          marginTop: "2px",
+                                        }}
+                                      >
+                                        Percentil Nacional
+                                      </div>
+                                    </div>
+                                  </Col>
+
+                                  {/* Información General */}
+                                  <Col span={24}>
+                                    <div
+                                      style={{
+                                        background: "#f8f9fa",
+                                        padding: "12px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #e9ecef",
+                                      }}
+                                    >
+                                      <div
+                                        style={{
+                                          fontSize: "11px",
+                                          color: "#666",
+                                          marginBottom: "8px",
+                                          fontWeight: "600",
+                                        }}
+                                      >
+                                        Información General
                                       </div>
                                       <div
                                         style={{
                                           display: "flex",
-                                          justifyContent: "space-between",
+                                          flexDirection: "column",
+                                          gap: "4px",
                                         }}
                                       >
-                                        <span
+                                        <div
                                           style={{
-                                            fontSize: "10px",
-                                            color: "#666",
+                                            display: "flex",
+                                            justifyContent: "space-between",
                                           }}
                                         >
-                                          Año:
-                                        </span>
-                                        <span
+                                          <span
+                                            style={{
+                                              fontSize: "10px",
+                                              color: "#666",
+                                            }}
+                                          >
+                                            Región:
+                                          </span>
+                                          <span
+                                            style={{
+                                              fontSize: "10px",
+                                              fontWeight: "500",
+                                            }}
+                                          >
+                                            {hospital.region}
+                                          </span>
+                                        </div>
+                                        <div
                                           style={{
-                                            fontSize: "10px",
-                                            fontWeight: "500",
+                                            display: "flex",
+                                            justifyContent: "space-between",
                                           }}
                                         >
-                                          {hospital.año || selectedYear}
-                                        </span>
+                                          <span
+                                            style={{
+                                              fontSize: "10px",
+                                              color: "#666",
+                                            }}
+                                          >
+                                            Año:
+                                          </span>
+                                          <span
+                                            style={{
+                                              fontSize: "10px",
+                                              fontWeight: "500",
+                                            }}
+                                          >
+                                            {isTemporalComparison
+                                              ? hospital.año ||
+                                                (index === 0
+                                                  ? hospitalAYear
+                                                  : hospitalBYear)
+                                              : hospital.año || selectedYear}
+                                          </span>
+                                        </div>
+                                        <div
+                                          style={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                          }}
+                                        >
+                                          <span
+                                            style={{
+                                              fontSize: "10px",
+                                              color: "#666",
+                                            }}
+                                          >
+                                            Complejidad:
+                                          </span>
+                                          <span
+                                            style={{
+                                              fontSize: "10px",
+                                              fontWeight: "500",
+                                            }}
+                                          >
+                                            {hospital.complejidad || "N/A"}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </Col>
+
+                                  {/* Inputs (Entradas) */}
+                                  <Col span={24}>
+                                    <div
+                                      style={{
+                                        background:
+                                          "linear-gradient(135deg, #fff7e6 0%, #fff1dc 100%)",
+                                        padding: "12px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #ffd591",
+                                      }}
+                                    >
+                                      <div
+                                        style={{
+                                          fontSize: "11px",
+                                          color: "#d48806",
+                                          marginBottom: "8px",
+                                          fontWeight: "600",
+                                        }}
+                                      >
+                                        📥 Entradas (Inputs)
                                       </div>
                                       <div
                                         style={{
                                           display: "flex",
-                                          justifyContent: "space-between",
+                                          flexDirection: "column",
+                                          gap: "3px",
                                         }}
                                       >
-                                        <span
-                                          style={{
-                                            fontSize: "10px",
-                                            color: "#666",
-                                          }}
-                                        >
-                                          Complejidad:
-                                        </span>
-                                        <span
-                                          style={{
-                                            fontSize: "10px",
-                                            fontWeight: "500",
-                                          }}
-                                        >
-                                          {hospital.complejidad || "N/A"}
-                                        </span>
+                                        {hospital.bienesyservicios && (
+                                          <div
+                                            style={{
+                                              display: "flex",
+                                              justifyContent: "space-between",
+                                            }}
+                                          >
+                                            <span
+                                              style={{
+                                                fontSize: "9px",
+                                                color: "#666",
+                                              }}
+                                            >
+                                              Bienes y Servicios:
+                                            </span>
+                                            <span
+                                              style={{
+                                                fontSize: "9px",
+                                                fontWeight: "500",
+                                              }}
+                                            >
+                                              $
+                                              {hospital.bienesyservicios?.toLocaleString() ||
+                                                "N/A"}
+                                            </span>
+                                          </div>
+                                        )}
+                                        {hospital.remuneraciones && (
+                                          <div
+                                            style={{
+                                              display: "flex",
+                                              justifyContent: "space-between",
+                                            }}
+                                          >
+                                            <span
+                                              style={{
+                                                fontSize: "9px",
+                                                color: "#666",
+                                              }}
+                                            >
+                                              Remuneraciones:
+                                            </span>
+                                            <span
+                                              style={{
+                                                fontSize: "9px",
+                                                fontWeight: "500",
+                                              }}
+                                            >
+                                              $
+                                              {hospital.remuneraciones?.toLocaleString() ||
+                                                "N/A"}
+                                            </span>
+                                          </div>
+                                        )}
+                                        {hospital.diascamadisponibles && (
+                                          <div
+                                            style={{
+                                              display: "flex",
+                                              justifyContent: "space-between",
+                                            }}
+                                          >
+                                            <span
+                                              style={{
+                                                fontSize: "9px",
+                                                color: "#666",
+                                              }}
+                                            >
+                                              Días Cama Disp.:
+                                            </span>
+                                            <span
+                                              style={{
+                                                fontSize: "9px",
+                                                fontWeight: "500",
+                                              }}
+                                            >
+                                              {hospital.diascamadisponibles?.toLocaleString() ||
+                                                "N/A"}
+                                            </span>
+                                          </div>
+                                        )}
                                       </div>
                                     </div>
-                                  </div>
-                                </Col>
+                                  </Col>
 
-                                {/* Inputs (Entradas) */}
-                                <Col span={24}>
-                                  <div
-                                    style={{
-                                      background:
-                                        "linear-gradient(135deg, #fff7e6 0%, #fff1dc 100%)",
-                                      padding: "12px",
-                                      borderRadius: "6px",
-                                      border: "1px solid #ffd591",
-                                    }}
-                                  >
+                                  {/* Outputs (Salidas) */}
+                                  <Col span={24}>
                                     <div
                                       style={{
-                                        fontSize: "11px",
-                                        color: "#d48806",
-                                        marginBottom: "8px",
-                                        fontWeight: "600",
-                                      }}
-                                    >
-                                      📥 Entradas (Inputs)
-                                    </div>
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        gap: "3px",
-                                      }}
-                                    >
-                                      {hospital.bienesyservicios && (
-                                        <div
-                                          style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                          }}
-                                        >
-                                          <span
-                                            style={{
-                                              fontSize: "9px",
-                                              color: "#666",
-                                            }}
-                                          >
-                                            Bienes y Servicios:
-                                          </span>
-                                          <span
-                                            style={{
-                                              fontSize: "9px",
-                                              fontWeight: "500",
-                                            }}
-                                          >
-                                            $
-                                            {hospital.bienesyservicios?.toLocaleString() ||
-                                              "N/A"}
-                                          </span>
-                                        </div>
-                                      )}
-                                      {hospital.remuneraciones && (
-                                        <div
-                                          style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                          }}
-                                        >
-                                          <span
-                                            style={{
-                                              fontSize: "9px",
-                                              color: "#666",
-                                            }}
-                                          >
-                                            Remuneraciones:
-                                          </span>
-                                          <span
-                                            style={{
-                                              fontSize: "9px",
-                                              fontWeight: "500",
-                                            }}
-                                          >
-                                            $
-                                            {hospital.remuneraciones?.toLocaleString() ||
-                                              "N/A"}
-                                          </span>
-                                        </div>
-                                      )}
-                                      {hospital.diascamadisponibles && (
-                                        <div
-                                          style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                          }}
-                                        >
-                                          <span
-                                            style={{
-                                              fontSize: "9px",
-                                              color: "#666",
-                                            }}
-                                          >
-                                            Días Cama Disp.:
-                                          </span>
-                                          <span
-                                            style={{
-                                              fontSize: "9px",
-                                              fontWeight: "500",
-                                            }}
-                                          >
-                                            {hospital.diascamadisponibles?.toLocaleString() ||
-                                              "N/A"}
-                                          </span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </Col>
-
-                                {/* Outputs (Salidas) */}
-                                <Col span={24}>
-                                  <div
-                                    style={{
-                                      background:
-                                        "linear-gradient(135deg, #f6ffed 0%, #f0f9e8 100%)",
-                                      padding: "12px",
-                                      borderRadius: "6px",
-                                      border: "1px solid #b7eb8f",
-                                    }}
-                                  >
-                                    <div
-                                      style={{
-                                        fontSize: "11px",
-                                        color: "#389e0d",
-                                        marginBottom: "8px",
-                                        fontWeight: "600",
-                                      }}
-                                    >
-                                      📤 Salidas (Outputs)
-                                    </div>
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        gap: "3px",
-                                      }}
-                                    >
-                                      {hospital.consultas && (
-                                        <div
-                                          style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                          }}
-                                        >
-                                          <span
-                                            style={{
-                                              fontSize: "9px",
-                                              color: "#666",
-                                            }}
-                                          >
-                                            Consultas:
-                                          </span>
-                                          <span
-                                            style={{
-                                              fontSize: "9px",
-                                              fontWeight: "500",
-                                            }}
-                                          >
-                                            {hospital.consultas?.toLocaleString() ||
-                                              "N/A"}
-                                          </span>
-                                        </div>
-                                      )}
-                                      {hospital.grdxegresos && (
-                                        <div
-                                          style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                          }}
-                                        >
-                                          <span
-                                            style={{
-                                              fontSize: "9px",
-                                              color: "#666",
-                                            }}
-                                          >
-                                            GRD x Egreso:
-                                          </span>
-                                          <span
-                                            style={{
-                                              fontSize: "9px",
-                                              fontWeight: "500",
-                                            }}
-                                          >
-                                            {hospital.grdxegresos?.toFixed(1) ||
-                                              "N/A"}
-                                          </span>
-                                        </div>
-                                      )}
-                                      {hospital.consultasurgencias && (
-                                        <div
-                                          style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                          }}
-                                        >
-                                          <span
-                                            style={{
-                                              fontSize: "9px",
-                                              color: "#666",
-                                            }}
-                                          >
-                                            Consultas Urgencias:
-                                          </span>
-                                          <span
-                                            style={{
-                                              fontSize: "9px",
-                                              fontWeight: "500",
-                                            }}
-                                          >
-                                            {hospital.consultasurgencias?.toLocaleString() ||
-                                              "N/A"}
-                                          </span>
-                                        </div>
-                                      )}
-                                      {hospital.examenes && (
-                                        <div
-                                          style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                          }}
-                                        >
-                                          <span
-                                            style={{
-                                              fontSize: "9px",
-                                              color: "#666",
-                                            }}
-                                          >
-                                            Exámenes:
-                                          </span>
-                                          <span
-                                            style={{
-                                              fontSize: "9px",
-                                              fontWeight: "500",
-                                            }}
-                                          >
-                                            {hospital.examenes?.toLocaleString() ||
-                                              "N/A"}
-                                          </span>
-                                        </div>
-                                      )}
-                                      {hospital.quirofanos && (
-                                        <div
-                                          style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                          }}
-                                        >
-                                          <span
-                                            style={{
-                                              fontSize: "9px",
-                                              color: "#666",
-                                            }}
-                                          >
-                                            Quirófanos:
-                                          </span>
-                                          <span
-                                            style={{
-                                              fontSize: "9px",
-                                              fontWeight: "500",
-                                            }}
-                                          >
-                                            {hospital.quirofanos?.toFixed(1) ||
-                                              "N/A"}
-                                          </span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </Col>
-
-                                {/* Clasificación por Eficiencia */}
-                                <Col span={24}>
-                                  <div
-                                    style={{
-                                      background: "#f8f9fa",
-                                      padding: "10px",
-                                      borderRadius: "6px",
-                                      border: "1px solid #e9ecef",
-                                    }}
-                                  >
-                                    <div
-                                      style={{
-                                        fontSize: "11px",
-                                        color: "#666",
-                                        marginBottom: "6px",
-                                      }}
-                                    >
-                                      Clasificación por Eficiencia:
-                                    </div>
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
+                                        background:
+                                          "linear-gradient(135deg, #f6ffed 0%, #f0f9e8 100%)",
+                                        padding: "12px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #b7eb8f",
                                       }}
                                     >
                                       <div
                                         style={{
-                                          width: "10px",
-                                          height: "10px",
-                                          borderRadius: "50%",
-                                          backgroundColor:
-                                            hospital.eficiencia >= 90
-                                              ? "#52c41a"
-                                              : hospital.eficiencia >= 80
-                                              ? "#1890ff"
-                                              : "#fa8c16",
-                                          marginRight: "6px",
-                                        }}
-                                      ></div>
-                                      <span
-                                        style={{
-                                          fontSize: "12px",
-                                          fontWeight: "500",
-                                          color:
-                                            hospital.eficiencia >= 90
-                                              ? "#52c41a"
-                                              : hospital.eficiencia >= 80
-                                              ? "#1890ff"
-                                              : "#fa8c16",
+                                          fontSize: "11px",
+                                          color: "#389e0d",
+                                          marginBottom: "8px",
+                                          fontWeight: "600",
                                         }}
                                       >
-                                        {hospital.eficiencia >= 90
-                                          ? "Alta Eficiencia"
-                                          : hospital.eficiencia >= 80
-                                          ? "Eficiencia Media"
-                                          : "Eficiencia Baja"}
-                                      </span>
+                                        📤 Salidas (Outputs)
+                                      </div>
+                                      <div
+                                        style={{
+                                          display: "flex",
+                                          flexDirection: "column",
+                                          gap: "3px",
+                                        }}
+                                      >
+                                        {hospital.consultas && (
+                                          <div
+                                            style={{
+                                              display: "flex",
+                                              justifyContent: "space-between",
+                                            }}
+                                          >
+                                            <span
+                                              style={{
+                                                fontSize: "9px",
+                                                color: "#666",
+                                              }}
+                                            >
+                                              Consultas:
+                                            </span>
+                                            <span
+                                              style={{
+                                                fontSize: "9px",
+                                                fontWeight: "500",
+                                              }}
+                                            >
+                                              {hospital.consultas?.toLocaleString() ||
+                                                "N/A"}
+                                            </span>
+                                          </div>
+                                        )}
+                                        {hospital.grdxegresos && (
+                                          <div
+                                            style={{
+                                              display: "flex",
+                                              justifyContent: "space-between",
+                                            }}
+                                          >
+                                            <span
+                                              style={{
+                                                fontSize: "9px",
+                                                color: "#666",
+                                              }}
+                                            >
+                                              GRD x Egreso:
+                                            </span>
+                                            <span
+                                              style={{
+                                                fontSize: "9px",
+                                                fontWeight: "500",
+                                              }}
+                                            >
+                                              {hospital.grdxegresos?.toFixed(
+                                                1
+                                              ) || "N/A"}
+                                            </span>
+                                          </div>
+                                        )}
+                                        {hospital.consultasurgencias && (
+                                          <div
+                                            style={{
+                                              display: "flex",
+                                              justifyContent: "space-between",
+                                            }}
+                                          >
+                                            <span
+                                              style={{
+                                                fontSize: "9px",
+                                                color: "#666",
+                                              }}
+                                            >
+                                              Consultas Urgencias:
+                                            </span>
+                                            <span
+                                              style={{
+                                                fontSize: "9px",
+                                                fontWeight: "500",
+                                              }}
+                                            >
+                                              {hospital.consultasurgencias?.toLocaleString() ||
+                                                "N/A"}
+                                            </span>
+                                          </div>
+                                        )}
+                                        {hospital.examenes && (
+                                          <div
+                                            style={{
+                                              display: "flex",
+                                              justifyContent: "space-between",
+                                            }}
+                                          >
+                                            <span
+                                              style={{
+                                                fontSize: "9px",
+                                                color: "#666",
+                                              }}
+                                            >
+                                              Exámenes:
+                                            </span>
+                                            <span
+                                              style={{
+                                                fontSize: "9px",
+                                                fontWeight: "500",
+                                              }}
+                                            >
+                                              {hospital.examenes?.toLocaleString() ||
+                                                "N/A"}
+                                            </span>
+                                          </div>
+                                        )}
+                                        {hospital.quirofanos && (
+                                          <div
+                                            style={{
+                                              display: "flex",
+                                              justifyContent: "space-between",
+                                            }}
+                                          >
+                                            <span
+                                              style={{
+                                                fontSize: "9px",
+                                                color: "#666",
+                                              }}
+                                            >
+                                              Quirófanos:
+                                            </span>
+                                            <span
+                                              style={{
+                                                fontSize: "9px",
+                                                fontWeight: "500",
+                                              }}
+                                            >
+                                              {hospital.quirofanos?.toFixed(
+                                                1
+                                              ) || "N/A"}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
                                     </div>
-                                  </div>
-                                </Col>
-                              </Row>
-                            </div>{" "}
-                          </Card>
-                        </Col>
-                      ))}
-                    </Row>
+                                  </Col>
+
+                                  {/* Clasificación por Eficiencia */}
+                                  <Col span={24}>
+                                    <div
+                                      style={{
+                                        background: "#f8f9fa",
+                                        padding: "10px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #e9ecef",
+                                      }}
+                                    >
+                                      <div
+                                        style={{
+                                          fontSize: "11px",
+                                          color: "#666",
+                                          marginBottom: "6px",
+                                        }}
+                                      >
+                                        Clasificación por Eficiencia:
+                                      </div>
+                                      <div
+                                        style={{
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                        }}
+                                      >
+                                        <div
+                                          style={{
+                                            width: "10px",
+                                            height: "10px",
+                                            borderRadius: "50%",
+                                            backgroundColor:
+                                              hospital.eficiencia >= 90
+                                                ? "#52c41a"
+                                                : hospital.eficiencia >= 80
+                                                ? "#1890ff"
+                                                : "#fa8c16",
+                                            marginRight: "6px",
+                                          }}
+                                        ></div>
+                                        <span
+                                          style={{
+                                            fontSize: "12px",
+                                            fontWeight: "500",
+                                            color:
+                                              hospital.eficiencia >= 90
+                                                ? "#52c41a"
+                                                : hospital.eficiencia >= 80
+                                                ? "#1890ff"
+                                                : "#fa8c16",
+                                          }}
+                                        >
+                                          {hospital.eficiencia >= 90
+                                            ? "Alta Eficiencia"
+                                            : hospital.eficiencia >= 80
+                                            ? "Eficiencia Media"
+                                            : "Eficiencia Baja"}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </Col>
+                                </Row>
+                              </div>{" "}
+                            </Card>
+                          </Col>
+                        ))}
+                      </Row>
+                    </Spin>
                   </Col>
                 </Row>
               </div>

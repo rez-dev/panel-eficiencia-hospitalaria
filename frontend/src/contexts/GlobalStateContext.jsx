@@ -15,6 +15,14 @@ const initialState = {
   // Selecciones para comparación
   hospitalesSeleccionados: [],
 
+  // Datos para comparación temporal (mismo hospital, diferentes años)
+  hospitalTemporalData: {
+    yearA: null, // Datos del hospital para año A
+    yearB: null, // Datos del hospital para año B
+    loading: false, // Estado de carga para datos temporales
+    error: null, // Error específico para datos temporales
+  },
+
   // Estados de control
   isDataLoaded: false,
   loading: false,
@@ -36,6 +44,12 @@ const actionTypes = {
   SET_LOADING: "SET_LOADING",
   SET_ERROR: "SET_ERROR",
   RESET_STATE: "RESET_STATE",
+  // Acciones para datos temporales
+  SET_TEMPORAL_YEAR_A: "SET_TEMPORAL_YEAR_A",
+  SET_TEMPORAL_YEAR_B: "SET_TEMPORAL_YEAR_B",
+  SET_TEMPORAL_LOADING: "SET_TEMPORAL_LOADING",
+  SET_TEMPORAL_ERROR: "SET_TEMPORAL_ERROR",
+  CLEAR_TEMPORAL_DATA: "CLEAR_TEMPORAL_DATA",
 };
 
 // Reducer para manejar el estado
@@ -84,7 +98,6 @@ const globalStateReducer = (state, action) => {
         ...state,
         hospitalesSeleccionados: [],
       };
-
     case actionTypes.SET_LOADING:
       return { ...state, loading: action.payload };
 
@@ -93,6 +106,55 @@ const globalStateReducer = (state, action) => {
 
     case actionTypes.RESET_STATE:
       return { ...initialState, año: new Date().getFullYear() };
+
+    // Casos para datos temporales
+    case actionTypes.SET_TEMPORAL_YEAR_A:
+      return {
+        ...state,
+        hospitalTemporalData: {
+          ...state.hospitalTemporalData,
+          yearA: action.payload,
+        },
+      };
+
+    case actionTypes.SET_TEMPORAL_YEAR_B:
+      return {
+        ...state,
+        hospitalTemporalData: {
+          ...state.hospitalTemporalData,
+          yearB: action.payload,
+        },
+      };
+
+    case actionTypes.SET_TEMPORAL_LOADING:
+      return {
+        ...state,
+        hospitalTemporalData: {
+          ...state.hospitalTemporalData,
+          loading: action.payload,
+        },
+      };
+
+    case actionTypes.SET_TEMPORAL_ERROR:
+      return {
+        ...state,
+        hospitalTemporalData: {
+          ...state.hospitalTemporalData,
+          error: action.payload,
+          loading: false,
+        },
+      };
+
+    case actionTypes.CLEAR_TEMPORAL_DATA:
+      return {
+        ...state,
+        hospitalTemporalData: {
+          yearA: null,
+          yearB: null,
+          loading: false,
+          error: null,
+        },
+      };
 
     default:
       return state;
@@ -173,9 +235,29 @@ export const GlobalStateProvider = ({ children }) => {
   const setError = (error) => {
     dispatch({ type: actionTypes.SET_ERROR, payload: error });
   };
-
   const resetState = () => {
     dispatch({ type: actionTypes.RESET_STATE });
+  };
+
+  // Acciones para datos temporales
+  const setTemporalYearA = (data) => {
+    dispatch({ type: actionTypes.SET_TEMPORAL_YEAR_A, payload: data });
+  };
+
+  const setTemporalYearB = (data) => {
+    dispatch({ type: actionTypes.SET_TEMPORAL_YEAR_B, payload: data });
+  };
+
+  const setTemporalLoading = (loading) => {
+    dispatch({ type: actionTypes.SET_TEMPORAL_LOADING, payload: loading });
+  };
+
+  const setTemporalError = (error) => {
+    dispatch({ type: actionTypes.SET_TEMPORAL_ERROR, payload: error });
+  };
+
+  const clearTemporalData = () => {
+    dispatch({ type: actionTypes.CLEAR_TEMPORAL_DATA });
   };
 
   const value = {
@@ -194,6 +276,12 @@ export const GlobalStateProvider = ({ children }) => {
       setLoading,
       setError,
       resetState,
+      // Acciones temporales
+      setTemporalYearA,
+      setTemporalYearB,
+      setTemporalLoading,
+      setTemporalError,
+      clearTemporalData,
     },
   };
 

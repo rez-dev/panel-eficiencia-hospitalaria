@@ -327,21 +327,16 @@ const EficienciaView = ({ onNavigate }) => {
       },
     ],
   };
-  // Función para generar KPIs dinámicamente basándose en los datos de la API
-  const getCurrentKpis = () => {
-    const currentData = calculationMethod === "SFA" ? sfaData : deaData;
 
-    if (!currentData || !currentData.metrics) {
-      // Si no hay datos locales, usar los KPIs del estado global o la configuración por defecto
-      if (state.kpis && state.kpis.length > 0) {
-        return state.kpis;
-      }
-      return kpiConfigs[calculationMethod] || [];
+  // Función para generar KPIs dinámicamente basándose en los datos de respuesta
+  const generateKpisFromData = (responseData, method) => {
+    if (!responseData || !responseData.metrics) {
+      return kpiConfigs[method] || [];
     }
 
-    const metrics = currentData.metrics;
+    const metrics = responseData.metrics;
 
-    if (calculationMethod === "SFA") {
+    if (method === "SFA") {
       return [
         {
           title: "ET Promedio",
@@ -413,7 +408,7 @@ const EficienciaView = ({ onNavigate }) => {
         },
         {
           title: "Total hospitales",
-          value: currentData.results ? currentData.results.length : 0,
+          value: responseData.results ? responseData.results.length : 0,
           precision: 0,
           color: "#722ed1",
           icon: <ClockCircleOutlined />,
@@ -422,6 +417,19 @@ const EficienciaView = ({ onNavigate }) => {
         },
       ];
     }
+  }; // Función para generar KPIs dinámicamente basándose en los datos de la API
+  const getCurrentKpis = () => {
+    // Usar los KPIs del estado global que siempre están disponibles después del primer cálculo
+    if (state.kpis && state.kpis.length > 0) {
+      return state.kpis;
+    }
+
+    // Si no hay datos calculados aún, mostrar placeholders con "--"
+    const placeholderKpis = kpiConfigs[calculationMethod] || [];
+    return placeholderKpis.map((kpi) => ({
+      ...kpi,
+      value: "--",
+    }));
   };
 
   const currentKpis = getCurrentKpis();
@@ -548,9 +556,16 @@ const EficienciaView = ({ onNavigate }) => {
         );
         setSfaData(response);
 
+        // Generar KPIs dinámicamente basándose en los datos recibidos
+        const dynamicKpis = generateKpisFromData(response, "SFA");
+
         // Guardar en estado global
         actions.setHospitales(response.results || []);
-        actions.setKpis(response.kpis || []);
+        actions.setKpis(
+          response.kpis && response.kpis.length > 0
+            ? response.kpis
+            : dynamicKpis
+        );
       } else if (calculationMethod === "DEA") {
         const response = await ApiService.fetchDEAMetrics(
           selectedYear,
@@ -559,9 +574,16 @@ const EficienciaView = ({ onNavigate }) => {
         );
         setDeaData(response);
 
+        // Generar KPIs dinámicamente basándose en los datos recibidos
+        const dynamicKpis = generateKpisFromData(response, "DEA");
+
         // Guardar en estado global
         actions.setHospitales(response.results || []);
-        actions.setKpis(response.kpis || []);
+        actions.setKpis(
+          response.kpis && response.kpis.length > 0
+            ? response.kpis
+            : dynamicKpis
+        );
       }
     } catch (err) {
       actions.setError(err.message);
@@ -570,6 +592,18 @@ const EficienciaView = ({ onNavigate }) => {
       actions.setLoading(false);
     }
   };
+  // Effect para sincronizar KPIs con el estado global cuando cambian los datos locales
+  useEffect(() => {
+    const currentData = calculationMethod === "SFA" ? sfaData : deaData;
+    if (
+      currentData &&
+      currentData.metrics &&
+      (!state.kpis || state.kpis.length === 0)
+    ) {
+      const dynamicKpis = generateKpisFromData(currentData, calculationMethod);
+      actions.setKpis(dynamicKpis);
+    }
+  }, [sfaData, deaData, calculationMethod, state.kpis, actions]);
   // Effect para cargar datos cuando cambian los parámetros (comentado para que solo se ejecute con el botón Calcular)
   // useEffect(() => {
   //   fetchData();
