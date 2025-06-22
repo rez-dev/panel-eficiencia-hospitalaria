@@ -7,3 +7,4 @@ numpy==2.0.1
 pandas==2.2.3
 pysfa==0.8
 pyfrontier==1.0.2
+scikit-learn==1.3.2

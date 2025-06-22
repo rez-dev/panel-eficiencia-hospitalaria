@@ -1,10 +1,8 @@
 import numpy as np
 import pandas as pd
 from pysfa import SFA
-
-import numpy as np
-import pandas as pd
-from pysfa import SFA
+from Pyfrontier.frontier_model import EnvelopDEA
+from typing import List, Tuple, Dict
 
 def calculate_sfa_metrics(df: pd.DataFrame,
                           input_cols: list[str],
@@ -103,18 +101,13 @@ def calculate_sfa_metrics(df: pd.DataFrame,
     pct_crit_total = float((te_total < te_threshold).mean() * 100)
     
     # Empaquetar métricas
-    metrics = {
-        'et_promedio': et_promedio_total,      # Promedio incluyendo 0s
+    metrics = {        'et_promedio': et_promedio_total,      # Promedio incluyendo 0s
         'pct_criticos': pct_crit_total,        # % críticos incluyendo 0s
         'variable_clave': var_clave,
         'varianza': float(lambda_varianza)
     }
-    
     return df_out, metrics
 
-import numpy as np
-import pandas as pd
-from Pyfrontier.frontier_model import EnvelopDEA
 
 def calculate_dea_metrics(df: pd.DataFrame,
                           input_cols: list[str],
@@ -198,8 +191,7 @@ def calculate_dea_metrics(df: pd.DataFrame,
     te_total = df_out['ET DEA'].values
     et_promedio_total = float(te_total.mean())
     pct_crit_total = float((te_total < te_threshold).mean() * 100)
-    
-    # 7) Empaquetar métricas
+      # 7) Empaquetar métricas
     metrics = {
         "et_promedio": et_promedio_total,           # Promedio incluyendo 0s
         "pct_criticos": pct_crit_total,             # % críticos incluyendo 0s
@@ -209,6 +201,107 @@ def calculate_dea_metrics(df: pd.DataFrame,
     }
     
     return df_out, metrics
+
+def run_pca(df: pd.DataFrame,
+            feature_cols: List[str],
+            n_components: int | None = None,
+            scale: bool = True
+           ) -> Tuple[pd.DataFrame, Dict]:
+    """
+    Ejecuta PCA sobre las columnas `feature_cols` y devuelve:
+      • df_pca  : DataFrame con columnas PC1, PC2, …, PCk
+      • metrics : dict con varianza explicada y matriz de cargas
+    
+    Parámetros
+    ----------
+    df           : DataFrame original
+    feature_cols : columnas a incluir en el PCA (solo numéricas)
+    n_components : nº de componentes (None ⇒ tantas como variables)
+    scale        : estandarizar variables a media 0 y σ 1 antes de PCA
+    """
+    X = df[feature_cols].to_numpy(dtype=float)
+    
+    # Escalado opcional
+    if scale:
+        from sklearn.preprocessing import StandardScaler
+        X = StandardScaler().fit_transform(X)
+    
+    from sklearn.decomposition import PCA
+    pca = PCA(n_components=n_components)
+    pcs = pca.fit_transform(X)
+    
+    pc_cols = [f"PC{i+1}" for i in range(pcs.shape[1])]
+    df_pca  = pd.DataFrame(pcs, index=df.index, columns=pc_cols)
+    
+    metrics = {
+        "explained_variance_ratio": pca.explained_variance_ratio_.tolist(),
+        "components": pd.DataFrame(pca.components_,
+                                   index=pc_cols,
+                                   columns=feature_cols)
+    }
+    return df_pca, metrics
+
+def pca_kmeans(df: pd.DataFrame,
+               feature_cols: List[str],
+               n_components: int = 2,
+               k: int | None = None,
+               k_max: int = 10,
+               scale: bool = True,
+               random_state: int = 42
+              ) -> Tuple[pd.DataFrame, Dict]:
+    """
+    1) Ejecuta PCA con run_pca
+    2) Aplica K-means (elige k óptimo con silhouette si k=None)
+    3) Devuelve df con PCs y 'cluster', y un diccionario de metadatos
+    """
+    # ---- PCA --------------------------------------------------
+    df_pca, pca_meta = run_pca(df, feature_cols,
+                               n_components=n_components,
+                               scale=scale)
+    pc_cols = df_pca.columns.tolist()
+
+    # ---- elegir k si no viene fijo ---------------------------
+    if k is None:
+        best_k, best_score = 2, -1
+        for kk in range(2, k_max + 1):
+            from sklearn.cluster import KMeans
+            from sklearn.metrics import silhouette_score
+            km = KMeans(n_clusters=kk, n_init="auto", random_state=random_state)
+            labels = km.fit_predict(df_pca[pc_cols])
+            score = silhouette_score(df_pca[pc_cols], labels)
+            if score > best_score:
+                best_k, best_score = kk, score
+        k = best_k
+        silhouette_best = best_score
+    else:
+        silhouette_best = None
+
+    # ---- K-means definitivo -----------------------------------
+    from sklearn.cluster import KMeans
+    from sklearn.metrics import silhouette_score
+    kmeans = KMeans(n_clusters=k, n_init="auto", random_state=random_state)
+    cluster_labels = kmeans.fit_predict(df_pca[pc_cols])
+
+    # calcular silhouette si no se calculó antes
+    if silhouette_best is None:
+        silhouette_best = silhouette_score(df_pca[pc_cols], cluster_labels)
+
+    # ---- ensamblar DataFrame de salida ------------------------
+    df_out = df.copy()
+    df_out = pd.concat([df_out, df_pca], axis=1)
+    df_out["cluster"] = cluster_labels
+
+    # ---- empaquetar metadatos ---------------------------------
+    meta = {
+        "explained_variance_ratio": pca_meta["explained_variance_ratio"],
+        "components": pca_meta["components"],
+        "k": k,
+        "silhouette": silhouette_best,
+        "cluster_centers": pd.DataFrame(kmeans.cluster_centers_,
+                                        columns=pc_cols)
+    }
+    return df_out, meta
+
 
 # funcion que dice hola que tal
 def say_hello(name: str) -> str:

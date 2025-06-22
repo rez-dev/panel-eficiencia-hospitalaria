@@ -360,6 +360,275 @@ def run_dea(
         logger.error(f"Error al ejecutar DEA: {e}")
         raise HTTPException(status_code=500, detail="Error interno del servidor al procesar el análisis DEA.")
 
+@app.get("/pca-clustering")
+def run_pca_clustering(
+    year: int = 2014,
+    input_cols: str = Query(default='bienesyservicios,remuneraciones,diascamadisponibles'),
+    output_cols: str = Query(default='grdxegresos'),
+    method: str = Query(default='DEA'),
+    n_components: int = Query(default=2, ge=1, le=10),
+    k: int = Query(default=None, ge=2, le=20),
+    k_max: int = Query(default=10, ge=2, le=20),
+    scale: bool = Query(default=True),
+    random_state: int = Query(default=42),
+    db: Session = Depends(get_db)
+):
+    """
+    Ejecuta análisis PCA + K-means clustering para los hospitales del año especificado.
+    Incluye cálculo de eficiencia técnica previo al análisis PCA.
+    
+    Args:
+        year: Año de los hospitales a analizar (por defecto 2014)
+        input_cols: Columnas de entrada (inputs) separadas por comas
+        output_cols: Columnas de salida (outputs) separadas por comas
+        method: Método de eficiencia ('DEA' o 'SFA')
+        n_components: Número de componentes principales (1-10, por defecto 2)
+        k: Número fijo de clusters (None para auto-selección óptima)
+        k_max: Máximo número de clusters para auto-selección (2-20, por defecto 10)
+        scale: Si estandarizar datos antes de PCA (por defecto True)
+        random_state: Semilla para reproducibilidad (por defecto 42)
+    
+    Returns:
+        Resultados del análisis PCA + clustering incluyendo componentes principales,
+        asignaciones de clusters, eficiencia técnica y métricas de calidad
+    """
+    try:
+        # Convertir strings separados por comas a listas
+        input_cols_list = [col.strip() for col in input_cols.split(',')]
+        output_cols_list = [col.strip() for col in output_cols.split(',')]
+        
+        # Crear feature_cols_list como la unión de inputs y outputs
+        feature_cols_list = input_cols_list + output_cols_list
+        
+        # Obtener hospitales del año especificado
+        hospitals = db.query(models.Hospital).filter(models.Hospital.año == year).all()
+        
+        if not hospitals:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No se encontraron hospitales para el año {year}."
+            )
+        
+        # Convertir a DataFrame para análisis
+        import pandas as pd
+        df = pd.DataFrame([h.__dict__ for h in hospitals])
+        df.drop(columns=['_sa_instance_state'], inplace=True)  # Eliminar columna interna de SQLAlchemy
+          # Validar que las columnas existan en el DataFrame
+        missing_inputs = [col for col in input_cols_list if col not in df.columns]
+        missing_outputs = [col for col in output_cols_list if col not in df.columns]
+        
+        if missing_inputs:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Columnas de entrada no encontradas: {missing_inputs}. Columnas disponibles: {list(df.columns)}"
+            )
+        
+        if missing_outputs:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Columnas de salida no encontradas: {missing_outputs}. Columnas disponibles: {list(df.columns)}"
+            )
+        
+        # Verificar que hay suficientes hospitales para clustering
+        if len(df) < 2:
+            raise HTTPException(
+                status_code=400,
+                detail="Se necesitan al menos 2 hospitales para realizar clustering."
+            )
+        
+        # Si k es None, usar auto-selección; si no, validar que k <= número de hospitales
+        if k is not None and k > len(df):
+            raise HTTPException(
+                status_code=400,
+                detail=f"El número de clusters (k={k}) no puede ser mayor que el número de hospitales ({len(df)})."
+            )
+          # Calcular eficiencia técnica primero
+        if method.upper() == 'DEA':
+            df_with_efficiency, efficiency_metrics = utils.calculate_dea_metrics(
+                df=df,
+                input_cols=input_cols_list,
+                output_cols=output_cols_list,
+                orientation="in",
+                rts="CRS",
+                te_threshold=0.6
+            )
+            efficiency_col = 'ET DEA'
+        elif method.upper() == 'SFA':
+            # Para SFA necesitamos un solo output, usamos el primero si hay múltiples
+            if len(output_cols_list) > 1:
+                logger.warning(f"SFA requiere un solo output, usando solo el primero: {output_cols_list[0]}")
+                sfa_output_cols = [output_cols_list[0]]  # Usar solo el primer output
+            else:
+                sfa_output_cols = output_cols_list
+            
+            df_with_efficiency, efficiency_metrics = utils.calculate_sfa_metrics(
+                df=df,
+                input_cols=input_cols_list,
+                output_col=sfa_output_cols,
+                te_threshold=0.6
+            )
+            efficiency_col = 'ET SFA'
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Método no válido: {method}. Use 'DEA' o 'SFA'."
+            )
+        
+        # Ejecutar PCA + K-means (solo con las variables de entrada, no incluir eficiencia en PCA)
+        df_out, cluster_meta = utils.pca_kmeans(
+            df=df_with_efficiency,
+            feature_cols=feature_cols_list,
+            n_components=n_components,
+            k=k,
+            k_max=min(k_max, len(df_with_efficiency)),  # Asegurar que k_max no exceda el número de hospitales
+            scale=scale,
+            random_state=random_state
+        )
+        
+        # Convertir resultados a lista de diccionarios para respuesta JSON
+        results = df_out.to_dict(orient='records')
+          # Preparar métricas para respuesta
+        metrics = {
+            'year': year,
+            'input_cols': input_cols_list,
+            'output_cols': output_cols_list,
+            'feature_cols': feature_cols_list,  # Unión de inputs y outputs para PCA
+            'method': method,
+            'efficiency_col': efficiency_col,
+            'n_components': n_components,
+            'k_clusters': cluster_meta['k'],
+            'silhouette_score': cluster_meta['silhouette'],
+            'explained_variance_ratio': cluster_meta['explained_variance_ratio'],
+            'total_variance_explained': sum(cluster_meta['explained_variance_ratio']),
+            'scale_applied': scale,
+            'random_state': random_state,
+            'n_hospitals': len(df_out),
+            'efficiency_metrics': efficiency_metrics
+        }
+        
+        # Convertir matriz de componentes a formato serializable
+        components_matrix = cluster_meta['components'].to_dict(orient='index')
+        
+        # Convertir centros de clusters a formato serializable
+        cluster_centers = cluster_meta['cluster_centers'].to_dict(orient='index')
+          # Calcular resumen estadístico por cluster (incluyendo eficiencia técnica)
+        cluster_summary = df_out.groupby('cluster').agg({
+            'cluster': 'size',  # Contar hospitales por cluster
+            **{col: 'mean' for col in feature_cols_list if col in df_out.columns},  # Promedio de todas las features (inputs + outputs) por cluster
+            efficiency_col: 'mean'  # Promedio de eficiencia técnica por cluster
+        }).round(3).to_dict(orient='index')
+        
+        # Renombrar la columna 'cluster' a 'n_hospitals' en el resumen
+        for cluster_id in cluster_summary:
+            cluster_summary[cluster_id]['n_hospitals'] = cluster_summary[cluster_id].pop('cluster')
+        
+        logger.info(f"PCA + Clustering ejecutado para {year}: {cluster_meta['k']} clusters, "
+                   f"silhouette={cluster_meta['silhouette']:.3f}, método={method}")
+        
+        return {
+            "results": results,
+            "metrics": metrics,
+            "components_matrix": components_matrix,
+            "cluster_centers": cluster_centers,
+            "cluster_summary": cluster_summary
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error al ejecutar PCA + Clustering: {e}")
+        raise HTTPException(status_code=500, detail=f"Error interno del servidor al procesar el análisis PCA + Clustering: {str(e)}")
+
+@app.get("/pca")
+def run_pca(
+    year: int = 2014,
+    feature_cols: str = Query(default='bienesyservicios,remuneraciones,diascamadisponibles,consultas'),
+    n_components: int = Query(default=2, ge=1, le=10),
+    scale: bool = Query(default=True),
+    db: Session = Depends(get_db)
+):
+    """
+    Ejecuta análisis PCA (sin clustering) para los hospitales del año especificado.
+    
+    Args:
+        year: Año de los hospitales a analizar (por defecto 2014)
+        feature_cols: Columnas para PCA separadas por comas (ej: 'col1,col2,col3')
+        n_components: Número de componentes principales (1-10, por defecto 2)
+        scale: Si estandarizar datos antes de PCA (por defecto True)
+    
+    Returns:
+        Resultados del análisis PCA incluyendo componentes principales,
+        varianza explicada y matriz de cargas
+    """
+    try:
+        # Convertir string separado por comas a lista
+        feature_cols_list = [col.strip() for col in feature_cols.split(',')]
+        
+        # Obtener hospitales del año especificado
+        hospitals = db.query(models.Hospital).filter(models.Hospital.año == year).all()
+        
+        if not hospitals:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No se encontraron hospitales para el año {year}."
+            )
+        
+        # Convertir a DataFrame para análisis
+        import pandas as pd
+        df = pd.DataFrame([h.__dict__ for h in hospitals])
+        df.drop(columns=['_sa_instance_state'], inplace=True)  # Eliminar columna interna de SQLAlchemy
+        
+        # Validar que las columnas existan en el DataFrame
+        missing_features = [col for col in feature_cols_list if col not in df.columns]
+        if missing_features:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Columnas no encontradas para PCA: {missing_features}. Columnas disponibles: {list(df.columns)}"
+            )
+        
+        # Ejecutar PCA
+        df_pca, pca_meta = utils.run_pca(
+            df=df,
+            feature_cols=feature_cols_list,
+            n_components=n_components,
+            scale=scale
+        )
+        
+        # Combinar datos originales con componentes principales
+        df_combined = pd.concat([df, df_pca], axis=1)
+        
+        # Convertir resultados a lista de diccionarios para respuesta JSON
+        results = df_combined.to_dict(orient='records')
+        
+        # Preparar métricas para respuesta
+        metrics = {
+            'year': year,
+            'feature_cols': feature_cols_list,
+            'n_components': n_components,
+            'explained_variance_ratio': pca_meta['explained_variance_ratio'],
+            'total_variance_explained': sum(pca_meta['explained_variance_ratio']),
+            'scale_applied': scale,
+            'n_hospitals': len(df_combined)
+        }
+        
+        # Convertir matriz de componentes a formato serializable
+        components_matrix = pca_meta['components'].to_dict(orient='index')
+        
+        logger.info(f"PCA ejecutado para {year}: {n_components} componentes, "
+                   f"varianza explicada={sum(pca_meta['explained_variance_ratio']):.2%}")
+        
+        return {
+            "results": results,
+            "metrics": metrics,
+            "components_matrix": components_matrix
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error al ejecutar PCA: {e}")
+        raise HTTPException(status_code=500, detail=f"Error interno del servidor al procesar el análisis PCA: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="localhost", port=8000, reload=True)
