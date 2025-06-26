@@ -3,6 +3,7 @@ import pandas as pd
 from pysfa import SFA
 from Pyfrontier.frontier_model import EnvelopDEA
 from typing import List, Tuple, Dict
+from joblib import Parallel, delayed
 
 def calculate_sfa_metrics(df: pd.DataFrame,
                           input_cols: list[str],
@@ -319,3 +320,98 @@ def say_hello(name: str) -> str:
         Saludo personalizado.
     """
     return f"Hola, {name}! ¿Cómo estás?"
+
+# --- helper: siempre paralelo --------------------------------
+def _evaluate_parallel(Xref, Yref, Xnew, Ynew,
+                       rts, orient, n_jobs):
+    """Eficiencia de cada (x,y) sobre la frontera (Xref,Yref)."""
+    def _score(x, y):
+        dea = EnvelopDEA(rts, orient)
+        dea.fit(np.vstack([Xref, x]), np.vstack([Yref, y]))
+        return dea.results[-1].score            # plural en v1.0.x
+    return np.array(Parallel(n_jobs=n_jobs)(
+        delayed(_score)(x, y) for x, y in zip(Xnew, Ynew)
+    ), dtype=float)
+
+
+# --- función principal simplificada ---------------------------
+def calculate_dea_malmquist_fast(df_t, df_t1,
+                                 input_cols, output_cols,
+                                 rts="CRS", orientation="in",
+                                 n_jobs=4, use_cross=True,
+                                 top_ids=None,
+                                 max_dmus=None,
+                                 top_input_col: str | None = None,
+                                 top_n: int = 30):
+    """Índice Malmquist con top-N opcional y %ΔProd.  Versión 100 % fallback."""
+
+    # 1 ▸ Filtrar positivos y alinear IDs
+    pos = lambda df: df[(df[input_cols] > 0).all(axis=1) &
+                        (df[output_cols] > 0).all(axis=1)]
+    df_t, df_t1 = map(pos, (df_t, df_t1))
+
+    ids = sorted(set(df_t.hospital_id) & set(df_t1.hospital_id))
+    if not ids:
+        raise ValueError("No hay hospitales comunes tras filtrar > 0")
+
+    # 2 ▸ Recorte top (si se pide)
+    if top_input_col is not None:
+        if top_input_col not in input_cols:
+            raise ValueError("top_input_col debe ser uno de input_cols")
+        ids = (df_t.loc[df_t.hospital_id.isin(ids)]
+                  .nlargest(top_n, top_input_col)["hospital_id"]
+                  .tolist())
+    elif top_ids is not None:
+        ids = [i for i in ids if i in top_ids]
+    elif max_dmus is not None:
+        ids = ids[:max_dmus]
+
+    if not ids:
+        raise ValueError("No quedan hospitales tras aplicar el filtro de top")
+
+    # 3 ▸ Subsets
+    df1 = df_t .loc[df_t .hospital_id.isin(ids)].sort_values("hospital_id")
+    df2 = df_t1.loc[df_t1.hospital_id.isin(ids)].sort_values("hospital_id")
+
+    X1, Y1 = df1[input_cols].to_numpy(), df1[output_cols].to_numpy()
+    X2, Y2 = df2[input_cols].to_numpy(), df2[output_cols].to_numpy()
+
+    # 4 ▸ Fronteras propias
+    dea1 = EnvelopDEA(rts, orientation, n_jobs); dea1.fit(X1, Y1)
+    dea2 = EnvelopDEA(rts, orientation, n_jobs); dea2.fit(X2, Y2)
+
+    eff1 = np.array([r.score for r in dea1.results])
+    eff2 = np.array([r.score for r in dea2.results])
+
+    # 5 ▸ Cross-efficiencies (si se piden)
+    if use_cross:
+        tech1_on_2 = _evaluate_parallel(X1, Y1, X2, Y2,
+                                        rts, orientation, n_jobs)
+        tech2_on_1 = _evaluate_parallel(X2, Y2, X1, Y1,
+                                        rts, orientation, n_jobs)
+        TECH = np.sqrt((tech1_on_2 / eff1) * (eff2 / tech2_on_1))
+    else:
+        TECH = np.ones_like(eff1)
+
+    # 6 ▸ Índices finales
+    EFFCH     = eff2 / eff1
+    MALMQUIST = EFFCH * TECH
+    PCT_DELTA = (MALMQUIST - 1) * 100       # %ΔProd
+
+    df_out = pd.DataFrame({
+        "EFF_t":     eff1,
+        "EFF_t1":    eff2,
+        "EFFCH":     EFFCH,
+        "TECH":      TECH,
+        "Malmquist": MALMQUIST,
+        "%ΔProd":    PCT_DELTA
+    }, index=df1.hospital_id)
+
+    summary = {
+        "EFFCH_mean":     float(EFFCH.mean()),
+        "TECH_mean":      float(TECH.mean()),
+        "Malmquist_mean": float(MALMQUIST.mean()),
+        "pctΔProd_mean":  float(PCT_DELTA.mean()),
+        "n_hospitals":    len(eff1)
+    }
+    return df_out, summary

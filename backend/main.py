@@ -6,6 +6,8 @@ from typing import List
 from database.database import get_db, engine, Base
 from database import models, schemas # Importar los modelos y schemas
 import logging
+import numpy as np
+import pandas as pd
 import utils.functions as utils
 
 # Configurar logging
@@ -322,7 +324,7 @@ def run_dea(
         
         if not hospitals:
             raise HTTPException(
-                status_code=404, 
+                status_code=404,
                 detail=f"No se encontraron hospitales para el año {year}."
             )
         
@@ -628,6 +630,179 @@ def run_pca(
     except Exception as e:
         logger.error(f"Error al ejecutar PCA: {e}")
         raise HTTPException(status_code=500, detail=f"Error interno del servidor al procesar el análisis PCA: {str(e)}")
+    
+@app.get("/malmquist")
+def run_malmquist(
+    year_t: int = 2014,
+    year_t1: int = 2016,
+    input_cols: str = Query(default='bienesyservicios,remuneraciones'),
+    output_cols: str = Query(default='consultas'),
+    top_input_col: str = Query(default='remuneraciones'),
+    db: Session = Depends(get_db)
+):
+    """
+    Ejecuta análisis Malmquist DEA para comparar la productividad entre dos años.
+    
+    Args:
+        year_t: Año inicial (período t, por defecto 2014)
+        year_t1: Año final (período t+1, por defecto 2015)
+        input_cols: Columnas de entrada separadas por comas
+        output_cols: Columnas de salida separadas por comas
+        rts: Retornos a escala ('CRS' o 'VRS', por defecto 'CRS')
+        orientation: Orientación del modelo ('in' o 'out', por defecto 'in')
+        use_cross: Usar cross-efficiency para el componente técnico (por defecto True)
+        top_n: Número de hospitales top a analizar (5-100, por defecto 30)
+        top_input_col: Columna para seleccionar top hospitales (None para usar todos)
+        max_dmus: Máximo número de DMUs a procesar (None para sin límite)
+        n_jobs: Número de trabajos paralelos (1-8, por defecto 1)
+    
+    Returns:
+        Resultados del análisis Malmquist incluyendo índices de cambio de eficiencia,
+        cambio tecnológico, índice Malmquist y porcentaje de cambio en productividad
+    """
+    try:
+        # Convertir strings separados por comas a listas
+        input_cols_list = [col.strip() for col in input_cols.split(',')]
+        output_cols_list = [col.strip() for col in output_cols.split(',')]
+        
+        # Validar que los años sean diferentes
+        if year_t == year_t1:
+            raise HTTPException(
+                status_code=400,
+                detail="Los años deben ser diferentes para el análisis Malmquist."
+            )
+
+        # Validar top_input_col si se especifica
+        if top_input_col and top_input_col not in input_cols_list:
+            raise HTTPException(
+                status_code=400,
+                detail=f"top_input_col '{top_input_col}' debe estar en input_cols: {input_cols_list}",
+                headers={"X-Error": "Invalid top_input_col"}
+            )
+        
+        # Obtener hospitales para ambos años usando consultas SQL directas
+        # (Evita problemas de cache de SQLAlchemy con múltiples consultas por año)
+        sql_query = text("""
+            SELECT hospital_id, region_id, hospital_name, hospital_alternative_name,
+                   latitud, longitud, consultas, grdxegresos, bienesyservicios, 
+                   remuneraciones, diascamadisponibles, consultasurgencias, 
+                   examenes, quirofanos, año, complejidad
+            FROM hospitals 
+            WHERE año = :year
+        """)
+        
+        # Obtener datos para year_t
+        result_t = db.execute(sql_query, {"year": year_t}).fetchall()
+        hospitals_t = [
+            {
+                "hospital_id": row[0],
+                "region_id": row[1], 
+                "hospital_name": row[2],
+                "hospital_alternative_name": row[3],
+                "latitud": float(row[4]) if row[4] is not None else None,
+                "longitud": float(row[5]) if row[5] is not None else None,
+                "consultas": int(row[6]) if row[6] is not None else None,
+                "grdxegresos": float(row[7]) if row[7] is not None else None,
+                "bienesyservicios": int(row[8]) if row[8] is not None else None,
+                "remuneraciones": int(row[9]) if row[9] is not None else None,
+                "diascamadisponibles": int(row[10]) if row[10] is not None else None,
+                "consultasurgencias": int(row[11]) if row[11] is not None else None,
+                "examenes": float(row[12]) if row[12] is not None else None,
+                "quirofanos": float(row[13]) if row[13] is not None else None,
+                "año": int(row[14]),
+                "complejidad": int(row[15]) if row[15] is not None else None
+            }
+            for row in result_t
+        ]
+        
+        # Obtener datos para year_t1  
+        result_t1 = db.execute(sql_query, {"year": year_t1}).fetchall()
+        hospitals_t1 = [
+            {
+                "hospital_id": row[0],
+                "region_id": row[1], 
+                "hospital_name": row[2],
+                "hospital_alternative_name": row[3],
+                "latitud": float(row[4]) if row[4] is not None else None,
+                "longitud": float(row[5]) if row[5] is not None else None,
+                "consultas": int(row[6]) if row[6] is not None else None,
+                "grdxegresos": float(row[7]) if row[7] is not None else None,
+                "bienesyservicios": int(row[8]) if row[8] is not None else None,
+                "remuneraciones": int(row[9]) if row[9] is not None else None,
+                "diascamadisponibles": int(row[10]) if row[10] is not None else None,
+                "consultasurgencias": int(row[11]) if row[11] is not None else None,
+                "examenes": float(row[12]) if row[12] is not None else None,
+                "quirofanos": float(row[13]) if row[13] is not None else None,
+                "año": int(row[14]),
+                "complejidad": int(row[15]) if row[15] is not None else None
+            }
+            for row in result_t1
+        ]
+        
+        # Validar que se encontraron datos para ambos años
+        if not hospitals_t:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No se encontraron hospitales para el año {year_t}."
+            )
+        
+        if not hospitals_t1:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No se encontraron hospitales para el año {year_t1}."
+            )
+
+        # Convertir listas de diccionarios a DataFrames para el análisis
+        df_hospitals_t = pd.DataFrame(hospitals_t)
+        df_hospitals_t1 = pd.DataFrame(hospitals_t1)
+
+        # Ejecutar análisis Malmquist
+        df_malmquist, summary = utils.calculate_dea_malmquist_fast(
+            df_hospitals_t, df_hospitals_t1, 
+            input_cols_list, output_cols_list,
+            top_input_col=top_input_col,
+            rts='CRS', orientation='in', 
+            use_cross=True,
+            top_n=30, max_dmus=None, n_jobs=4
+        )
+        
+        # Procesar resultados
+        results = df_malmquist.reset_index().to_dict(orient='records')
+        
+        # Estadísticas de resumen
+        malmquist_values = df_malmquist['Malmquist'].values
+        pct_delta_values = df_malmquist['%ΔProd'].values
+        
+        stats = {
+            'malmquist_mean': float(np.mean(malmquist_values)),
+            'malmquist_median': float(np.median(malmquist_values)),
+            'malmquist_std': float(np.std(malmquist_values)),
+            'productivity_improved': int((malmquist_values > 1).sum()),
+            'productivity_declined': int((malmquist_values < 1).sum()),
+            'productivity_unchanged': int((malmquist_values == 1).sum()),
+            'avg_productivity_change': float(np.mean(pct_delta_values))
+        }
+        
+        return {
+            "analysis_info": {
+                "year_t": year_t,
+                "year_t1": year_t1,
+                "hospitals_t_count": len(hospitals_t),
+                "hospitals_t1_count": len(hospitals_t1),
+                "input_columns": input_cols_list,
+                "output_columns": output_cols_list,
+                "top_input_column": top_input_col
+            },
+            "statistics": stats,
+            "detailed_results": results,
+            "summary": summary
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error al ejecutar análisis Malmquist: {e}")
+        raise HTTPException(status_code=500, detail=f"Error interno del servidor al procesar el análisis Malmquist: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
