@@ -766,24 +766,57 @@ def run_malmquist(
             top_n=30, max_dmus=None, n_jobs=4
         )
         
+        # Crear diccionarios de mapeo para hospital_id -> información del hospital
+        # Usar hospitals_t ya que contiene los IDs que están en df_malmquist
+        hospital_info = {
+            h['hospital_id']: {
+                'hospital_name': h['hospital_name'],
+                'hospital_alternative_name': h['hospital_alternative_name'],
+                'latitud': h['latitud'],
+                'longitud': h['longitud'],
+                'region_id': h['region_id'],
+                'complejidad': h['complejidad']
+            } for h in hospitals_t
+        }
+        
         # Procesar resultados
         results = df_malmquist.reset_index().to_dict(orient='records')
+        
+        # Agregar información del hospital a cada resultado
+        for result in results:
+            hospital_id = result.get('hospital_id')
+            if hospital_id in hospital_info:
+                result.update(hospital_info[hospital_id])
+            else:
+                # Fallback si no se encuentra la información
+                result['hospital_name'] = f"Hospital {hospital_id}"
+                result['latitud'] = None
+                result['longitud'] = None
+                result['region_id'] = None
+                result['complejidad'] = None
         
         # Estadísticas de resumen
         malmquist_values = df_malmquist['Malmquist'].values
         pct_delta_values = df_malmquist['%ΔProd'].values
         
-        stats = {
+        # Crear métricas en el formato esperado por el frontend
+        metrics = {
+            'delta_prod_promedio': float(np.mean(pct_delta_values)),
+            'delta_eficiencia_promedio': float(np.mean(df_malmquist['EFFCH'].values)),
+            'delta_tecnologia_promedio': float(np.mean(df_malmquist['TECH'].values)),
+            'pct_hosp_mejorados': float((malmquist_values > 1).sum() / len(malmquist_values) * 100),
             'malmquist_mean': float(np.mean(malmquist_values)),
             'malmquist_median': float(np.median(malmquist_values)),
             'malmquist_std': float(np.std(malmquist_values)),
             'productivity_improved': int((malmquist_values > 1).sum()),
             'productivity_declined': int((malmquist_values < 1).sum()),
             'productivity_unchanged': int((malmquist_values == 1).sum()),
-            'avg_productivity_change': float(np.mean(pct_delta_values))
+            'n_hospitals': len(results)
         }
         
         return {
+            "results": results,  # Cambiar de detailed_results a results para consistencia
+            "metrics": metrics,   # Agregar métricas en el formato esperado
             "analysis_info": {
                 "year_t": year_t,
                 "year_t1": year_t1,
@@ -793,8 +826,6 @@ def run_malmquist(
                 "output_columns": output_cols_list,
                 "top_input_column": top_input_col
             },
-            "statistics": stats,
-            "detailed_results": results,
             "summary": summary
         }
         

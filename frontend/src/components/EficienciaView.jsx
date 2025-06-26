@@ -36,7 +36,7 @@ import { useGlobalState } from "../contexts/GlobalStateContext";
 import StateIndicator from "./StateIndicator";
 
 // Componente de leyenda personalizado para Leaflet
-const MapLegend = () => {
+const MapLegend = ({ method = "SFA" }) => {
   const map = useMap();
 
   React.useEffect(() => {
@@ -53,48 +53,93 @@ const MapLegend = () => {
       div.style.maxWidth = "200px";
       div.style.border = "1px solid #d9d9d9";
 
-      div.innerHTML = `
+      let legendContent = `
         <div style="font-weight: bold; margin-bottom: 8px; font-size: 13px; color: #333;">
           📍 Leyenda
         </div>
-        <div style="display: flex; align-items: center; margin-bottom: 6px;">
-          <div style="
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background-color: #52c41a;
-            margin-right: 8px;
-            border: 2px solid white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-          "></div>
-          <span style="color: #666; font-size: 11px;">Alta eficiencia (≥90%)</span>
-        </div>
-        <div style="display: flex; align-items: center; margin-bottom: 6px;">
-          <div style="
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background-color: #1890ff;
-            margin-right: 8px;
-            border: 2px solid white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-          "></div>
-          <span style="color: #666; font-size: 11px;">Eficiencia media (80-89%)</span>
-        </div>
-        <div style="display: flex; align-items: center;">
-          <div style="
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background-color: #fa8c16;
-            margin-right: 8px;
-            border: 2px solid white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-          "></div>
-          <span style="color: #666; font-size: 11px;">Eficiencia baja (&lt;80%)</span>
-        </div>
       `;
 
+      if (method === "DEA-M") {
+        legendContent += `
+          <div style="display: flex; align-items: center; margin-bottom: 6px;">
+            <div style="
+              width: 14px;
+              height: 14px;
+              border-radius: 50%;
+              background-color: #52c41a;
+              margin-right: 8px;
+              border: 2px solid white;
+              box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            "></div>
+            <span style="color: #666; font-size: 11px;">Mejora significativa (>1.1)</span>
+          </div>
+          <div style="display: flex; align-items: center; margin-bottom: 6px;">
+            <div style="
+              width: 14px;
+              height: 14px;
+              border-radius: 50%;
+              background-color: #1890ff;
+              margin-right: 8px;
+              border: 2px solid white;
+              box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            "></div>
+            <span style="color: #666; font-size: 11px;">Estable (0.9-1.1)</span>
+          </div>
+          <div style="display: flex; align-items: center;">
+            <div style="
+              width: 14px;
+              height: 14px;
+              border-radius: 50%;
+              background-color: #fa8c16;
+              margin-right: 8px;
+              border: 2px solid white;
+              box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            "></div>
+            <span style="color: #666; font-size: 11px;">Deterioro (&lt;0.9)</span>
+          </div>
+        `;
+      } else {
+        legendContent += `
+          <div style="display: flex; align-items: center; margin-bottom: 6px;">
+            <div style="
+              width: 14px;
+              height: 14px;
+              border-radius: 50%;
+              background-color: #52c41a;
+              margin-right: 8px;
+              border: 2px solid white;
+              box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            "></div>
+            <span style="color: #666; font-size: 11px;">Alta eficiencia (≥90%)</span>
+          </div>
+          <div style="display: flex; align-items: center; margin-bottom: 6px;">
+            <div style="
+              width: 14px;
+              height: 14px;
+              border-radius: 50%;
+              background-color: #1890ff;
+              margin-right: 8px;
+              border: 2px solid white;
+              box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            "></div>
+            <span style="color: #666; font-size: 11px;">Eficiencia media (80-89%)</span>
+          </div>
+          <div style="display: flex; align-items: center;">
+            <div style="
+              width: 14px;
+              height: 14px;
+              border-radius: 50%;
+              background-color: #fa8c16;
+              margin-right: 8px;
+              border: 2px solid white;
+              box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            "></div>
+            <span style="color: #666; font-size: 11px;">Eficiencia baja (&lt;80%)</span>
+          </div>
+        `;
+      }
+
+      div.innerHTML = legendContent;
       return div;
     };
 
@@ -103,7 +148,7 @@ const MapLegend = () => {
     return () => {
       legend.remove();
     };
-  }, [map]);
+  }, [map, method]);
 
   return null;
 };
@@ -146,6 +191,15 @@ const lowEfficiencyIcon = createCustomIcon("#fa8c16");
 const EficienciaView = ({ onNavigate }) => {
   // Contexto global
   const { state, actions } = useGlobalState();
+
+  // Usar estado global para algunos valores (mover antes de los useEffects)
+  const entradas = state.inputcols;
+  const salidas = state.outputcols;
+  const selectedYear = state.año;
+  const calculationMethod = state.metodologia;
+  const loading = state.loading;
+  const error = state.error;
+
   // Estados locales (mantener algunos para transición gradual)
   const [collapsed, setCollapsed] = useState(false);
   // selectedRows se sincroniza con el estado global
@@ -154,6 +208,12 @@ const EficienciaView = ({ onNavigate }) => {
   const [searchedColumn, setSearchedColumn] = useState("");
   const [anoInicial, setAnoInicial] = useState(2014);
   const [anoFinal, setAnoFinal] = useState(2018);
+  const [variableTop, setVariableTop] = useState("");
+
+  // Estados para la API (gradualmente migrar al contexto global)
+  const [sfaData, setSfaData] = useState(null);
+  const [deaData, setDeaData] = useState(null);
+  const [malmquistData, setMalmquistData] = useState(null);
 
   // Sincronizar selectedRows con hospitalesSeleccionados del estado global
   useEffect(() => {
@@ -162,50 +222,13 @@ const EficienciaView = ({ onNavigate }) => {
     );
     setSelectedRows(selectedKeys);
   }, [state.hospitalesSeleccionados]);
-  // Estados para la API (gradualmente migrar al contexto global)
-  const [sfaData, setSfaData] = useState(null);
-  const [deaData, setDeaData] = useState(null);
-  // Usar estado global para algunos valores
-  const entradas = state.inputcols;
-  const salidas = state.outputcols;
-  const selectedYear = state.año;
-  const calculationMethod = state.metodologia;
-  const loading = state.loading;
-  const error = state.error;
-  // Función para agregar hospitales a comparación
-  const handleAddToComparison = () => {
-    console.log("Agregar hospitales a comparación:", selectedRows);
 
-    // Obtener los datos completos de los hospitales seleccionados
-    const selectedHospitals = tableData.filter((hospital) =>
-      selectedRows.includes(hospital.key)
-    );
-
-    // Limpiar selecciones anteriores y agregar las nuevas
-    actions.clearHospitalesSeleccionados();
-
-    // Agregar cada hospital al estado global
-    selectedHospitals.forEach((hospital) => {
-      const hospitalData = {
-        id: hospital.key,
-        hospital: hospital.hospital,
-        eficiencia: hospital.eficiencia,
-        percentil: hospital.percentil,
-        region: hospital.region,
-        lat: hospital.lat,
-        lng: hospital.lng,
-        año: selectedYear,
-        // Agregar todos los datos adicionales del hospital
-        ...hospital,
-      };
-      actions.addHospitalSeleccionado(hospitalData);
-    });
-
-    // Navegar a la vista de comparación
-    if (onNavigate) {
-      onNavigate("comparar");
+  // Effect para limpiar variableTop cuando cambian las entradas
+  useEffect(() => {
+    if (variableTop && !entradas.includes(variableTop)) {
+      setVariableTop("");
     }
-  };
+  }, [entradas, variableTop]);
 
   // Configuración de KPIs por método de cálculo
   const kpiConfigs = {
@@ -287,8 +310,8 @@ const EficienciaView = ({ onNavigate }) => {
     ],
     "DEA-M": [
       {
-        title: "ΔProd total",
-        value: 12.5,
+        title: "ΔProd Promedio",
+        value: "--",
         precision: 1,
         color: "#1890ff",
         icon: <LineChartOutlined />,
@@ -297,8 +320,8 @@ const EficienciaView = ({ onNavigate }) => {
         suffix: "%",
       },
       {
-        title: "ΔET Promedio",
-        value: 0.034,
+        title: "ΔEficiencia",
+        value: "--",
         precision: 3,
         color: "#52c41a",
         icon: <TrophyOutlined />,
@@ -306,18 +329,17 @@ const EficienciaView = ({ onNavigate }) => {
         border: "#f0f9e8",
       },
       {
-        title: "ΔTech (%)",
-        value: 8.7,
-        precision: 1,
+        title: "ΔTecnología",
+        value: "--",
+        precision: 3,
         color: "#fa8c16",
         icon: <TeamOutlined />,
         gradient: "linear-gradient(135deg, #fff2f0 0%, #ffebe6 100%)",
         border: "#fff1f0",
-        suffix: "%",
       },
       {
-        title: "% Hosp. con MPI > 1",
-        value: 67.3,
+        title: "Hosp. Mejorados",
+        value: "--",
         precision: 1,
         color: "#722ed1",
         icon: <ClockCircleOutlined />,
@@ -376,6 +398,47 @@ const EficienciaView = ({ onNavigate }) => {
           border: "#f0e6ff",
         },
       ];
+    } else if (method === "DEA-M") {
+      return [
+        {
+          title: "ΔProd Promedio",
+          value: metrics.delta_prod_promedio || 0,
+          precision: 1,
+          color: "#1890ff",
+          icon: <LineChartOutlined />,
+          gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+          border: "#e8f4f8",
+          suffix: "%",
+        },
+        {
+          title: "ΔEficiencia",
+          value: metrics.delta_eficiencia_promedio || 0,
+          precision: 3,
+          color: "#52c41a",
+          icon: <TrophyOutlined />,
+          gradient: "linear-gradient(135deg, #f6ffed 0%, #f0f9e8 100%)",
+          border: "#f0f9e8",
+        },
+        {
+          title: "ΔTecnología",
+          value: metrics.delta_tecnologia_promedio || 0,
+          precision: 3,
+          color: "#fa8c16",
+          icon: <TeamOutlined />,
+          gradient: "linear-gradient(135deg, #fff2f0 0%, #ffebe6 100%)",
+          border: "#fff1f0",
+        },
+        {
+          title: "Hosp. Mejorados",
+          value: metrics.pct_hosp_mejorados || 0,
+          precision: 1,
+          color: "#722ed1",
+          icon: <ClockCircleOutlined />,
+          gradient: "linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)",
+          border: "#f0e6ff",
+          suffix: "%",
+        },
+      ];
     } else {
       return [
         {
@@ -419,12 +482,23 @@ const EficienciaView = ({ onNavigate }) => {
     }
   }; // Función para generar KPIs dinámicamente basándose en los datos de la API
   const getCurrentKpis = () => {
-    // Usar los KPIs del estado global que siempre están disponibles después del primer cálculo
-    if (state.kpis && state.kpis.length > 0) {
-      return state.kpis;
+    // Verificar si tenemos datos válidos para la metodología actual
+    let currentData = null;
+    
+    if (calculationMethod === "SFA" && sfaData && sfaData.metrics) {
+      currentData = sfaData;
+    } else if (calculationMethod === "DEA" && deaData && deaData.metrics) {
+      currentData = deaData;
+    } else if (calculationMethod === "DEA-M" && malmquistData && malmquistData.metrics) {
+      currentData = malmquistData;
     }
-
-    // Si no hay datos calculados aún, mostrar placeholders con "--"
+    
+    // Si tenemos datos válidos para la metodología actual, generar KPIs dinámicos
+    if (currentData && currentData.metrics) {
+      return generateKpisFromData(currentData, calculationMethod);
+    }
+    
+    // Si no hay datos calculados para la metodología actual, mostrar placeholders
     const placeholderKpis = kpiConfigs[calculationMethod] || [];
     return placeholderKpis.map((kpi) => ({
       ...kpi,
@@ -548,6 +622,7 @@ const EficienciaView = ({ onNavigate }) => {
       // Actualizar estado global con los parámetros usados en el cálculo
       actions.setInputCols(inputCols);
       actions.setOutputCols(outputCols);
+
       if (calculationMethod === "SFA") {
         const response = await ApiService.fetchSFAMetrics(
           selectedYear,
@@ -584,6 +659,26 @@ const EficienciaView = ({ onNavigate }) => {
             ? response.kpis
             : dynamicKpis
         );
+      } else if (calculationMethod === "DEA-M") {
+        const response = await ApiService.fetchMalmquistMetrics(
+          anoInicial,
+          anoFinal,
+          inputCols,
+          outputCols,
+          variableTop
+        );
+        setMalmquistData(response);
+
+        // Generar KPIs dinámicamente basándose en los datos recibidos
+        const dynamicKpis = generateKpisFromData(response, "DEA-M");
+
+        // Guardar en estado global
+        actions.setHospitales(response.results || []);
+        actions.setKpis(
+          response.kpis && response.kpis.length > 0
+            ? response.kpis
+            : dynamicKpis
+        );
       }
     } catch (err) {
       actions.setError(err.message);
@@ -594,7 +689,16 @@ const EficienciaView = ({ onNavigate }) => {
   };
   // Effect para sincronizar KPIs con el estado global cuando cambian los datos locales
   useEffect(() => {
-    const currentData = calculationMethod === "SFA" ? sfaData : deaData;
+    let currentData = null;
+
+    if (calculationMethod === "SFA") {
+      currentData = sfaData;
+    } else if (calculationMethod === "DEA") {
+      currentData = deaData;
+    } else if (calculationMethod === "DEA-M") {
+      currentData = malmquistData;
+    }
+
     if (
       currentData &&
       currentData.metrics &&
@@ -603,7 +707,7 @@ const EficienciaView = ({ onNavigate }) => {
       const dynamicKpis = generateKpisFromData(currentData, calculationMethod);
       actions.setKpis(dynamicKpis);
     }
-  }, [sfaData, deaData, calculationMethod, state.kpis, actions]);
+  }, [sfaData, deaData, malmquistData, calculationMethod, state.kpis, actions]);
   // Effect para cargar datos cuando cambian los parámetros (comentado para que solo se ejecute con el botón Calcular)
   // useEffect(() => {
   //   fetchData();
@@ -627,6 +731,7 @@ const EficienciaView = ({ onNavigate }) => {
   const getTableData = () => {
     // Usar el estado global en lugar del estado local
     const hospitalesFromState = state.hospitales;
+
     // Asegurar que siempre sea un array
     if (
       !Array.isArray(hospitalesFromState) ||
@@ -636,32 +741,135 @@ const EficienciaView = ({ onNavigate }) => {
     }
 
     return hospitalesFromState.map((hospital, index) => {
-      const eficienciaField = calculationMethod === "SFA" ? "ET SFA" : "ET DEA";
-      const eficiencia = hospital[eficienciaField] || 0;
-      // Usar hospital_name como nombre principal
-      const hospitalName = hospital.hospital_name || `Hospital ${index + 1}`;
+      let eficienciaField,
+        eficiencia,
+        additionalData = {};
 
-      return {
-        key: hospital.id || index.toString(),
+      if (calculationMethod === "SFA") {
+        eficienciaField = "ET SFA";
+        eficiencia =
+          hospital[eficienciaField] ||
+          hospital["et_sfa"] ||
+          hospital["eficiencia"] ||
+          0;
+      } else if (calculationMethod === "DEA") {
+        eficienciaField = "ET DEA";
+        eficiencia =
+          hospital[eficienciaField] ||
+          hospital["et_dea"] ||
+          hospital["eficiencia"] ||
+          0;
+      } else if (calculationMethod === "DEA-M") {
+        // Para DEA-M, mapear todos los campos directamente
+        eficiencia =
+          hospital["Malmquist"] ||
+          hospital["malmquist"] ||
+          hospital["indice_malmquist"] ||
+          0;
+
+        additionalData = {
+          EFF_t: typeof hospital.EFF_t === "number" ? hospital.EFF_t : 0,
+          EFF_t1: typeof hospital.EFF_t1 === "number" ? hospital.EFF_t1 : 0,
+          EFFCH: typeof hospital.EFFCH === "number" ? hospital.EFFCH : 0,
+          TECH: typeof hospital.TECH === "number" ? hospital.TECH : 0,
+          Malmquist:
+            typeof hospital.Malmquist === "number" ? hospital.Malmquist : 0,
+          pctDeltaProd:
+            typeof hospital["%ΔProd"] === "number" ? hospital["%ΔProd"] : 0,
+        };
+      }
+
+      // Probar diferentes nombres de campos para el nombre del hospital
+      const hospitalName =
+        hospital.hospital_name ||
+        hospital.nombre ||
+        hospital.hospital ||
+        `Hospital ${hospital.hospital_id || index + 1}`;
+
+      const result = {
+        key: hospital.hospital_id || hospital.id || index.toString(),
         hospital: hospitalName,
-        eficiencia: (eficiencia * 100).toFixed(1), // Convertir a porcentaje con 1 decimal
-        percentil: hospital.percentil || 0,
+        eficiencia:
+          calculationMethod === "DEA-M"
+            ? typeof eficiencia === "number" && !isNaN(eficiencia)
+              ? eficiencia.toFixed(3)
+              : "0.000" // Mostrar Malmquist como decimal
+            : typeof eficiencia === "number" && !isNaN(eficiencia)
+            ? (eficiencia * 100).toFixed(1)
+            : "0.0", // Convertir a porcentaje con 1 decimal para SFA/DEA
+        percentil: hospital.percentil || hospital.percentile || 0,
+        // Datos adicionales específicos para DEA-M
+        ...additionalData,
         // Datos adicionales que podrían estar en el hospital
-        region: hospital.region || "No especificada",
-        lat: hospital.latitud || -33.4489,
-        lng: hospital.longitud || -70.6693,
+        region:
+          hospital.region ||
+          hospital.region_name ||
+          hospital.region_id ||
+          "No especificada",
+        lat: hospital.latitud || hospital.lat || hospital.latitude || -33.4489,
+        lng:
+          hospital.longitud || hospital.lng || hospital.longitude || -70.6693,
         // Datos originales del hospital para referencia
         ...hospital,
       };
+
+      return result;
     });
   };
+
+  // Obtener los datos de la tabla
   const tableData = getTableData();
 
-  // Función para obtener el icono según la eficiencia
-  const getMarkerIcon = (eficiencia) => {
-    if (eficiencia >= 90) return highEfficiencyIcon;
-    if (eficiencia >= 80) return mediumEfficiencyIcon;
-    return lowEfficiencyIcon;
+  // Función para agregar hospitales a comparación
+  const handleAddToComparison = () => {
+    console.log("Agregar hospitales a comparación:", selectedRows);
+
+    // Obtener los datos completos de los hospitales seleccionados
+    const selectedHospitals = tableData.filter((hospital) =>
+      selectedRows.includes(hospital.key)
+    );
+
+    // Limpiar selecciones anteriores y agregar las nuevas
+    actions.clearHospitalesSeleccionados();
+
+    // Agregar cada hospital al estado global
+    selectedHospitals.forEach((hospital) => {
+      const hospitalData = {
+        id: hospital.key,
+        hospital: hospital.hospital,
+        eficiencia: hospital.eficiencia,
+        percentil: hospital.percentil,
+        region: hospital.region,
+        lat: hospital.lat,
+        lng: hospital.lng,
+        año: selectedYear,
+        // Agregar todos los datos adicionales del hospital
+        ...hospital,
+      };
+      actions.addHospitalSeleccionado(hospitalData);
+    });
+
+    // Navegar a la vista de comparación
+    if (onNavigate) {
+      onNavigate("comparar");
+    }
+  };
+
+  // Función para obtener el icono según la eficiencia o índice Malmquist
+  const getMarkerIcon = (value, method = calculationMethod) => {
+    if (method === "DEA-M") {
+      // Para DEA-M, usar el índice Malmquist (>1 es mejora, <1 es deterioro)
+      const malmquistValue = parseFloat(value);
+      if (malmquistValue > 1.1) return highEfficiencyIcon; // Mejora significativa
+      if (malmquistValue >= 0.9) return mediumEfficiencyIcon; // Estable
+      return lowEfficiencyIcon; // Deterioro
+    } else {
+      // Para SFA y DEA, usar porcentajes de eficiencia
+      const eficiencia = parseFloat(value);
+      if (eficiencia >= 90) return highEfficiencyIcon;
+      if (eficiencia >= 80) return mediumEfficiencyIcon;
+      return lowEfficiencyIcon;
+    }
   }; // Configuración de selección de filas
   const rowSelection = {
     selectedRowKeys: selectedRows,
@@ -718,34 +926,140 @@ const EficienciaView = ({ onNavigate }) => {
       name: record.hospital,
     }),
   }; // Columnas de la tabla
-  const columns = [
-    {
-      title: "Hospital",
-      dataIndex: "hospital",
-      key: "hospital",
-      width: "60%",
-      ...getColumnSearchProps("hospital"),
-      ellipsis: true,
-    },
-    {
-      title: calculationMethod === "SFA" ? "ET SFA" : "ET DEA",
-      dataIndex: "eficiencia",
-      key: "eficiencia",
-      width: "20%",
-      render: (value) => `${value}%`,
-      sorter: (a, b) => parseFloat(a.eficiencia) - parseFloat(b.eficiencia),
-      sortDirections: ["descend", "ascend"],
-    },
-    {
-      title: "Percentil",
-      dataIndex: "percentil",
-      key: "percentil",
-      width: "20%",
-      render: (value) => `${value}°`,
-      sorter: (a, b) => a.percentil - b.percentil,
-      sortDirections: ["descend", "ascend"],
-    },
-  ];
+  const getColumns = () => {
+    const baseColumns = [
+      {
+        title: "Hospital",
+        dataIndex: "hospital",
+        key: "hospital",
+        width: calculationMethod === "DEA-M" ? "40%" : "60%",
+        ...getColumnSearchProps("hospital"),
+        ellipsis: true,
+      },
+    ];
+
+    if (calculationMethod === "DEA-M") {
+      // Columnas específicas para DEA-M (Malmquist)
+      return [
+        ...baseColumns,
+        {
+          title: "EFF_t",
+          dataIndex: "EFF_t",
+          key: "EFF_t",
+          width: "12%",
+          render: (value) => {
+            return (
+              <span>
+                {typeof value === "number" ? value.toFixed(3) : "0.000"}
+              </span>
+            );
+          },
+          sorter: (a, b) => (a.EFF_t || 0) - (b.EFF_t || 0),
+          sortDirections: ["descend", "ascend"],
+        },
+        {
+          title: "EFF_t1",
+          dataIndex: "EFF_t1",
+          key: "EFF_t1",
+          width: "12%",
+          render: (value) => {
+            return (
+              <span>
+                {typeof value === "number" ? value.toFixed(3) : "0.000"}
+              </span>
+            );
+          },
+          sorter: (a, b) => (a.EFF_t1 || 0) - (b.EFF_t1 || 0),
+          sortDirections: ["descend", "ascend"],
+        },
+        {
+          title: "EFFCH",
+          dataIndex: "EFFCH",
+          key: "EFFCH",
+          width: "12%",
+          render: (value) => {
+            const numValue = typeof value === "number" ? value : 0;
+            const color =
+              numValue > 1 ? "#52c41a" : numValue < 1 ? "#ff4d4f" : "#666";
+            return <span style={{ color }}>{numValue.toFixed(3)}</span>;
+          },
+          sorter: (a, b) => (a.EFFCH || 0) - (b.EFFCH || 0),
+          sortDirections: ["descend", "ascend"],
+        },
+        {
+          title: "TECH",
+          dataIndex: "TECH",
+          key: "TECH",
+          width: "12%",
+          render: (value) => {
+            const numValue = typeof value === "number" ? value : 0;
+            const color =
+              numValue > 1 ? "#52c41a" : numValue < 1 ? "#ff4d4f" : "#666";
+            return <span style={{ color }}>{numValue.toFixed(3)}</span>;
+          },
+          sorter: (a, b) => (a.TECH || 0) - (b.TECH || 0),
+          sortDirections: ["descend", "ascend"],
+        },
+        {
+          title: "Malmquist",
+          dataIndex: "Malmquist",
+          key: "Malmquist",
+          width: "12%",
+          render: (value) => {
+            const numValue = typeof value === "number" ? value : 0;
+            const color =
+              numValue > 1 ? "#52c41a" : numValue < 1 ? "#ff4d4f" : "#666";
+            return (
+              <span style={{ color, fontWeight: "bold" }}>
+                {numValue.toFixed(3)}
+              </span>
+            );
+          },
+          sorter: (a, b) => (a.Malmquist || 0) - (b.Malmquist || 0),
+          sortDirections: ["descend", "ascend"],
+        },
+        {
+          title: "%ΔProd",
+          dataIndex: "pctDeltaProd",
+          key: "pctDeltaProd",
+          width: "12%",
+          render: (value) => {
+            const numValue = typeof value === "number" ? value : 0;
+            const color =
+              numValue > 0 ? "#52c41a" : numValue < 0 ? "#ff4d4f" : "#666";
+            return <span style={{ color }}>{numValue.toFixed(1)}%</span>;
+          },
+          sorter: (a, b) => (a.pctDeltaProd || 0) - (b.pctDeltaProd || 0),
+          sortDirections: ["descend", "ascend"],
+        },
+      ];
+    } else {
+      // Columnas para SFA y DEA
+      return [
+        ...baseColumns,
+        {
+          title: calculationMethod === "SFA" ? "ET SFA" : "ET DEA",
+          dataIndex: "eficiencia",
+          key: "eficiencia",
+          width: "20%",
+          render: (value) => `${value}%`,
+          sorter: (a, b) => parseFloat(a.eficiencia) - parseFloat(b.eficiencia),
+          sortDirections: ["descend", "ascend"],
+        },
+        {
+          title: "Percentil",
+          dataIndex: "percentil",
+          key: "percentil",
+          width: "20%",
+          render: (value) => `${value}°`,
+          sorter: (a, b) => a.percentil - b.percentil,
+          sortDirections: ["descend", "ascend"],
+        },
+      ];
+    }
+  };
+
+  const columns = getColumns();
   return (
     <Layout style={{ height: "calc(100vh - 64px)" }}>
       {/* Mostrar error si existe */}
@@ -845,6 +1159,22 @@ const EficienciaView = ({ onNavigate }) => {
                 }}
                 title="Salidas"
               />
+              {calculationMethod === "DEA-M" && (
+                <Button
+                  type="text"
+                  icon={<EditFilled />}
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "18px",
+                    color: "#722ed1",
+                  }}
+                  title="Variable Top"
+                />
+              )}
             </div>
           ) : (
             <>
@@ -901,6 +1231,7 @@ const EficienciaView = ({ onNavigate }) => {
                       onChange={setAnoInicial}
                       style={{ width: "100%" }}
                       options={[
+                        { value: 2014, label: "2014" },
                         { value: 2015, label: "2015" },
                         { value: 2016, label: "2016" },
                         { value: 2017, label: "2017" },
@@ -910,6 +1241,7 @@ const EficienciaView = ({ onNavigate }) => {
                         { value: 2021, label: "2021" },
                         { value: 2022, label: "2022" },
                         { value: 2023, label: "2023" },
+                        { value: 2024, label: "2024" },
                       ]}
                     />
                   </div>
@@ -931,6 +1263,8 @@ const EficienciaView = ({ onNavigate }) => {
                       onChange={setAnoFinal}
                       style={{ width: "100%" }}
                       options={[
+                        { value: 2014, label: "2014" },
+                        { value: 2015, label: "2015" },
                         { value: 2016, label: "2016" },
                         { value: 2017, label: "2017" },
                         { value: 2018, label: "2018" },
@@ -1001,7 +1335,7 @@ const EficienciaView = ({ onNavigate }) => {
                 placeholder="Seleccionar salidas"
                 value={salidas}
                 onChange={actions.setOutputCols}
-                style={{ width: "100%", marginBottom: "24px" }}
+                style={{ width: "100%", marginBottom: "16px" }}
                 options={[
                   { value: "consultas", label: "Consultas" },
                   { value: "grdxegresos", label: "Egresos x GRD" },
@@ -1010,6 +1344,47 @@ const EficienciaView = ({ onNavigate }) => {
                   { value: "quirofanos", label: "Quirófanos" },
                 ]}
               />
+              {calculationMethod === "DEA-M" && (
+                <>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    <EditFilled
+                      style={{
+                        fontSize: "16px",
+                        color: "#722ed1",
+                        marginRight: "8px",
+                      }}
+                    />
+                    <Title level={5} style={{ margin: 0, color: "#333" }}>
+                      Variable Top
+                    </Title>
+                  </div>{" "}
+                  <Select
+                    placeholder="Seleccionar variable de análisis"
+                    value={variableTop}
+                    onChange={setVariableTop}
+                    style={{ width: "100%", marginBottom: "24px" }}
+                    allowClear
+                    options={entradas.map((entrada) => ({
+                      value: entrada,
+                      label:
+                        entrada === "bienesyservicios"
+                          ? "Bienes y Servicios"
+                          : entrada === "remuneraciones"
+                          ? "Remuneraciones"
+                          : entrada === "diascamadisponibles"
+                          ? "Días de cama disponibles"
+                          : entrada,
+                    }))}
+                    disabled={entradas.length === 0}
+                  />
+                </>
+              )}
               <Button
                 type="primary"
                 size="large"
@@ -1021,7 +1396,7 @@ const EficienciaView = ({ onNavigate }) => {
                 }}
                 loading={loading}
                 onClick={() => {
-                  const logData = { entradas, salidas };
+                  const logData = { entradas, salidas, variableTop };
                   if (calculationMethod === "DEA-M") {
                     logData.anoInicial = anoInicial;
                     logData.anoFinal = anoFinal;
@@ -1103,7 +1478,9 @@ const EficienciaView = ({ onNavigate }) => {
                   margin: 0,
                 }}
               >
-                Eficiencia técnica hospitalaria
+                {calculationMethod === "DEA-M"
+                  ? "Análisis Malmquist - Productividad hospitalaria"
+                  : "Eficiencia técnica hospitalaria"}
               </Title>{" "}
               <div
                 style={{ display: "flex", alignItems: "center", gap: "16px" }}
@@ -1180,7 +1557,9 @@ const EficienciaView = ({ onNavigate }) => {
                   level={4}
                   style={{ marginTop: 10, margin: 0, textAlign: "left" }}
                 >
-                  Distribución y Ranking de Hospitales
+                  {calculationMethod === "DEA-M"
+                    ? "Distribución y Ranking - Índice Malmquist"
+                    : "Distribución y Ranking de Hospitales"}
                 </Title>{" "}
                 {/* Botones de acción - espacio reservado siempre presente */}
                 <div
@@ -1299,7 +1678,7 @@ const EficienciaView = ({ onNavigate }) => {
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                       />{" "}
-                      <MapLegend />
+                      <MapLegend method={calculationMethod} />
                       {tableData
                         .filter(
                           (hospital) =>
@@ -1310,7 +1689,10 @@ const EficienciaView = ({ onNavigate }) => {
                           <Marker
                             key={hospital.key}
                             position={[hospital.lat, hospital.lng]}
-                            icon={getMarkerIcon(hospital.eficiencia)}
+                            icon={getMarkerIcon(
+                              hospital.eficiencia,
+                              calculationMethod
+                            )}
                           >
                             <Popup>
                               <div
@@ -1325,18 +1707,38 @@ const EficienciaView = ({ onNavigate }) => {
                                   {hospital.region}
                                 </span>
                                 <br />
-                                <span
-                                  style={{
-                                    color: "#1890ff",
-                                    fontWeight: "bold",
-                                  }}
-                                >
-                                  Eficiencia: {hospital.eficiencia}%
-                                </span>
-                                <br />
-                                <span style={{ color: "#666" }}>
-                                  Percentil: {hospital.percentil}°
-                                </span>
+                                {calculationMethod === "DEA-M" ? (
+                                  <>
+                                    <span
+                                      style={{
+                                        color: "#1890ff",
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      Malmquist: {hospital.eficiencia}
+                                    </span>
+                                    <br />
+                                    <span style={{ color: "#666" }}>
+                                      ΔProd: {hospital.pctDeltaProd?.toFixed(1)}
+                                      %
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span
+                                      style={{
+                                        color: "#1890ff",
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      Eficiencia: {hospital.eficiencia}%
+                                    </span>
+                                    <br />
+                                    <span style={{ color: "#666" }}>
+                                      Percentil: {hospital.percentil}°
+                                    </span>
+                                  </>
+                                )}
                               </div>
                             </Popup>
                           </Marker>

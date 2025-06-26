@@ -47,6 +47,35 @@ class ApiService {
     }
   }
 
+  async fetchMalmquistMetrics(yearT = 2014, yearT1 = 2018, inputCols = [], outputCols = [], topInputCol = null) {
+    try {
+      const params = new URLSearchParams();
+      params.append('year_t', yearT);
+      params.append('year_t1', yearT1);
+      
+      if (inputCols.length > 0) {
+        params.append('input_cols', inputCols.join(','));
+      }
+      if (outputCols.length > 0) {
+        params.append('output_cols', outputCols.join(','));
+      }
+      if (topInputCol) {
+        params.append('top_input_col', topInputCol);
+      }
+
+      console.log(`Fetching Malmquist metrics from ${yearT} to ${yearT1} with inputs: ${inputCols.join(', ')}, outputs: ${outputCols.join(', ')}, and top input: ${topInputCol || 'none'}`);
+
+      const response = await fetch(`${API_BASE_URL}/malmquist?${params}`);
+      if (!response.ok) {
+        throw new Error(`Error fetching Malmquist data: ${response.statusText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error in fetchMalmquistMetrics:', error);
+      throw error;
+    }
+  }
+
   // Método para obtener ambos análisis al mismo tiempo
   async fetchBothMetrics(year = 2014, inputCols = [], outputCols = []) {
     try {
