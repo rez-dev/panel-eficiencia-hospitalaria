@@ -10,10 +10,10 @@ import {
   Button,
 } from "antd";
 import {
-  UserOutlined,
-  LineChartOutlined,
-  BarChartOutlined,
-  PieChartOutlined,
+  MedicineBoxFilled,
+  DatabaseFilled,
+  CalendarFilled,
+  ToolFilled,
   RocketFilled,
 } from "@ant-design/icons";
 
@@ -45,7 +45,11 @@ const InicioView = ({ onNavigate }) => {
           {" "}
           <Title
             level={1}
-            style={{ textAlign: "center", marginBottom: "16px" }}
+            style={{
+              textAlign: "center",
+              marginBottom: "16px",
+              marginTop: "0px",
+            }}
           >
             Bienvenido al Panel Interactivo de Eficiencia Hospitalaria
           </Title>{" "}
@@ -65,13 +69,30 @@ const InicioView = ({ onNavigate }) => {
               icon={<RocketFilled />}
               onClick={() => onNavigate("eficiencia")}
               style={{
-                fontSize: "16px",
-                height: "50px",
-                paddingLeft: "32px",
-                paddingRight: "32px",
-                backgroundColor: "#1890ff",
-                borderColor: "#1890ff",
-                boxShadow: "0 2px 8px rgba(24, 144, 255, 0.3)",
+                fontSize: "18px",
+                height: "60px",
+                paddingLeft: "40px",
+                paddingRight: "40px",
+                background: "linear-gradient(135deg, #1890ff 0%, #096dd9 100%)",
+                borderColor: "transparent",
+                borderRadius: "12px",
+                boxShadow: "0 6px 16px rgba(24, 144, 255, 0.3)",
+                fontWeight: "600",
+                transition: "all 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow =
+                  "0 8px 24px rgba(24, 144, 255, 0.4)";
+                e.currentTarget.style.background =
+                  "linear-gradient(135deg, #096dd9 0%, #0050b3 100%)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow =
+                  "0 6px 16px rgba(24, 144, 255, 0.3)";
+                e.currentTarget.style.background =
+                  "linear-gradient(135deg, #1890ff 0%, #096dd9 100%)";
               }}
             >
               Empezar Análisis
@@ -79,63 +100,231 @@ const InicioView = ({ onNavigate }) => {
           </div>
           <Row gutter={[24, 24]} style={{ marginBottom: "24px" }}>
             <Col xs={24} sm={12} lg={6}>
-              <Card>
+              <Card
+                style={{
+                  background:
+                    "linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)",
+                  border: "1px solid #b7eb8f",
+                  borderRadius: "12px",
+                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                  transition: "all 0.3s ease",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-4px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 20px rgba(0, 0, 0, 0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 12px rgba(0, 0, 0, 0.1)";
+                }}
+              >
                 <Statistic
-                  title="Hospitales Analizados"
+                  title={
+                    <span
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        color: "#389e0d",
+                      }}
+                    >
+                      Total de Hospitales
+                    </span>
+                  }
                   value={125}
-                  prefix={<UserOutlined />}
-                  valueStyle={{ color: "#3f8600" }}
+                  prefix={
+                    <MedicineBoxFilled
+                      style={{
+                        fontSize: "24px",
+                        color: "#52c41a",
+                        marginRight: "8px",
+                      }}
+                    />
+                  }
+                  valueStyle={{
+                    color: "#389e0d",
+                    fontSize: "32px",
+                    fontWeight: "bold",
+                  }}
                 />
               </Card>
             </Col>
             <Col xs={24} sm={12} lg={6}>
-              <Card>
+              <Card
+                style={{
+                  background:
+                    "linear-gradient(135deg, #f0f9ff 0%, #bae7ff 100%)",
+                  border: "1px solid #91d5ff",
+                  borderRadius: "12px",
+                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                  transition: "all 0.3s ease",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-4px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 20px rgba(0, 0, 0, 0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 12px rgba(0, 0, 0, 0.1)";
+                }}
+              >
                 <Statistic
-                  title="Indicadores Calculados"
-                  value={456}
-                  prefix={<LineChartOutlined />}
-                  valueStyle={{ color: "#1890ff" }}
+                  title={
+                    <span
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        color: "#1890ff",
+                      }}
+                    >
+                      Variables Analizadas
+                    </span>
+                  }
+                  value={15}
+                  prefix={
+                    <DatabaseFilled
+                      style={{
+                        fontSize: "24px",
+                        color: "#1890ff",
+                        marginRight: "8px",
+                      }}
+                    />
+                  }
+                  valueStyle={{
+                    color: "#1890ff",
+                    fontSize: "32px",
+                    fontWeight: "bold",
+                  }}
                 />
               </Card>
             </Col>
             <Col xs={24} sm={12} lg={6}>
-              <Card>
+              <Card
+                style={{
+                  background:
+                    "linear-gradient(135deg, #f9f0ff 0%, #d3adf7 100%)",
+                  border: "1px solid #b37feb",
+                  borderRadius: "12px",
+                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                  transition: "all 0.3s ease",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-4px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 20px rgba(0, 0, 0, 0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 12px rgba(0, 0, 0, 0.1)";
+                }}
+              >
                 <Statistic
-                  title="Análisis Completados"
-                  value={89}
-                  prefix={<BarChartOutlined />}
-                  valueStyle={{ color: "#722ed1" }}
+                  title={
+                    <span
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        color: "#722ed1",
+                      }}
+                    >
+                      Años de Datos
+                    </span>
+                  }
+                  value="2014-2024"
+                  prefix={
+                    <CalendarFilled
+                      style={{
+                        fontSize: "24px",
+                        color: "#722ed1",
+                        marginRight: "8px",
+                      }}
+                    />
+                  }
+                  valueStyle={{
+                    color: "#722ed1",
+                    fontSize: "28px",
+                    fontWeight: "bold",
+                  }}
                 />
               </Card>
             </Col>
             <Col xs={24} sm={12} lg={6}>
-              <Card>
+              <Card
+                style={{
+                  background:
+                    "linear-gradient(135deg, #fff0f6 0%, #ffadd6 100%)",
+                  border: "1px solid #ff85c0",
+                  borderRadius: "12px",
+                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                  transition: "all 0.3s ease",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-4px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 20px rgba(0, 0, 0, 0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 12px rgba(0, 0, 0, 0.1)";
+                }}
+              >
                 <Statistic
-                  title="Reportes Generados"
-                  value={234}
-                  prefix={<PieChartOutlined />}
-                  valueStyle={{ color: "#eb2f96" }}
+                  title={
+                    <span
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        color: "#eb2f96",
+                      }}
+                    >
+                      Herramientas de Análisis
+                    </span>
+                  }
+                  value={6}
+                  prefix={
+                    <ToolFilled
+                      style={{
+                        fontSize: "24px",
+                        color: "#eb2f96",
+                        marginRight: "8px",
+                      }}
+                    />
+                  }
+                  valueStyle={{
+                    color: "#eb2f96",
+                    fontSize: "32px",
+                    fontWeight: "bold",
+                  }}
                 />
               </Card>
             </Col>
           </Row>
           <Row gutter={[24, 24]}>
             <Col xs={24} lg={12}>
-              <Card title="Eficiencia Técnica" bordered={false}>
+              <Card title="📊 Eficiencia Técnica" bordered={false}>
                 <Paragraph>
                   Analiza la eficiencia técnica de las instituciones de salud
-                  utilizando metodologías avanzadas como DEA (Data Envelopment
-                  Analysis).
+                  utilizando metodologías avanzadas como SFA (Análisis de
+                  Frontera Estocástica), DEA (Análisis Envolvente de Datos) o
+                  DEA-M empleando índices de Malmquist.
                 </Paragraph>
                 <ul>
                   <li>Análisis de inputs y outputs</li>
                   <li>Cálculo de scores de eficiencia</li>
-                  <li>Identificación de benchmarks</li>
                 </ul>
               </Card>
             </Col>
             <Col xs={24} lg={12}>
-              <Card title="Comparación de Hospitales" bordered={false}>
+              <Card title="🏥 Comparación de Hospitales" bordered={false}>
                 <Paragraph>
                   Compara el desempeño de diferentes instituciones de salud para
                   identificar mejores prácticas y oportunidades de mejora.
@@ -150,7 +339,7 @@ const InicioView = ({ onNavigate }) => {
           </Row>
           <Row gutter={[24, 24]} style={{ marginTop: "24px" }}>
             <Col xs={24} lg={12}>
-              <Card title="Análisis de Determinantes" bordered={false}>
+              <Card title="🔍 Análisis de Determinantes" bordered={false}>
                 <Paragraph>
                   Identifica los factores que influyen en la eficiencia técnica
                   de las instituciones de salud.
@@ -163,7 +352,7 @@ const InicioView = ({ onNavigate }) => {
               </Card>
             </Col>
             <Col xs={24} lg={12}>
-              <Card title="PCA & Análisis de Clúster" bordered={false}>
+              <Card title="🎯 PCA & Análisis de Clúster" bordered={false}>
                 <Paragraph>
                   Agrupa instituciones similares y reduce la dimensionalidad de
                   los datos para facilitar el análisis.
