@@ -26,7 +26,20 @@ import {
   Space,
   message,
   Spin,
+  Switch,
 } from "antd";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine,
+  Cell,
+  Legend,
+} from "recharts";
 
 const { Content, Sider } = Layout;
 const { Title } = Typography;
@@ -47,6 +60,7 @@ const DeterminantesView = ({ onNavigate }) => {
   ]);
   const [loading, setLoading] = useState(false);
   const [analysisResults, setAnalysisResults] = useState(null);
+  const [normalizeChart, setNormalizeChart] = useState(true);
 
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -56,7 +70,7 @@ const DeterminantesView = ({ onNavigate }) => {
   const formatVariableName = (variable) => {
     const variableMap = {
       remuneraciones: "Remuneraciones",
-      bienesyservicios: "Bienes y Servicios", 
+      bienesyservicios: "Bienes y Servicios",
       consultas: "Consultas",
       grdxegresos: "GRD x Egresos",
       diascamadisponibles: "Días Cama Disponibles",
@@ -65,10 +79,60 @@ const DeterminantesView = ({ onNavigate }) => {
       quirofanos: "Quirófanos",
       complejidad: "Complejidad",
       const: "Constante",
-      intercept: "Intercepto"
+      intercept: "Intercepto",
     };
-    
-    return variableMap[variable] || variable.charAt(0).toUpperCase() + variable.slice(1);
+
+    return (
+      variableMap[variable] ||
+      variable.charAt(0).toUpperCase() + variable.slice(1)
+    );
+  };
+
+  // Función para preparar datos del gráfico de barras
+  const prepareChartData = (coeficientes, topN = 5, normalizeData = true) => {
+    if (!coeficientes || coeficientes.length === 0) return [];
+
+    // Filtrar variables (excluir constante)
+    const filteredCoef = coeficientes.filter(
+      (item) => item.variable !== "const" && item.variable !== "intercept"
+    );
+
+    // Calcular valor absoluto y ordenar por magnitud
+    const sortedCoef = filteredCoef
+      .map((item) => ({
+        ...item,
+        abs_coef: Math.abs(item.coeficiente || 0),
+      }))
+      .sort((a, b) => b.abs_coef - a.abs_coef)
+      .slice(0, topN);
+
+    // Normalizar datos si está habilitado
+    let processedData = [...sortedCoef];
+    if (normalizeData && sortedCoef.length > 0) {
+      // Encontrar el valor máximo absoluto para normalizar
+      const maxAbsValue = Math.max(
+        ...sortedCoef.map((item) => Math.abs(item.coeficiente || 0))
+      );
+
+      if (maxAbsValue > 0) {
+        processedData = sortedCoef.map((item) => ({
+          ...item,
+          coeficiente_original: item.coeficiente,
+          coeficiente: (item.coeficiente || 0) / maxAbsValue, // Normalizar a [-1, 1]
+        }));
+      }
+    }
+
+    // Preparar datos para Recharts
+    return processedData.map((item) => ({
+      name: formatVariableName(item.variable),
+      coeficiente: item.coeficiente || 0,
+      coeficiente_original: item.coeficiente_original || item.coeficiente,
+      pValue: item.p_value || 1,
+      isSignificant: (item.p_value || 1) < 0.05,
+      originalVariable: item.variable,
+      isNormalized: normalizeData,
+    }));
   };
 
   // Variables disponibles para el análisis
@@ -620,52 +684,184 @@ const DeterminantesView = ({ onNavigate }) => {
                   }}
                 >
                   {" "}
-                  <Title
-                    level={5}
+                  <div
                     style={{
-                      marginTop: "0px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
                       marginBottom: "12px",
-                      textAlign: "center",
                     }}
                   >
-                    Matriz de Correlación de Variables
-                  </Title>
+                    <Title
+                      level={5}
+                      style={{
+                        marginTop: "0px",
+                        marginBottom: "0px",
+                        textAlign: "center",
+                        flex: 1,
+                      }}
+                    >
+                      Top 5 Determinantes de Eficiencia
+                    </Title>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}
+                    >
+                      <span style={{ fontSize: "12px", color: "#666" }}>
+                        Normalizar:
+                      </span>
+                      <Switch
+                        size="small"
+                        checked={normalizeChart}
+                        onChange={setNormalizeChart}
+                        title="Normalizar coeficientes a escala [-1, 1]"
+                      />
+                    </div>
+                  </div>
                   <div
                     style={{
                       flex: 1,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      background: "#f8f9fa",
-                      borderRadius: "6px",
-                      border: "1px solid #e9ecef",
                     }}
                   >
-                    <div style={{ textAlign: "center", color: "#666" }}>
-                      <LineChartOutlined
-                        style={{
-                          fontSize: "48px",
-                          marginBottom: "16px",
-                          color: "#1890ff",
-                        }}
-                      />
-                      <div style={{ fontSize: "16px", fontWeight: "500" }}>
-                        Gráfico de Correlación
-                      </div>{" "}
-                      <div style={{ fontSize: "14px", marginTop: "8px" }}>
-                        Análisis con método: {calculationMethod}
+                    {analysisResults?.coeficientes &&
+                    analysisResults.coeficientes.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          width={500}
+                          height={300}
+                          data={prepareChartData(
+                            analysisResults.coeficientes,
+                            5,
+                            normalizeChart
+                          )}
+                          margin={{
+                            top: 5,
+                            right: 30,
+                            left: 20,
+                            bottom: 5,
+                          }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis
+                            domain={
+                              normalizeChart
+                                ? [-1.1, 1.1]
+                                : ["dataMin - 0.005", "dataMax + 0.005"]
+                            }
+                            tickFormatter={(value) => {
+                              if (normalizeChart) {
+                                return value.toFixed(2);
+                              }
+                              if (Math.abs(value) < 0.001 && value !== 0) {
+                                return value.toExponential(2);
+                              }
+                              return value.toFixed(4);
+                            }}
+                          />
+                          <Tooltip
+                            formatter={(value, name, props) => {
+                              const { payload } = props;
+                              const normalizedValue =
+                                Math.abs(value) < 0.001 && value !== 0
+                                  ? value.toExponential(4)
+                                  : value.toFixed(4);
+
+                              if (
+                                normalizeChart &&
+                                payload.coeficiente_original !== undefined &&
+                                payload.coeficiente_original !==
+                                  payload.coeficiente
+                              ) {
+                                const originalValue =
+                                  Math.abs(payload.coeficiente_original) <
+                                    0.001 && payload.coeficiente_original !== 0
+                                    ? payload.coeficiente_original.toExponential(
+                                        4
+                                      )
+                                    : payload.coeficiente_original.toFixed(4);
+                                return [
+                                  `Normalizado: ${normalizedValue}`,
+                                  `Original: ${originalValue}`,
+                                ];
+                              }
+                              return [normalizedValue, "Coeficiente"];
+                            }}
+                            labelFormatter={(label) => `Variable: ${label}`}
+                            separator=" | "
+                          />
+                          <Legend />
+                          <ReferenceLine y={0} stroke="#000" />
+                          <Bar
+                            dataKey="coeficiente"
+                            fill="#8884d8"
+                            name="Coeficiente"
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div style={{ textAlign: "center", color: "#666" }}>
+                        <LineChartOutlined
+                          style={{
+                            fontSize: "48px",
+                            marginBottom: "16px",
+                            color: "#1890ff",
+                          }}
+                        />
+                        <div style={{ fontSize: "16px", fontWeight: "500" }}>
+                          Gráfico de Determinantes
+                        </div>
+                        <div style={{ fontSize: "14px", marginTop: "8px" }}>
+                          Análisis con método: {calculationMethod}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "12px",
+                            marginTop: "12px",
+                            color: "#999",
+                          }}
+                        >
+                          Ejecuta el análisis para ver los determinantes
+                          principales
+                        </div>
                       </div>
+                    )}
+                  </div>
+                  {analysisResults?.coeficientes &&
+                    analysisResults.coeficientes.length > 0 && (
                       <div
                         style={{
-                          fontSize: "12px",
-                          marginTop: "12px",
-                          color: "#999",
+                          marginTop: "8px",
+                          padding: "8px 12px",
+                          background: "#f6f8fa",
+                          borderRadius: "4px",
+                          fontSize: "11px",
+                          color: "#666",
+                          borderTop: "1px solid #e1e4e8",
                         }}
                       >
-                        Variables: Camas, Personal, Presupuesto, Ubicación, etc.
+                        {normalizeChart ? (
+                          <>
+                            <strong>Valores normalizados:</strong> Los
+                            coeficientes están escalados a [-1, 1] para
+                            facilitar la comparación. Pasa el cursor sobre las
+                            barras para ver los valores originales.
+                          </>
+                        ) : (
+                          <>
+                            <strong>Valores originales:</strong> Los
+                            coeficientes se muestran en su escala original del
+                            modelo econométrico.
+                          </>
+                        )}
                       </div>
-                    </div>
-                  </div>
+                    )}
                 </div>
               </Col>{" "}
               {/* Tabla de Resultados Econométricos */}
@@ -748,7 +944,7 @@ const DeterminantesView = ({ onNavigate }) => {
                         width: "15%",
                         render: (value) => {
                           if (typeof value !== "number") return value;
-                          
+
                           let formattedValue;
                           // Si el valor es muy pequeño, usar notación científica
                           if (Math.abs(value) < 0.001 && value !== 0) {
@@ -756,7 +952,7 @@ const DeterminantesView = ({ onNavigate }) => {
                           } else {
                             formattedValue = value.toFixed(3);
                           }
-                          
+
                           // Agregar símbolos de significancia
                           let significance = "";
                           if (value < 0.001) {
@@ -766,14 +962,15 @@ const DeterminantesView = ({ onNavigate }) => {
                           } else if (value < 0.05) {
                             significance = " *";
                           }
-                          
+
                           return (
                             <span
                               style={{
                                 color: value < 0.05 ? "#52c41a" : "#ff4d4f",
                               }}
                             >
-                              {formattedValue}{significance}
+                              {formattedValue}
+                              {significance}
                             </span>
                           );
                         },
@@ -788,7 +985,11 @@ const DeterminantesView = ({ onNavigate }) => {
                             variable: data.variable,
                             coeficiente: data.coeficiente,
                             errorEstandar: data.error_estandar,
-                            tStatistic: data.t_value || (data.coeficiente && data.error_estandar ? data.coeficiente / data.error_estandar : null),
+                            tStatistic:
+                              data.t_value ||
+                              (data.coeficiente && data.error_estandar
+                                ? data.coeficiente / data.error_estandar
+                                : null),
                             pvalor: data.p_value,
                           }))
                         : [] // Tabla vacía si no hay resultados
