@@ -52,6 +52,25 @@ const DeterminantesView = ({ onNavigate }) => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
+  // Función para formatear nombres de variables
+  const formatVariableName = (variable) => {
+    const variableMap = {
+      remuneraciones: "Remuneraciones",
+      bienesyservicios: "Bienes y Servicios", 
+      consultas: "Consultas",
+      grdxegresos: "GRD x Egresos",
+      diascamadisponibles: "Días Cama Disponibles",
+      consultasurgencias: "Consultas Urgencias",
+      examenes: "Exámenes",
+      quirofanos: "Quirófanos",
+      complejidad: "Complejidad",
+      const: "Constante",
+      intercept: "Intercepto"
+    };
+    
+    return variableMap[variable] || variable.charAt(0).toUpperCase() + variable.slice(1);
+  };
+
   // Variables disponibles para el análisis
   const variablesDisponibles = [
     { value: "remuneraciones", label: "Remuneraciones" },
@@ -684,61 +703,80 @@ const DeterminantesView = ({ onNavigate }) => {
                         dataIndex: "variable",
                         key: "variable",
                         width: "30%",
+                        render: (value) => formatVariableName(value),
                       },
                       {
-                        title: "Coeficiente",
+                        title: "Coef.",
                         dataIndex: "coeficiente",
                         key: "coeficiente",
-                        width: "18%",
-                        render: (value) =>
-                          typeof value === "number" ? value.toFixed(4) : value,
+                        width: "20%",
+                        render: (value) => {
+                          if (typeof value !== "number") return value;
+                          // Si el valor es muy pequeño, usar notación científica
+                          if (Math.abs(value) < 0.001 && value !== 0) {
+                            return value.toExponential(3);
+                          }
+                          return value.toFixed(4);
+                        },
                       },
                       {
-                        title: "P-valor",
+                        title: "Std.Err.",
+                        dataIndex: "errorEstandar",
+                        key: "errorEstandar",
+                        width: "20%",
+                        render: (value) => {
+                          if (typeof value !== "number") return value;
+                          // Si el valor es muy pequeño, usar notación científica
+                          if (Math.abs(value) < 0.001 && value !== 0) {
+                            return value.toExponential(3);
+                          }
+                          return value.toFixed(4);
+                        },
+                      },
+                      {
+                        title: "t",
+                        dataIndex: "tStatistic",
+                        key: "tStatistic",
+                        width: "15%",
+                        render: (value) =>
+                          typeof value === "number" ? value.toFixed(3) : value,
+                      },
+                      {
+                        title: "P>|t|",
                         dataIndex: "pvalor",
                         key: "pvalor",
                         width: "15%",
-                        render: (value) => (
-                          <span
-                            style={{
-                              color: value < 0.05 ? "#52c41a" : "#ff4d4f",
-                            }}
-                          >
-                            {typeof value === "number"
-                              ? value.toFixed(3)
-                              : value}
-                          </span>
-                        ),
-                      },
-                      {
-                        title: "Error estándar",
-                        dataIndex: "errorEstandar",
-                        key: "errorEstandar",
-                        width: "18%",
-                        render: (value) =>
-                          typeof value === "number" ? value.toFixed(4) : value,
-                      },
-                      {
-                        title: "VIF",
-                        dataIndex: "vif",
-                        key: "vif",
-                        width: "19%",
-                        render: (value) => (
-                          <span
-                            style={{
-                              color:
-                                value > 10
-                                  ? "#ff4d4f"
-                                  : value > 5
-                                  ? "#fa8c16"
-                                  : "#52c41a",
-                            }}
-                          >
-                            {typeof value === "number"
-                              ? value.toFixed(2)
-                              : value}
-                          </span>
-                        ),
+                        render: (value) => {
+                          if (typeof value !== "number") return value;
+                          
+                          let formattedValue;
+                          // Si el valor es muy pequeño, usar notación científica
+                          if (Math.abs(value) < 0.001 && value !== 0) {
+                            formattedValue = value.toExponential(3);
+                          } else {
+                            formattedValue = value.toFixed(3);
+                          }
+                          
+                          // Agregar símbolos de significancia
+                          let significance = "";
+                          if (value < 0.001) {
+                            significance = " ***";
+                          } else if (value < 0.01) {
+                            significance = " **";
+                          } else if (value < 0.05) {
+                            significance = " *";
+                          }
+                          
+                          return (
+                            <span
+                              style={{
+                                color: value < 0.05 ? "#52c41a" : "#ff4d4f",
+                              }}
+                            >
+                              {formattedValue}{significance}
+                            </span>
+                          );
+                        },
                       },
                     ]}
                     dataSource={
@@ -749,9 +787,9 @@ const DeterminantesView = ({ onNavigate }) => {
                             key: index + 1,
                             variable: data.variable,
                             coeficiente: data.coeficiente,
-                            pvalor: data.p_value,
                             errorEstandar: data.error_estandar,
-                            vif: data.vif || 0, // VIF no está en la respuesta actual
+                            tStatistic: data.t_value || (data.coeficiente && data.error_estandar ? data.coeficiente / data.error_estandar : null),
+                            pvalor: data.p_value,
                           }))
                         : [] // Tabla vacía si no hay resultados
                     }
