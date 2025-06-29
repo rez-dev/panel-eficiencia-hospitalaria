@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -24,6 +24,8 @@ import {
   Radio,
   Input,
   Space,
+  message,
+  Spin,
 } from "antd";
 
 const { Content, Sider } = Layout;
@@ -31,12 +33,109 @@ const { Title } = Typography;
 
 const DeterminantesView = ({ onNavigate }) => {
   const [collapsed, setCollapsed] = useState(false);
-  const [selectedYear, setSelectedYear] = useState(2024);
+  const [selectedYear, setSelectedYear] = useState(2023);
   const [selectedVariable, setSelectedVariable] = useState("eficiencia");
-  const [calculationMethod, setCalculationMethod] = useState("DEA");
+  const [calculationMethod, setCalculationMethod] = useState("SFA");
+  const [selectedInputs, setSelectedInputs] = useState([
+    "remuneraciones",
+    "bienesyservicios",
+  ]);
+  const [selectedOutputs, setSelectedOutputs] = useState(["consultas"]);
+  const [selectedIndependentVars, setSelectedIndependentVars] = useState([
+    "remuneraciones",
+    "complejidad",
+  ]);
+  const [loading, setLoading] = useState(false);
+  const [analysisResults, setAnalysisResults] = useState(null);
+
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  // Variables disponibles para el análisis
+  const variablesDisponibles = [
+    { value: "remuneraciones", label: "Remuneraciones" },
+    { value: "bienesyservicios", label: "Bienes y Servicios" },
+    { value: "consultas", label: "Consultas" },
+    { value: "grdxegresos", label: "GRD x Egresos" },
+    { value: "diascamadisponibles", label: "Días Cama Disponibles" },
+    { value: "consultasurgencias", label: "Consultas Urgencias" },
+    { value: "examenes", label: "Exámenes" },
+    { value: "quirofanos", label: "Quirófanos" },
+    { value: "complejidad", label: "Complejidad" },
+  ];
+
+  const inputVariables = variablesDisponibles.filter((v) =>
+    [
+      "remuneraciones",
+      "bienesyservicios",
+      "diascamadisponibles",
+      "quirofanos",
+    ].includes(v.value)
+  );
+
+  const outputVariables = variablesDisponibles.filter((v) =>
+    ["consultas", "grdxegresos", "consultasurgencias", "examenes"].includes(
+      v.value
+    )
+  );
+
+  // Efecto para ajustar outputs cuando cambia el método
+  useEffect(() => {
+    if (calculationMethod === "SFA" && selectedOutputs.length > 1) {
+      // SFA solo permite un output, mantener solo el primero
+      setSelectedOutputs([selectedOutputs[0]]);
+    }
+  }, [calculationMethod, selectedOutputs]);
+
+  // Función para realizar el análisis de determinantes
+  const handleCalculateAnalysis = async () => {
+    try {
+      setLoading(true);
+
+      // Validaciones
+      if (selectedInputs.length === 0) {
+        message.error("Debe seleccionar al menos una variable de entrada");
+        return;
+      }
+      if (selectedOutputs.length === 0) {
+        message.error("Debe seleccionar al menos una variable de salida");
+        return;
+      }
+      if (selectedIndependentVars.length === 0) {
+        message.error("Debe seleccionar al menos una variable independiente");
+        return;
+      }
+
+      // Construcción de la URL con parámetros
+      const params = new URLSearchParams({
+        method: calculationMethod,
+        year: selectedYear.toString(),
+        input_cols: selectedInputs.join(","),
+        output_cols: selectedOutputs.join(","),
+        independent_vars: selectedIndependentVars.join(","),
+      });
+
+      const response = await fetch(
+        `http://localhost:8000/determinantes-efficiency?${params}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("Respuesta del backend:", data); // Debug
+      setAnalysisResults(data);
+      message.success("Análisis completado exitosamente");
+    } catch (error) {
+      console.error("Error al calcular análisis:", error);
+      message.error(`Error al calcular el análisis: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Layout style={{ height: "calc(100vh - 64px)" }}>
       <Sider
@@ -108,6 +207,34 @@ const DeterminantesView = ({ onNavigate }) => {
                 }}
                 title="Variable Dependiente"
               />
+              <Button
+                type="text"
+                icon={<SearchOutlined />}
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "18px",
+                  color: "#52c41a",
+                }}
+                title="Variables de Entrada"
+              />
+              <Button
+                type="text"
+                icon={<EditFilled />}
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "18px",
+                  color: "#f5222d",
+                }}
+                title="Variables de Salida"
+              />
             </div>
           ) : (
             <>
@@ -146,20 +273,65 @@ const DeterminantesView = ({ onNavigate }) => {
               <Select
                 mode="multiple"
                 placeholder="Seleccionar variables"
-                defaultValue={["camas", "personal", "presupuesto"]}
+                value={selectedIndependentVars}
+                onChange={setSelectedIndependentVars}
                 style={{ width: "100%", marginBottom: "16px" }}
-                options={[
-                  { value: "camas", label: "Número de Camas" },
-                  { value: "personal", label: "Personal Médico" },
-                  { value: "presupuesto", label: "Presupuesto Anual" },
-                  { value: "ubicacion", label: "Ubicación (Urbano/Rural)" },
-                  { value: "anos", label: "Años de Operación" },
-                  { value: "tipo", label: "Tipo de Hospital" },
-                  { value: "tecnologia", label: "Nivel Tecnológico" },
-                  { value: "especializacion", label: "Especialización" },
-                  { value: "region", label: "Región Geográfica" },
-                  { value: "publico", label: "Sector (Público/Privado)" },
-                ]}
+                options={variablesDisponibles}
+              />
+              {/* Variables de Entrada (Inputs) */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: "12px",
+                }}
+              >
+                <SearchOutlined
+                  style={{
+                    fontSize: "16px",
+                    color: "#52c41a",
+                    marginRight: "8px",
+                  }}
+                />
+                <Title level={5} style={{ margin: 0, color: "#333" }}>
+                  Variables de Entrada (Inputs)
+                </Title>
+              </div>
+              <Select
+                mode="multiple"
+                placeholder="Seleccionar inputs para SFA/DEA"
+                value={selectedInputs}
+                onChange={setSelectedInputs}
+                style={{ width: "100%", marginBottom: "16px" }}
+                options={inputVariables}
+              />
+              {/* Variables de Salida (Outputs) */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: "12px",
+                }}
+              >
+                <EditFilled
+                  style={{
+                    fontSize: "16px",
+                    color: "#f5222d",
+                    marginRight: "8px",
+                  }}
+                />
+                <Title level={5} style={{ margin: 0, color: "#333" }}>
+                  Variables de Salida (Outputs)
+                </Title>
+              </div>
+              <Select
+                mode="multiple"
+                placeholder="Seleccionar outputs para SFA/DEA"
+                value={selectedOutputs}
+                onChange={setSelectedOutputs}
+                style={{ width: "100%", marginBottom: "16px" }}
+                options={outputVariables}
+                maxCount={calculationMethod === "SFA" ? 1 : undefined}
               />
               <div
                 style={{
@@ -190,17 +362,16 @@ const DeterminantesView = ({ onNavigate }) => {
               <Button
                 type="primary"
                 size="large"
+                loading={loading}
                 style={{
                   width: "100%",
                   marginTop: "20px",
                   backgroundColor: "#1890ff",
                   borderColor: "#1890ff",
                 }}
-                onClick={() => {
-                  console.log("Calculando análisis de determinantes");
-                }}
+                onClick={handleCalculateAnalysis}
               >
-                Calcular
+                {loading ? "Calculando..." : "Calcular"}
               </Button>
             </>
           )}
@@ -277,11 +448,16 @@ const DeterminantesView = ({ onNavigate }) => {
                 onChange={setSelectedYear}
                 style={{ width: 120 }}
                 options={[
+                  { value: 2014, label: "2014" },
+                  { value: 2015, label: "2015" },
+                  { value: 2016, label: "2016" },
+                  { value: 2017, label: "2017" },
+                  { value: 2018, label: "2018" },
+                  { value: 2019, label: "2019" },
                   { value: 2020, label: "2020" },
                   { value: 2021, label: "2021" },
                   { value: 2022, label: "2022" },
                   { value: 2023, label: "2023" },
-                  { value: 2024, label: "2024" },
                 ]}
               />
               <Radio.Group
@@ -291,7 +467,6 @@ const DeterminantesView = ({ onNavigate }) => {
               >
                 <Radio.Button value="SFA">SFA</Radio.Button>
                 <Radio.Button value="DEA">DEA</Radio.Button>
-                <Radio.Button value="DEA-M">DEA-M</Radio.Button>
               </Radio.Group>
             </div>
           </div>{" "}
@@ -317,8 +492,8 @@ const DeterminantesView = ({ onNavigate }) => {
                 >
                   <Statistic
                     title="R²"
-                    value={0.85}
-                    precision={3}
+                    value={analysisResults?.r_cuadrado || "--"}
+                    precision={analysisResults?.r_cuadrado ? 3 : 0}
                     valueStyle={{ color: "#1890ff", fontSize: "18px" }}
                     prefix={<LineChartOutlined />}
                     titleStyle={{
@@ -346,7 +521,7 @@ const DeterminantesView = ({ onNavigate }) => {
                 >
                   <Statistic
                     title="β significativos"
-                    value={6}
+                    value={analysisResults?.variables_clave?.length || "--"}
                     valueStyle={{ color: "#52c41a", fontSize: "18px" }}
                     prefix={<TrophyOutlined />}
                     titleStyle={{
@@ -374,7 +549,7 @@ const DeterminantesView = ({ onNavigate }) => {
                 >
                   <Statistic
                     title="N° Observaciones"
-                    value={248}
+                    value={analysisResults?.observaciones || "--"}
                     valueStyle={{ color: "#fa8c16", fontSize: "18px" }}
                     prefix={<TeamOutlined />}
                     titleStyle={{
@@ -515,7 +690,8 @@ const DeterminantesView = ({ onNavigate }) => {
                         dataIndex: "coeficiente",
                         key: "coeficiente",
                         width: "18%",
-                        render: (value) => value.toFixed(4),
+                        render: (value) =>
+                          typeof value === "number" ? value.toFixed(4) : value,
                       },
                       {
                         title: "P-valor",
@@ -528,7 +704,9 @@ const DeterminantesView = ({ onNavigate }) => {
                               color: value < 0.05 ? "#52c41a" : "#ff4d4f",
                             }}
                           >
-                            {value.toFixed(3)}
+                            {typeof value === "number"
+                              ? value.toFixed(3)
+                              : value}
                           </span>
                         ),
                       },
@@ -537,7 +715,8 @@ const DeterminantesView = ({ onNavigate }) => {
                         dataIndex: "errorEstandar",
                         key: "errorEstandar",
                         width: "18%",
-                        render: (value) => value.toFixed(4),
+                        render: (value) =>
+                          typeof value === "number" ? value.toFixed(4) : value,
                       },
                       {
                         title: "VIF",
@@ -555,81 +734,36 @@ const DeterminantesView = ({ onNavigate }) => {
                                   : "#52c41a",
                             }}
                           >
-                            {value.toFixed(2)}
+                            {typeof value === "number"
+                              ? value.toFixed(2)
+                              : value}
                           </span>
                         ),
                       },
                     ]}
-                    dataSource={[
-                      {
-                        key: 1,
-                        variable: "Número de Camas",
-                        coeficiente: 0.0234,
-                        pvalor: 0.002,
-                        errorEstandar: 0.0078,
-                        vif: 2.34,
-                      },
-                      {
-                        key: 2,
-                        variable: "Personal Médico",
-                        coeficiente: 0.0156,
-                        pvalor: 0.001,
-                        errorEstandar: 0.0045,
-                        vif: 3.21,
-                      },
-                      {
-                        key: 3,
-                        variable: "Presupuesto Anual",
-                        coeficiente: 0.0089,
-                        pvalor: 0.023,
-                        errorEstandar: 0.0039,
-                        vif: 1.87,
-                      },
-                      {
-                        key: 4,
-                        variable: "Ubicación Urbana",
-                        coeficiente: 0.0445,
-                        pvalor: 0.0,
-                        errorEstandar: 0.0123,
-                        vif: 1.45,
-                      },
-                      {
-                        key: 5,
-                        variable: "Años de Operación",
-                        coeficiente: 0.0012,
-                        pvalor: 0.156,
-                        errorEstandar: 0.0008,
-                        vif: 1.23,
-                      },
-                      {
-                        key: 6,
-                        variable: "Tipo de Hospital",
-                        coeficiente: 0.0267,
-                        pvalor: 0.008,
-                        errorEstandar: 0.0098,
-                        vif: 2.67,
-                      },
-                      {
-                        key: 7,
-                        variable: "Tecnología Disponible",
-                        coeficiente: 0.0198,
-                        pvalor: 0.012,
-                        errorEstandar: 0.0076,
-                        vif: 4.12,
-                      },
-                      {
-                        key: 8,
-                        variable: "Especialización",
-                        coeficiente: 0.0334,
-                        pvalor: 0.003,
-                        errorEstandar: 0.0112,
-                        vif: 1.98,
-                      },
-                    ]}
+                    dataSource={
+                      // Solo mostrar datos si hay resultados reales del backend
+                      analysisResults?.coeficientes &&
+                      analysisResults.coeficientes.length > 0
+                        ? analysisResults.coeficientes.map((data, index) => ({
+                            key: index + 1,
+                            variable: data.variable,
+                            coeficiente: data.coeficiente,
+                            pvalor: data.p_value,
+                            errorEstandar: data.error_estandar,
+                            vif: data.vif || 0, // VIF no está en la respuesta actual
+                          }))
+                        : [] // Tabla vacía si no hay resultados
+                    }
                     pagination={false}
                     size="small"
                     scroll={{ y: "calc(100% - 80px)" }}
                     style={{ flex: 1 }}
+                    locale={{
+                      emptyText: analysisResults
+                        ? "No se encontraron coeficientes en los resultados del análisis."
+                        : "Selecciona las variables y haz clic en 'Calcular' para ver los resultados del análisis econométrico",
+                    }}
                   />
                   <div
                     style={{
@@ -641,8 +775,24 @@ const DeterminantesView = ({ onNavigate }) => {
                       color: "#666",
                     }}
                   >
-                    <strong>Estadísticas del modelo:</strong> R² = 0.847 | R²
-                    ajustado = 0.823 | F-estadístico = 12.45 (p &lt; 0.001)
+                    <strong>Estadísticas del modelo:</strong>
+                    R² = {analysisResults?.r_cuadrado?.toFixed(3) || "--"} | R²
+                    ajustado ={" "}
+                    {analysisResults?.r_cuadrado_ajustado?.toFixed(3) || "--"} |
+                    Variables significativas ={" "}
+                    {analysisResults?.variables_clave?.length || "--"}
+                    <br />
+                    <strong>Método de eficiencia:</strong>{" "}
+                    {analysisResults?.metodo_eficiencia || calculationMethod} |
+                    <strong>Año:</strong> {selectedYear} |
+                    <strong>Variable dependiente:</strong>{" "}
+                    {analysisResults?.variable_dependiente ||
+                      "Eficiencia Técnica"}
+                    <br />
+                    <strong>Observaciones:</strong>{" "}
+                    {analysisResults?.observaciones || "--"} |
+                    <strong>Mensaje:</strong>{" "}
+                    {analysisResults?.mensaje || "Análisis pendiente"}
                     <br />
                     <strong>Significancia:</strong> *** p&lt;0.001, **
                     p&lt;0.01, * p&lt;0.05, NS = No significativo

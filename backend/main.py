@@ -835,6 +835,127 @@ def run_malmquist(
         logger.error(f"Error al ejecutar análisis Malmquist: {e}")
         raise HTTPException(status_code=500, detail=f"Error interno del servidor al procesar el análisis Malmquist: {str(e)}")
 
+@app.get("/determinantes-efficiency")
+def analisis_determinantes_eficiencia(
+    efficiency_method: str = Query(default="DEA", description="Método de eficiencia: 'SFA' o 'DEA'"),
+    independent_vars: str = Query(..., description="Variables independientes separadas por comas"),
+    input_cols: str = Query(..., description="Columnas de inputs separadas por comas"),
+    output_cols: str = Query(..., description="Columnas de outputs separadas por comas"),
+    year: int = Query(default=None, description="Año para filtrar datos"),
+    top_n: int = Query(default=5, description="Número de determinantes clave"),
+    db: Session = Depends(get_db)
+):
+    """
+    Analiza los determinantes de eficiencia hospitalaria calculando SFA o DEA internamente.
+    
+    Este endpoint:
+    1. Calcula la eficiencia técnica (SFA o DEA) usando las variables de input/output especificadas
+    2. Usa esa eficiencia como variable dependiente en un análisis de regresión OLS
+    3. Identifica los principales determinantes de la eficiencia
+    
+    Ejemplos:
+    - /determinantes-efficiency?efficiency_method=DEA&independent_vars=remuneraciones,bienesyservicios&input_cols=remuneraciones,bienesyservicios&output_cols=consultas,grdxegresos
+    - /determinantes-efficiency?efficiency_method=SFA&independent_vars=remuneraciones,complejidad&input_cols=remuneraciones,bienesyservicios&output_cols=consultas&year=2024
+    """
+    try:
+        # Parsear listas
+        independent_vars_list = [v.strip() for v in independent_vars.split(',')]
+        input_cols_list = [v.strip() for v in input_cols.split(',')]
+        output_cols_list = [v.strip() for v in output_cols.split(',')]
+        
+        logger.info(f"Análisis determinantes eficiencia: {efficiency_method} con inputs: {input_cols_list}, outputs: {output_cols_list}")
+        
+        # Obtener datos de hospitales
+        query = db.query(models.Hospital)
+        
+        # Aplicar filtros si se proporcionan
+        if year is not None:
+            query = query.filter(models.Hospital.año == year)
+        hospitales = query.all()
+        
+        if not hospitales:
+            raise HTTPException(status_code=404, detail="No se encontraron hospitales con los filtros especificados")
+        
+        # Convertir a DataFrame
+        df = pd.DataFrame([{
+            'hospital_id': h.hospital_id,
+            'hospital_name': h.hospital_name,
+            'region_id': h.region_id,
+            'latitud': h.latitud,
+            'longitud': h.longitud,
+            'consultas': h.consultas,
+            'grdxegresos': h.grdxegresos,
+            'bienesyservicios': h.bienesyservicios,
+            'remuneraciones': h.remuneraciones,
+            'diascamadisponibles': h.diascamadisponibles,
+            'consultasurgencias': h.consultasurgencias,
+            'examenes': h.examenes,
+            'quirofanos': h.quirofanos,
+            'año': h.año,
+            'complejidad': h.complejidad
+        } for h in hospitales])
+        
+        # Verificar que las columnas existen
+        all_columns = set(df.columns)
+        missing_inputs = [col for col in input_cols_list if col not in all_columns]
+        missing_outputs = [col for col in output_cols_list if col not in all_columns]
+        missing_independents = [col for col in independent_vars_list if col not in all_columns]
+        
+        if missing_inputs:
+            raise HTTPException(status_code=400, detail=f"Columnas de input no encontradas: {missing_inputs}")
+        if missing_outputs:
+            raise HTTPException(status_code=400, detail=f"Columnas de output no encontradas: {missing_outputs}")
+        if missing_independents:
+            raise HTTPException(status_code=400, detail=f"Variables independientes no encontradas: {missing_independents}")
+        
+        # Ejecutar análisis de determinantes con cálculo automático de eficiencia
+        coef_table, meta = utils.determinant_analysis(
+            df=df,
+            dependent="eficiencia",  # Esto activará el cálculo automático de SFA/DEA
+            independents=independent_vars_list,
+            efficiency_method=efficiency_method,
+            input_cols=input_cols_list,
+            output_cols=output_cols_list,
+            top_n=top_n,
+            add_constant=True
+        )
+        
+        # Formatear respuesta
+        coeficientes = []
+        for _, row in coef_table.iterrows():
+            coef = {
+                "variable": row['variable'],
+                "coeficiente": float(row['Coef.']),
+                "error_estandar": float(row['Std.Err.']),
+                "t_value": float(row['t']),
+                "p_value": float(row['P>|t|']),
+                "significativo": float(row['P>|t|']) < 0.05
+            }
+            coeficientes.append(coef)
+        
+        respuesta = {
+            "variable_dependiente": meta['dependent_variable'],
+            "variables_independientes": independent_vars_list,
+            "metodo_eficiencia": meta['method'],
+            "input_cols": input_cols_list,
+            "output_cols": output_cols_list,
+            "coeficientes": coeficientes,
+            "variables_clave": meta['top_vars'],
+            "r_cuadrado": float(meta['r2']),
+            "r_cuadrado_ajustado": float(meta['r2_adj']),
+            "observaciones": meta['n_observations'],
+            "mensaje": f"Análisis de determinantes completado usando {efficiency_method}. {len(coeficientes)} coeficientes calculados."
+        }
+        
+        logger.info(f"Análisis determinantes eficiencia completado. R² = {meta['r2']:.3f}, método = {efficiency_method}")
+        return respuesta
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error en análisis determinantes eficiencia: {e}")
+        raise HTTPException(status_code=500, detail=f"Error interno del servidor: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="localhost", port=8000, reload=True)

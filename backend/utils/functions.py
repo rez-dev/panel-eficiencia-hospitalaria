@@ -4,6 +4,10 @@ from pysfa import SFA
 from Pyfrontier.frontier_model import EnvelopDEA
 from typing import List, Tuple, Dict
 from joblib import Parallel, delayed
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+from typing import List, Tuple, Dict
 
 def calculate_sfa_metrics(df: pd.DataFrame,
                           input_cols: list[str],
@@ -31,20 +35,28 @@ def calculate_sfa_metrics(df: pd.DataFrame,
     method : str
       Método de eficiencia (SFA.TE_teJ, TE_te, TE_teMod).
     """
-    # 1) CREAR MÁSCARA de hospitales válidos (inputs y outputs > 0)
-    mask_validos = (df[input_cols] > 0).all(axis=1) & (df[output_col] > 0).all(axis=1)
+    # 1) Si output_col es una lista, tomar solo el primer elemento
+    if isinstance(output_col, list):
+        if len(output_col) == 0:
+            raise ValueError("output_col no puede estar vacío")
+        output_col_name = output_col[0]
+    else:
+        output_col_name = output_col
     
-    # 2) SEPARAR hospitales válidos e inválidos
+    # 2) CREAR MÁSCARA de hospitales válidos (inputs y outputs > 0)
+    mask_validos = (df[input_cols] > 0).all(axis=1) & (df[output_col_name] > 0)
+    
+    # 3) SEPARAR hospitales válidos e inválidos
     df_validos = df[mask_validos].copy()
     df_invalidos = df[~mask_validos].copy()
     
     # print(f"Hospitales válidos: {len(df_validos)}")
     # print(f"Hospitales inválidos (ET SFA = 0): {len(df_invalidos)}")
     
-    # 3) EJECUTAR SFA solo en hospitales válidos
+    # 4) EJECUTAR SFA solo en hospitales válidos
     if len(df_validos) > 0:
         x = np.log(df_validos[input_cols]).to_numpy()
-        y = np.log(df_validos[output_col]).to_numpy()
+        y = np.log(df_validos[output_col_name]).to_numpy()
 
         sfa = SFA.SFA(y, x, fun=fun, method=method)
         sfa.optimize()
@@ -88,15 +100,15 @@ def calculate_sfa_metrics(df: pd.DataFrame,
         var_clave = "No determinada"
         lambda_varianza = 0.0
     
-    # 4) ASIGNAR ET SFA = 0 a hospitales inválidos
+    # 5) ASIGNAR ET SFA = 0 a hospitales inválidos
     if len(df_invalidos) > 0:
         df_invalidos['ET SFA'] = 0.0
         df_invalidos['percentil'] = 0  # Percentil 0 para inválidos
     
-    # 5) COMBINAR ambos DataFrames
+    # 6) COMBINAR ambos DataFrames
     df_out = pd.concat([df_validos, df_invalidos], ignore_index=True)
     
-    # 6) RECALCULAR métricas incluyendo hospitales con ET SFA = 0
+    # 7) RECALCULAR métricas incluyendo hospitales con ET SFA = 0
     te_total = df_out['ET SFA'].values
     et_promedio_total = float(te_total.mean())
     pct_crit_total = float((te_total < te_threshold).mean() * 100)
@@ -415,3 +427,103 @@ def calculate_dea_malmquist_fast(df_t, df_t1,
         "n_hospitals":    len(eff1)
     }
     return df_out, summary
+
+def determinant_analysis(df: pd.DataFrame,
+                         dependent: str,
+                         independents: List[str],
+                         efficiency_method: str = "SFA",
+                         input_cols: List[str] = None,
+                         output_cols: List[str] = None,
+                         top_n: int = 5,
+                         add_constant: bool = True
+                        ) -> Tuple[pd.DataFrame, Dict]:
+    """
+    Calcula eficiencia (SFA o DEA) y luego ajusta un modelo OLS para analizar determinantes.
+    
+    Parámetros
+    ----------
+    df               : DataFrame con los datos
+    dependent        : nombre de la columna dependiente (Y) o "eficiencia" para usar SFA/DEA
+    independents     : lista de columnas explicativas (X)
+    efficiency_method: "SFA" o "DEA" (solo se usa si dependent == "eficiencia")
+    input_cols       : columnas de inputs para SFA/DEA (requerido si dependent == "eficiencia")
+    output_cols      : columnas de outputs para SFA/DEA (requerido si dependent == "eficiencia")
+    top_n            : nº de determinantes "clave" a destacar
+    add_constant     : añade intercepto si True
+    
+    Devuelve
+    --------
+    coef_table : DataFrame con coef, std_err, t, p
+    meta       : dict con r2, r2_adj, top_vars y método usado
+    """
+    df_work = df.copy()
+    
+    # Si la variable dependiente es "eficiencia", calcular SFA o DEA
+    if dependent == "eficiencia":
+        if input_cols is None or output_cols is None:
+            raise ValueError("input_cols y output_cols son requeridos cuando dependent='eficiencia'")
+        
+        if efficiency_method.upper() == "SFA":
+            # Calcular SFA - pasar solo la primera columna de output como lista de un elemento
+            output_col_sfa = [output_cols[0]] if isinstance(output_cols, list) else [output_cols]
+            df_eff, metrics_eff = calculate_sfa_metrics(
+                df_work, 
+                input_cols, 
+                output_col_sfa
+            )
+            efficiency_col = "ET SFA"
+            
+        elif efficiency_method.upper() == "DEA":
+            # Calcular DEA
+            df_eff, metrics_eff = calculate_dea_metrics(
+                df_work,
+                input_cols,
+                output_cols
+            )
+            efficiency_col = "ET DEA"
+            
+        else:
+            raise ValueError("efficiency_method debe ser 'SFA' o 'DEA'")
+        
+        # Usar la eficiencia calculada como variable dependiente
+        df_work = df_eff
+        dependent_col = efficiency_col
+        
+    else:
+        # Usar la variable dependiente especificada directamente
+        dependent_col = dependent
+        efficiency_method = "Directo"
+    
+    # 0) Filtrar filas completas
+    df_clean = df_work.dropna(subset=[dependent_col] + independents).copy()
+
+    # 1) Matrices
+    y = df_clean[dependent_col].astype(float).to_numpy()
+    X = df_clean[independents].astype(float)
+    if add_constant:
+        X = sm.add_constant(X)
+    
+    # 2) Ajustar modelo
+    model = sm.OLS(y, X).fit()
+    
+    # 3) Tabla de coeficientes
+    coef_table = model.summary2().tables[1]                 # coef, std err, t, P>|t|
+    coef_table.index.name = "variable"
+    coef_table.reset_index(inplace=True)
+    
+    # 4) Variables "clave"  (|coef| grande & p<0.05)
+    sig = coef_table[coef_table["P>|t|"] < 0.05].copy()
+    sig["abs_coef"] = sig["Coef."].abs()
+    sig_sorted = sig.sort_values("abs_coef", ascending=False)
+    top_vars = sig_sorted["variable"].head(top_n).tolist()
+    
+    # 5) Métricas de resumen
+    meta = {
+        "r2":      model.rsquared,
+        "r2_adj":  model.rsquared_adj,
+        "top_vars": top_vars,
+        "method": efficiency_method,
+        "dependent_variable": dependent_col,
+        "n_observations": len(df_clean)
+    }
+    return coef_table, meta
