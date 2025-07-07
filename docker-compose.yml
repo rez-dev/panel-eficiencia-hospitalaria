@@ -8,48 +8,46 @@ services:
     container_name: frontend
     restart: always
     ports:
-      - "5173:5173"
+      - "${FRONTEND_PORT}:5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - VITE_APP_BACKEND_ADDRESS=http://localhost:8000/api
+      - VITE_APP_BACKEND_ADDRESS=${VITE_APP_BACKEND_ADDRESS}
       
   db:
     image: postgres:15
     container_name: db
     restart: always
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: secret
-      POSTGRES_DB: panel-eficiencia-hospitalaria
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./db/hospitals.csv:/docker-entrypoint-initdb.d/hospitals.csv
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
 
   backend:
     build:
-      context: ./backend # Ruta al directorio donde está tu Dockerfile y código del backend
+      context: ./backend
       dockerfile: Dockerfile
     container_name: backend
     restart: always
     ports:
-      - "8000:8000" # Mapea el puerto 8000 del host al 8000 del contenedor
+      - "${BACKEND_PORT}:8000"
     volumes:
-      - ./backend:/app # Monta el código del backend para hot-reloading (opcional, bueno para desarrollo)
+      - ./backend:/app
     environment:
-      # Pasa las mismas variables de entorno que tu aplicación necesita para conectarse a la BD
-      # Asegúrate de que POSTGRES_HOST apunte al nombre del servicio de la BD en Docker Compose (en este caso, 'db')
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=secret
-      - POSTGRES_DB=panel-eficiencia-hospitalaria
-      - POSTGRES_HOST=db # Nombre del servicio de la base de datos en Docker Compose
-      - POSTGRES_PORT=5432
-      # Si tienes un archivo .env que tu backend usa, considera cómo manejarlo.
-      # Podrías montarlo como un volumen o usar la directiva env_file en Docker Compose.
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
     depends_on:
-      - db # Asegura que el servicio 'db' se inicie antes que el 'backend'
+      - db
 
 volumes:
   pgdata:
