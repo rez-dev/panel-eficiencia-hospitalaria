@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:8000';
+// Obtener la URL base del backend desde variables de entorno
+const API_BASE_URL = import.meta.env.VITE_APP_BACKEND_ADDRESS || 'http://localhost:8000';
 
 class ApiService {
   async fetchSFAMetrics(year = 2014, inputCols = [], outputCols = []) {

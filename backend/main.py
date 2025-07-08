@@ -9,6 +9,11 @@ import logging
 import numpy as np
 import pandas as pd
 import utils.functions as utils
+import os
+from dotenv import load_dotenv
+
+# Cargar variables de entorno
+load_dotenv()
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -16,15 +21,14 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Panel Eficiencia Hospitalaria API", version="1.0.0")
 
+# Obtener orígenes CORS desde variables de entorno
+cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173")
+allowed_origins = [origin.strip() for origin in cors_origins.split(',')]
+
 # Configurar CORS para permitir comunicación con el frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # React dev server
-        "http://localhost:5173",  # Vite dev server
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173"
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -32,6 +36,18 @@ app.add_middleware(
 
 # Crear las tablas
 models.Base.metadata.create_all(bind=engine) # Asegurar que las tablas de los modelos se creen
+
+@app.get("/health")
+def health_check():
+    """
+    Endpoint de health check para verificar que el servicio esté funcionando.
+    """
+    return {
+        "status": "healthy",
+        "service": "Panel Eficiencia Hospitalaria API",
+        "version": "1.0.0",
+        "environment": os.getenv("ENVIRONMENT", "development")
+    }
 
 @app.get("/")
 def read_root():
@@ -958,4 +974,9 @@ def analisis_determinantes_eficiencia(
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="localhost", port=8000, reload=True)
+    # Obtener configuración del servidor desde variables de entorno
+    host = os.getenv("SERVER_HOST", "0.0.0.0")  # 0.0.0.0 para permitir conexiones externas
+    port = int(os.getenv("BACKEND_PORT", "8000"))
+    reload = os.getenv("ENVIRONMENT", "development") == "development"
+    
+    uvicorn.run("main:app", host=host, port=port, reload=reload)
