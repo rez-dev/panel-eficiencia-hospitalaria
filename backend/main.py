@@ -40,7 +40,19 @@ models.Base.metadata.create_all(bind=engine) # Asegurar que las tablas de los mo
 @app.get("/health")
 def health_check():
     """
-    Endpoint de health check para verificar que el servicio esté funcionando.
+    Endpoint de health check para monitorear el estado del sistema de análisis hospitalario.
+    
+    Verifica el estado operacional del API de eficiencia hospitalaria, incluyendo
+    conectividad con base de datos PostgreSQL y disponibilidad de módulos de análisis.
+    
+    Utilizado por:
+    - Balanceadores de carga para health checks
+    - Sistemas de monitoreo y alertas
+    - Pruebas de conectividad del frontend
+    - Verificación de despliegue en contenedores
+    
+    Returns:
+        Estado del servicio con información del entorno y versión
     """
     return {
         "status": "healthy",
@@ -55,6 +67,16 @@ def read_root():
 
 @app.get("/db-status")
 def check_db_status(db: Session = Depends(get_db)):
+    """
+    Verifica el estado de conectividad con la base de datos PostgreSQL.
+    
+    Ejecuta una consulta simple para confirmar que la conexión a la base de datos
+    está funcionando correctamente y que el sistema puede acceder a los datos
+    hospitalarios almacenados.
+    
+    Returns:
+        Estado de la conexión y resultado de la consulta de prueba
+    """
     try:
         # Test de conexión simple
         result = db.execute(text("SELECT 1")).fetchone()
@@ -75,21 +97,28 @@ def get_all_hospitals_data(
     db: Session = Depends(get_db)
 ):
     """
-    Obtiene hospitales de la base de datos con filtros opcionales.
+    Obtiene datos de hospitales del sistema de salud chileno con filtros opcionales.
+    
+    Retorna información completa de hospitales incluyendo indicadores operacionales,
+    recursos disponibles y métricas de productividad hospitalaria.
     
     Args:
-        year: Año opcional para filtrar los hospitales (ej: 2014, 2015, etc.)
-        region_id: ID de región opcional para filtrar (ej: 15, 1, etc.)
-        complejidad: Nivel de complejidad opcional para filtrar (ej: 1, 2, 3, etc.)
+        year: Año de los datos hospitalarios (ej: 2014, 2015, 2016)
+        region_id: ID de región administrativa de Chile (1-15)
+        complejidad: Nivel de complejidad hospitalaria (1=Baja, 2=Media, 3=Alta)
     
     Returns:
-        Lista de hospitales filtrados según los parámetros proporcionados.
+        Lista de hospitales con datos de:
+        - Recursos: remuneraciones, bienes y servicios, días-cama disponibles
+        - Outputs: consultas, GRD por egresos, consultas de urgencia
+        - Ubicación: latitud, longitud, región
+        - Infraestructura: quirófanos, días-cama, capacidad de atención
     
     Examples:
-        - GET /hospitals -> Todos los hospitales
-        - GET /hospitals?year=2014 -> Solo hospitales del año 2014
-        - GET /hospitals?year=2014&region_id=15 -> Hospitales del año 2014 en la región 15
-        - GET /hospitals?complejidad=3 -> Solo hospitales de complejidad 3
+        - GET /hospitals -> Todos los hospitales del sistema
+        - GET /hospitals?year=2014 -> Hospitales con datos del año 2014
+        - GET /hospitals?year=2014&region_id=15 -> Hospitales 2014 en Región de Arica
+        - GET /hospitals?complejidad=3 -> Solo hospitales de alta complejidad
     """
     try:
         # Crear la consulta base
@@ -141,9 +170,19 @@ def get_all_hospitals_data(
 @app.get("/hospitals/summary", response_model=List[schemas.HospitalSummary])
 def get_hospitals_summary(db: Session = Depends(get_db)):
     """
-    Obtiene un resumen de todos los hospitales (solo campos principales).
+    Obtiene un resumen consolidado de todos los hospitales del sistema.
     
-    Útil para listados rápidos sin cargar todos los detalles.
+    Retorna información básica de hospitales para listados rápidos y dashboards,
+    sin cargar el detalle completo de indicadores operacionales.
+    
+    Útil para:
+    - Componentes de selección de hospitales
+    - Mapas interactivos con markers
+    - Listados de referencia rápida
+    - Filtros dinámicos en el frontend
+    
+    Returns:
+        Lista de hospitales con campos principales: ID, nombre, región, complejidad
     """
     try:
         hospitals = db.query(models.Hospital).all()
@@ -162,10 +201,17 @@ def get_hospitals_summary(db: Session = Depends(get_db)):
 @app.get("/hospitals/stats", response_model=schemas.HospitalStats)
 def get_hospitals_stats(db: Session = Depends(get_db)):
     """
-    Obtiene estadísticas generales de los hospitales.
+    Obtiene estadísticas agregadas del sistema hospitalario chileno.
+    
+    Proporciona métricas generales del conjunto de hospitales para análisis
+    preliminares y dashboards de resumen ejecutivo.
     
     Returns:
-        Estadísticas agregadas como total de hospitales, consultas, etc.
+        Estadísticas del sistema hospitalario:
+        - total_hospitales: Número total de hospitales en el sistema
+        - total_consultas: Suma de todas las consultas médicas
+        - promedio_complejidad: Nivel promedio de complejidad hospitalaria
+        - años_disponibles: Lista de años con datos disponibles
     """
     try:
         from sqlalchemy import func
@@ -230,15 +276,18 @@ def get_hospital_by_id(hospital_id: int, db: Session = Depends(get_db)):
     
 # usar funcion say hello de utls/functions.py
 @app.get("/hello")
-def say_hello(name: str = "XD"):
+def say_hello(name: str = "World"):
     """
-    Devuelve un saludo personalizado.
+    Endpoint de prueba para verificar conectividad con las funciones de utilidad.
+    
+    Utiliza la función `say_hello` del módulo utils.functions para generar
+    un saludo personalizado. Útil para testing y validación de módulos.
     
     Args:
         name: Nombre de la persona a saludar (por defecto "World")
     
     Returns:
-        Saludo personalizado
+        Saludo personalizado generado por la función de utilidad
     """
     try:
         greeting = utils.say_hello(name)
@@ -256,14 +305,30 @@ def run_sfa(
     db: Session = Depends(get_db)
 ):
     """
-    Ejecuta el análisis SFA para los hospitales del año especificado y columnas seleccionadas.
-
+    Ejecuta análisis de eficiencia técnica mediante Stochastic Frontier Analysis (SFA).
+    
+    Calcula la eficiencia técnica hospitalaria usando la metodología SFA que separa
+    la ineficiencia del ruido estadístico, ideal para análisis de productividad en
+    el sector salud donde factores externos pueden afectar el desempeño.
+    
     Args:
-        year: Año de los hospitales a analizar (por defecto 2014)
-        input_cols: Columnas de entrada separadas por comas (ej: 'col1,col2,col3')
-        output_cols: Columnas de salida separadas por comas (ej: 'col1,col2')
+        year: Año de análisis de hospitales (por defecto 2014)
+        input_cols: Inputs hospitalarios separados por comas (recursos)
+        output_cols: Outputs hospitalarios separados por comas (productos)
+    
     Returns:
-        Resultados del análisis SFA incluyendo eficiencia técnica y métricas
+        - results: Datos de hospitales con eficiencia técnica SFA calculada
+        - metrics: Métricas del análisis (ET promedio, % críticos, variable clave)
+    
+    Inputs típicos:
+        - bienesyservicios: Gasto en bienes y servicios
+        - remuneraciones: Gasto en personal médico y administrativo
+        - diascamadisponibles: Capacidad instalada de camas
+    
+    Outputs típicos:
+        - consultas: Número de consultas médicas atendidas
+        - grdxegresos: Grupos relacionados por diagnóstico por egresos
+        - consultasurgencias: Consultas de urgencia atendidas
     """
     try:
         # Convertir strings separadas por comas a listas
@@ -321,14 +386,26 @@ def run_dea(
     db: Session = Depends(get_db)
 ):
     """
-    Ejecuta el análisis DEA para los hospitales del año especificado y columnas seleccionadas.
+    Ejecuta análisis de eficiencia técnica mediante Data Envelopment Analysis (DEA).
+    
+    Calcula la eficiencia técnica hospitalaria usando la metodología DEA basada en
+    programación lineal. Identifica la frontera eficiente y mide la distancia de
+    cada hospital a esta frontera, proporcionando insights sobre mejores prácticas.
     
     Args:
-        year: Año de los hospitales a analizar (por defecto 2014)
-        input_cols: Columnas de entrada separadas por comas (ej: 'col1,col2,col3')
-        output_cols: Columnas de salida separadas por comas (ej: 'col1,col2')
+        year: Año de análisis de hospitales (por defecto 2014)
+        input_cols: Inputs hospitalarios separados por comas (recursos)
+        output_cols: Outputs hospitalarios separados por comas (productos)
+    
     Returns:
-        Resultados del análisis DEA incluyendo eficiencia técnica y métricas
+        - results: Datos de hospitales con eficiencia técnica DEA calculada
+        - metrics: Métricas del análisis (ET promedio, % críticos, variable slack clave)
+    
+    Ventajas del DEA:
+        - No requiere forma funcional específica
+        - Maneja múltiples inputs y outputs
+        - Identifica hospitales de referencia (benchmarks)
+        - Proporciona targets de mejora específicos
     """
     try:
         # Convertir strings separadas por comas a listas
@@ -392,23 +469,39 @@ def run_pca_clustering(
     db: Session = Depends(get_db)
 ):
     """
-    Ejecuta análisis PCA + K-means clustering para los hospitales del año especificado.
-    Incluye cálculo de eficiencia técnica previo al análisis PCA.
+    Ejecuta análisis PCA + K-means clustering para segmentación hospitalaria avanzada.
+    
+    Combina reducción de dimensionalidad (PCA) con clustering no supervisado para
+    identificar grupos homogéneos de hospitales basados en eficiencia técnica y
+    características operacionales.
+    
+    Metodología:
+    1. Calcula eficiencia técnica (SFA/DEA) previa
+    2. Aplica PCA para reducir dimensionalidad
+    3. Ejecuta K-means clustering en espacio reducido
+    4. Valida calidad de clusters con métricas de silhouette
+    
+    Aplicaciones:
+    - Segmentación estratégica de hospitales
+    - Identificación de grupos de benchmarking
+    - Políticas diferenciadas por tipo de hospital
+    - Análisis de patrones operacionales
     
     Args:
-        year: Año de los hospitales a analizar (por defecto 2014)
-        input_cols: Columnas de entrada (inputs) separadas por comas
-        output_cols: Columnas de salida (outputs) separadas por comas
+        year: Año de análisis hospitalario
+        input_cols: Inputs para cálculo de eficiencia
+        output_cols: Outputs para cálculo de eficiencia
         method: Método de eficiencia ('DEA' o 'SFA')
-        n_components: Número de componentes principales (1-10, por defecto 2)
-        k: Número fijo de clusters (None para auto-selección óptima)
-        k_max: Máximo número de clusters para auto-selección (2-20, por defecto 10)
-        scale: Si estandarizar datos antes de PCA (por defecto True)
-        random_state: Semilla para reproducibilidad (por defecto 42)
+        n_components: Componentes principales a retener
+        k: Número fijo de clusters (None para selección automática)
+        k_max: Máximo número de clusters para auto-selección
+        scale: Estandarización previa al PCA
+        random_state: Semilla de reproducibilidad
     
     Returns:
-        Resultados del análisis PCA + clustering incluyendo componentes principales,
-        asignaciones de clusters, eficiencia técnica y métricas de calidad
+        - results: Hospitales con asignación de clusters y componentes principales
+        - metrics: Métricas de calidad (silhouette, varianza explicada)
+        - cluster_summary: Perfil estadístico de cada cluster
     """
     try:
         # Convertir strings separados por comas a listas
@@ -566,17 +659,32 @@ def run_pca(
     db: Session = Depends(get_db)
 ):
     """
-    Ejecuta análisis PCA (sin clustering) para los hospitales del año especificado.
+    Ejecuta análisis de componentes principales (PCA) para reducción de dimensionalidad.
+    
+    Aplica PCA a variables hospitalarias para identificar patrones latentes y
+    reducir la complejidad multivariada del análisis hospitalario.
+    
+    Utilidad del PCA en análisis hospitalario:
+    - Identificación de factores subyacentes de desempeño
+    - Visualización de relaciones multivariadas
+    - Reducción de ruido en datos hospitalarios
+    - Creación de índices sintéticos de performance
     
     Args:
-        year: Año de los hospitales a analizar (por defecto 2014)
-        feature_cols: Columnas para PCA separadas por comas (ej: 'col1,col2,col3')
-        n_components: Número de componentes principales (1-10, por defecto 2)
-        scale: Si estandarizar datos antes de PCA (por defecto True)
+        year: Año de análisis hospitalario
+        feature_cols: Variables hospitalarias para análisis PCA
+        n_components: Número de componentes principales a extraer
+        scale: Estandarización previa (recomendado para variables heterogéneas)
     
     Returns:
-        Resultados del análisis PCA incluyendo componentes principales,
-        varianza explicada y matriz de cargas
+        - results: Datos originales con componentes principales agregados
+        - metrics: Varianza explicada por cada componente
+        - components_matrix: Matriz de cargas factoriales
+    
+    Interpretación:
+        - Componente 1: Usualmente representa "tamaño" hospitalario
+        - Componente 2: Frecuentemente asociado a "eficiencia operacional"
+        - Cargas altas indican variables más importantes por componente
     """
     try:
         # Convertir string separado por comas a lista
@@ -657,24 +765,30 @@ def run_malmquist(
     db: Session = Depends(get_db)
 ):
     """
-    Ejecuta análisis Malmquist DEA para comparar la productividad entre dos años.
+    Ejecuta análisis Malmquist DEA para evaluar cambios en productividad hospitalaria.
+    
+    Descompone el cambio en productividad entre dos períodos en:
+    - Cambio en eficiencia técnica (catch-up effect)
+    - Cambio tecnológico (frontier shift)
+    - Índice Malmquist total (productividad total)
+    
+    Esencial para:
+    - Evaluación de políticas de salud
+    - Identificación de mejores prácticas temporales
+    - Análisis de impacto de inversiones hospitalarias
+    - Benchmarking dinámico entre hospitales
     
     Args:
-        year_t: Año inicial (período t, por defecto 2014)
-        year_t1: Año final (período t+1, por defecto 2015)
-        input_cols: Columnas de entrada separadas por comas
-        output_cols: Columnas de salida separadas por comas
-        rts: Retornos a escala ('CRS' o 'VRS', por defecto 'CRS')
-        orientation: Orientación del modelo ('in' o 'out', por defecto 'in')
-        use_cross: Usar cross-efficiency para el componente técnico (por defecto True)
-        top_n: Número de hospitales top a analizar (5-100, por defecto 30)
-        top_input_col: Columna para seleccionar top hospitales (None para usar todos)
-        max_dmus: Máximo número de DMUs a procesar (None para sin límite)
-        n_jobs: Número de trabajos paralelos (1-8, por defecto 1)
+        year_t: Año inicial del análisis (período base)
+        year_t1: Año final del análisis (período comparativo)
+        input_cols: Recursos hospitalarios (remuneraciones, bienes, camas)
+        output_cols: Productos hospitalarios (consultas, egresos, urgencias)
+        top_input_col: Variable para seleccionar hospitales representativos
     
     Returns:
-        Resultados del análisis Malmquist incluyendo índices de cambio de eficiencia,
-        cambio tecnológico, índice Malmquist y porcentaje de cambio en productividad
+        - results: Índices Malmquist por hospital con geolocalización
+        - metrics: Estadísticas agregadas de cambio en productividad
+        - analysis_info: Metadata del análisis temporal
     """
     try:
         # Convertir strings separados por comas a listas
@@ -862,16 +976,35 @@ def analisis_determinantes_eficiencia(
     db: Session = Depends(get_db)
 ):
     """
-    Analiza los determinantes de eficiencia hospitalaria calculando SFA o DEA internamente.
+    Analiza los determinantes de eficiencia hospitalaria mediante regresión econométrica.
     
-    Este endpoint:
-    1. Calcula la eficiencia técnica (SFA o DEA) usando las variables de input/output especificadas
-    2. Usa esa eficiencia como variable dependiente en un análisis de regresión OLS
-    3. Identifica los principales determinantes de la eficiencia
+    Este análisis identifica qué factores influyen significativamente en la eficiencia
+    técnica hospitalaria, proporcionando insights para la gestión y política sanitaria.
     
-    Ejemplos:
-    - /determinantes-efficiency?efficiency_method=DEA&independent_vars=remuneraciones,bienesyservicios&input_cols=remuneraciones,bienesyservicios&output_cols=consultas,grdxegresos
-    - /determinantes-efficiency?efficiency_method=SFA&independent_vars=remuneraciones,complejidad&input_cols=remuneraciones,bienesyservicios&output_cols=consultas&year=2024
+    Metodología:
+    1. Calcula eficiencia técnica (SFA/DEA) como variable dependiente
+    2. Ejecuta regresión OLS con variables explicativas
+    3. Identifica determinantes estadísticamente significativos
+    4. Rankea factores por importancia relativa
+    
+    Aplicaciones:
+    - Diseño de políticas de mejora hospitalaria
+    - Identificación de factores críticos de eficiencia
+    - Benchmarking basado en características institucionales
+    - Evaluación de impacto de variables contextuales
+    
+    Args:
+        efficiency_method: Método de cálculo de eficiencia ('SFA' o 'DEA')
+        independent_vars: Variables explicativas (complejidad, región, etc.)
+        input_cols: Inputs para cálculo de eficiencia
+        output_cols: Outputs para cálculo de eficiencia
+        year: Año específico de análisis
+        top_n: Número de determinantes principales a reportar
+    
+    Returns:
+        - coeficientes: Resultados de regresión con significancia estadística
+        - variables_clave: Determinantes más importantes
+        - r_cuadrado: Capacidad explicativa del modelo
     """
     try:
         # Parsear listas
