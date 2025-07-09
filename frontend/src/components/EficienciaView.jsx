@@ -34,6 +34,13 @@ import "leaflet/dist/leaflet.css";
 import ApiService from "../services/api";
 import { useGlobalState } from "../contexts/GlobalStateContext";
 import StateIndicator from "./StateIndicator";
+import {
+  ParameterTooltip,
+  KpiTooltip,
+  ActionTooltip,
+  ColumnTooltip,
+} from "./CustomTooltip";
+import { getTooltip } from "../data/tooltips";
 
 // Componente de leyenda personalizado para Leaflet
 const MapLegend = ({ method = "SFA" }) => {
@@ -230,6 +237,26 @@ const EficienciaView = ({ onNavigate }) => {
     }
   }, [entradas, variableTop]);
 
+  // Función para obtener tooltips de KPIs según la metodología
+  const getKpiTooltip = (index, method = calculationMethod) => {
+    const tooltipMap = {
+      SFA: ["etPromedio", "hospitalesCriticos", "variableClave", "varianza"],
+      DEA: ["etPromedio", "hospitalesCriticos", "slackAlto", "totalHospitales"],
+      "DEA-M": [
+        "deltaProd",
+        "deltaEficiencia",
+        "deltaTecnologia",
+        "hospMejorados",
+      ],
+    };
+
+    const kpiKey = tooltipMap[method]?.[index];
+    if (kpiKey) {
+      return getTooltip("eficiencia", "kpis", method, kpiKey);
+    }
+    return null;
+  };
+
   // Configuración de KPIs por método de cálculo
   const kpiConfigs = {
     SFA: [
@@ -381,7 +408,25 @@ const EficienciaView = ({ onNavigate }) => {
         },
         {
           title: "Variable clave",
-          value: metrics.variable_clave || "No determinada",
+          value: (() => {
+            // Función para formatear nombres de variables
+            const formatVariableName = (variableName) => {
+              const formatMap = {
+                bienesyservicios: "Bienes y Servicios",
+                remuneraciones: "Remuneraciones",
+                diascamadisponibles: "Días de Cama Disponibles",
+              };
+              return formatMap[variableName] || variableName;
+            };
+
+            // Si tenemos la variable clave del backend, la mostramos formateada
+            if (metrics.variable_clave) {
+              return formatVariableName(metrics.variable_clave);
+            }
+
+            // Si no, mostramos "No determinada"
+            return "No determinada";
+          })(),
           precision: 0,
           color: "#fa8c16",
           icon: <TeamOutlined />,
@@ -462,7 +507,25 @@ const EficienciaView = ({ onNavigate }) => {
         },
         {
           title: "Slack más alto promedio",
-          value: metrics.top_slack_promedio || "No determinado",
+          value: (() => {
+            // Función para formatear nombres de variables
+            const formatVariableName = (variableName) => {
+              const formatMap = {
+                bienesyservicios: "Bienes y Servicios",
+                remuneraciones: "Remuneraciones",
+                diascamadisponibles: "Días de Cama Disponibles",
+              };
+              return formatMap[variableName] || variableName;
+            };
+
+            // Si tenemos la variable del slack más alto del backend, la mostramos formateada
+            if (metrics.top_slack_promedio) {
+              return formatVariableName(metrics.top_slack_promedio);
+            }
+
+            // Si no, mostramos "No determinado"
+            return "No determinado";
+          })(),
           precision: 0,
           color: "#fa8c16",
           icon: <TeamOutlined />,
@@ -484,20 +547,24 @@ const EficienciaView = ({ onNavigate }) => {
   const getCurrentKpis = () => {
     // Verificar si tenemos datos válidos para la metodología actual
     let currentData = null;
-    
+
     if (calculationMethod === "SFA" && sfaData && sfaData.metrics) {
       currentData = sfaData;
     } else if (calculationMethod === "DEA" && deaData && deaData.metrics) {
       currentData = deaData;
-    } else if (calculationMethod === "DEA-M" && malmquistData && malmquistData.metrics) {
+    } else if (
+      calculationMethod === "DEA-M" &&
+      malmquistData &&
+      malmquistData.metrics
+    ) {
       currentData = malmquistData;
     }
-    
+
     // Si tenemos datos válidos para la metodología actual, generar KPIs dinámicos
     if (currentData && currentData.metrics) {
       return generateKpisFromData(currentData, calculationMethod);
     }
-    
+
     // Si no hay datos calculados para la metodología actual, mostrar placeholders
     const placeholderKpis = kpiConfigs[calculationMethod] || [];
     return placeholderKpis.map((kpi) => ({
@@ -929,10 +996,21 @@ const EficienciaView = ({ onNavigate }) => {
   const getColumns = () => {
     const baseColumns = [
       {
-        title: "Hospital",
+        title: (
+          <ColumnTooltip
+            tooltipData={getTooltip(
+              "eficiencia",
+              "tabla",
+              "columnas",
+              "hospital"
+            )}
+          >
+            <span>Hospital</span>
+          </ColumnTooltip>
+        ),
         dataIndex: "hospital",
         key: "hospital",
-        width: calculationMethod === "DEA-M" ? "40%" : "60%",
+        width: calculationMethod === "DEA-M" ? "30%" : "60%",
         ...getColumnSearchProps("hospital"),
         ellipsis: true,
       },
@@ -943,10 +1021,21 @@ const EficienciaView = ({ onNavigate }) => {
       return [
         ...baseColumns,
         {
-          title: "EFF_t",
+          title: (
+            <ColumnTooltip
+              tooltipData={getTooltip(
+                "eficiencia",
+                "tabla",
+                "columnas",
+                "effT"
+              )}
+            >
+              <span>EFF_t</span>
+            </ColumnTooltip>
+          ),
           dataIndex: "EFF_t",
           key: "EFF_t",
-          width: "12%",
+          width: "11%",
           render: (value) => {
             return (
               <span>
@@ -956,12 +1045,24 @@ const EficienciaView = ({ onNavigate }) => {
           },
           sorter: (a, b) => (a.EFF_t || 0) - (b.EFF_t || 0),
           sortDirections: ["descend", "ascend"],
+          showSorterTooltip: false,
         },
         {
-          title: "EFF_t1",
+          title: (
+            <ColumnTooltip
+              tooltipData={getTooltip(
+                "eficiencia",
+                "tabla",
+                "columnas",
+                "effT1"
+              )}
+            >
+              <span>EFF_t1</span>
+            </ColumnTooltip>
+          ),
           dataIndex: "EFF_t1",
           key: "EFF_t1",
-          width: "12%",
+          width: "11%",
           render: (value) => {
             return (
               <span>
@@ -971,12 +1072,24 @@ const EficienciaView = ({ onNavigate }) => {
           },
           sorter: (a, b) => (a.EFF_t1 || 0) - (b.EFF_t1 || 0),
           sortDirections: ["descend", "ascend"],
+          showSorterTooltip: false,
         },
         {
-          title: "EFFCH",
+          title: (
+            <ColumnTooltip
+              tooltipData={getTooltip(
+                "eficiencia",
+                "tabla",
+                "columnas",
+                "effch"
+              )}
+            >
+              <span>EFFCH</span>
+            </ColumnTooltip>
+          ),
           dataIndex: "EFFCH",
           key: "EFFCH",
-          width: "12%",
+          width: "11%",
           render: (value) => {
             const numValue = typeof value === "number" ? value : 0;
             const color =
@@ -985,12 +1098,24 @@ const EficienciaView = ({ onNavigate }) => {
           },
           sorter: (a, b) => (a.EFFCH || 0) - (b.EFFCH || 0),
           sortDirections: ["descend", "ascend"],
+          showSorterTooltip: false,
         },
         {
-          title: "TECH",
+          title: (
+            <ColumnTooltip
+              tooltipData={getTooltip(
+                "eficiencia",
+                "tabla",
+                "columnas",
+                "tech"
+              )}
+            >
+              <span>TECH</span>
+            </ColumnTooltip>
+          ),
           dataIndex: "TECH",
           key: "TECH",
-          width: "12%",
+          width: "11%",
           render: (value) => {
             const numValue = typeof value === "number" ? value : 0;
             const color =
@@ -999,9 +1124,21 @@ const EficienciaView = ({ onNavigate }) => {
           },
           sorter: (a, b) => (a.TECH || 0) - (b.TECH || 0),
           sortDirections: ["descend", "ascend"],
+          showSorterTooltip: false,
         },
         {
-          title: "Malmquist",
+          title: (
+            <ColumnTooltip
+              tooltipData={getTooltip(
+                "eficiencia",
+                "tabla",
+                "columnas",
+                "malmquist"
+              )}
+            >
+              <span>MALM</span>
+            </ColumnTooltip>
+          ),
           dataIndex: "Malmquist",
           key: "Malmquist",
           width: "12%",
@@ -1017,12 +1154,24 @@ const EficienciaView = ({ onNavigate }) => {
           },
           sorter: (a, b) => (a.Malmquist || 0) - (b.Malmquist || 0),
           sortDirections: ["descend", "ascend"],
+          showSorterTooltip: false,
         },
         {
-          title: "%ΔProd",
+          title: (
+            <ColumnTooltip
+              tooltipData={getTooltip(
+                "eficiencia",
+                "tabla",
+                "columnas",
+                "deltaProd"
+              )}
+            >
+              <span>%ΔProd</span>
+            </ColumnTooltip>
+          ),
           dataIndex: "pctDeltaProd",
           key: "pctDeltaProd",
-          width: "12%",
+          width: "11%",
           render: (value) => {
             const numValue = typeof value === "number" ? value : 0;
             const color =
@@ -1031,6 +1180,7 @@ const EficienciaView = ({ onNavigate }) => {
           },
           sorter: (a, b) => (a.pctDeltaProd || 0) - (b.pctDeltaProd || 0),
           sortDirections: ["descend", "ascend"],
+          showSorterTooltip: false,
         },
       ];
     } else {
@@ -1038,22 +1188,46 @@ const EficienciaView = ({ onNavigate }) => {
       return [
         ...baseColumns,
         {
-          title: calculationMethod === "SFA" ? "ET SFA" : "ET DEA",
+          title: (
+            <ColumnTooltip
+              tooltipData={getTooltip(
+                "eficiencia",
+                "tabla",
+                "columnas",
+                calculationMethod === "SFA" ? "eficienciaSFA" : "eficienciaDEA"
+              )}
+            >
+              <span>{calculationMethod === "SFA" ? "ET SFA" : "ET DEA"}</span>
+            </ColumnTooltip>
+          ),
           dataIndex: "eficiencia",
           key: "eficiencia",
           width: "20%",
           render: (value) => `${value}%`,
           sorter: (a, b) => parseFloat(a.eficiencia) - parseFloat(b.eficiencia),
           sortDirections: ["descend", "ascend"],
+          showSorterTooltip: false,
         },
         {
-          title: "Percentil",
+          title: (
+            <ColumnTooltip
+              tooltipData={getTooltip(
+                "eficiencia",
+                "tabla",
+                "columnas",
+                "percentil"
+              )}
+            >
+              <span>Percentil</span>
+            </ColumnTooltip>
+          ),
           dataIndex: "percentil",
           key: "percentil",
           width: "20%",
           render: (value) => `${value}°`,
           sorter: (a, b) => a.percentil - b.percentil,
           sortDirections: ["descend", "ascend"],
+          showSorterTooltip: false,
         },
       ];
     }
@@ -1191,6 +1365,13 @@ const EficienciaView = ({ onNavigate }) => {
                 }}
               >
                 Parámetros de Cálculo
+                <ParameterTooltip
+                  tooltipData={{
+                    title: "Configuración del Análisis",
+                    content:
+                      "Ajusta los parámetros para personalizar el cálculo de eficiencia hospitalaria según tus necesidades de análisis.",
+                  }}
+                />
               </Title>
               {/* Sección de Años - solo para DEA-M */}
               {calculationMethod === "DEA-M" && (
@@ -1211,6 +1392,13 @@ const EficienciaView = ({ onNavigate }) => {
                     />
                     <Title level={5} style={{ margin: 0, color: "#333" }}>
                       Años
+                      <ParameterTooltip
+                        tooltipData={getTooltip(
+                          "eficiencia",
+                          "parametros",
+                          "años"
+                        )}
+                      />
                     </Title>
                   </div>
 
@@ -1241,7 +1429,6 @@ const EficienciaView = ({ onNavigate }) => {
                         { value: 2021, label: "2021" },
                         { value: 2022, label: "2022" },
                         { value: 2023, label: "2023" },
-                        { value: 2024, label: "2024" },
                       ]}
                     />
                   </div>
@@ -1273,7 +1460,6 @@ const EficienciaView = ({ onNavigate }) => {
                         { value: 2021, label: "2021" },
                         { value: 2022, label: "2022" },
                         { value: 2023, label: "2023" },
-                        { value: 2024, label: "2024" },
                       ]}
                     />
                   </div>
@@ -1295,6 +1481,13 @@ const EficienciaView = ({ onNavigate }) => {
                 />
                 <Title level={5} style={{ margin: 0, color: "#333" }}>
                   Entradas
+                  <ParameterTooltip
+                    tooltipData={getTooltip(
+                      "eficiencia",
+                      "parametros",
+                      "entradas"
+                    )}
+                  />
                 </Title>
               </div>{" "}
               <Select
@@ -1328,6 +1521,13 @@ const EficienciaView = ({ onNavigate }) => {
                 />
                 <Title level={5} style={{ margin: 0, color: "#333" }}>
                   Salidas
+                  <ParameterTooltip
+                    tooltipData={getTooltip(
+                      "eficiencia",
+                      "parametros",
+                      "salidas"
+                    )}
+                  />
                 </Title>
               </div>{" "}
               <Select
@@ -1362,6 +1562,13 @@ const EficienciaView = ({ onNavigate }) => {
                     />
                     <Title level={5} style={{ margin: 0, color: "#333" }}>
                       Variable Top
+                      <ParameterTooltip
+                        tooltipData={getTooltip(
+                          "eficiencia",
+                          "parametros",
+                          "variableTop"
+                        )}
+                      />
                     </Title>
                   </div>{" "}
                   <Select
@@ -1385,28 +1592,32 @@ const EficienciaView = ({ onNavigate }) => {
                   />
                 </>
               )}
-              <Button
-                type="primary"
-                size="large"
-                style={{
-                  width: "100%",
-                  marginTop: "20px",
-                  backgroundColor: "#1890ff",
-                  borderColor: "#1890ff",
-                }}
-                loading={loading}
-                onClick={() => {
-                  const logData = { entradas, salidas, variableTop };
-                  if (calculationMethod === "DEA-M") {
-                    logData.anoInicial = anoInicial;
-                    logData.anoFinal = anoFinal;
-                  }
-                  console.log("Calculando con:", logData);
-                  fetchData(); // Llamar a la función de la API
-                }}
+              <ActionTooltip
+                tooltipData={getTooltip("eficiencia", "acciones", "calcular")}
               >
-                Calcular
-              </Button>
+                <Button
+                  type="primary"
+                  size="large"
+                  style={{
+                    width: "100%",
+                    marginTop: "20px",
+                    backgroundColor: "#1890ff",
+                    borderColor: "#1890ff",
+                  }}
+                  loading={loading}
+                  onClick={() => {
+                    const logData = { entradas, salidas, variableTop };
+                    if (calculationMethod === "DEA-M") {
+                      logData.anoInicial = anoInicial;
+                      logData.anoFinal = anoFinal;
+                    }
+                    console.log("Calculando con:", logData);
+                    fetchData(); // Llamar a la función de la API
+                  }}
+                >
+                  Calcular
+                </Button>
+              </ActionTooltip>
             </>
           )}
         </div>
@@ -1486,28 +1697,45 @@ const EficienciaView = ({ onNavigate }) => {
                 style={{ display: "flex", alignItems: "center", gap: "16px" }}
               >
                 {calculationMethod !== "DEA-M" && (
-                  <Select
-                    value={selectedYear}
-                    onChange={actions.setAño}
-                    style={{ width: 120 }}
-                    options={[
-                      { value: 2014, label: "2014" },
-                      { value: 2015, label: "2015" },
-                      { value: 2016, label: "2016" },
-                      { value: 2017, label: "2017" },
-                      { value: 2018, label: "2018" },
-                    ]}
-                  />
+                  <ParameterTooltip
+                    tooltipData={getTooltip("eficiencia", "parametros", "año")}
+                  >
+                    <Select
+                      value={selectedYear}
+                      onChange={actions.setAño}
+                      style={{ width: 120 }}
+                      options={[
+                        { value: 2014, label: "2014" },
+                        { value: 2015, label: "2015" },
+                        { value: 2016, label: "2016" },
+                        { value: 2017, label: "2017" },
+                        { value: 2018, label: "2018" },
+                        { value: 2019, label: "2019" },
+                        { value: 2020, label: "2020" },
+                        { value: 2021, label: "2021" },
+                        { value: 2022, label: "2022" },
+                        { value: 2023, label: "2023" },
+                      ]}
+                    />
+                  </ParameterTooltip>
                 )}{" "}
-                <Radio.Group
-                  value={calculationMethod}
-                  onChange={(e) => actions.setMetodologia(e.target.value)}
-                  size="middle"
+                <ParameterTooltip
+                  tooltipData={getTooltip(
+                    "eficiencia",
+                    "parametros",
+                    "metodologia"
+                  )}
                 >
-                  <Radio.Button value="SFA">SFA</Radio.Button>
-                  <Radio.Button value="DEA">DEA</Radio.Button>
-                  <Radio.Button value="DEA-M">DEA-M</Radio.Button>
-                </Radio.Group>
+                  <Radio.Group
+                    value={calculationMethod}
+                    onChange={(e) => actions.setMetodologia(e.target.value)}
+                    size="middle"
+                  >
+                    <Radio.Button value="SFA">SFA</Radio.Button>
+                    <Radio.Button value="DEA">DEA</Radio.Button>
+                    <Radio.Button value="DEA-M">DEA-M</Radio.Button>
+                  </Radio.Group>
+                </ParameterTooltip>
               </div>
             </div>{" "}
             {/* KPI Cards */}
@@ -1515,27 +1743,41 @@ const EficienciaView = ({ onNavigate }) => {
               <Row gutter={[16, 16]} style={{ marginBottom: "8px" }}>
                 {currentKpis.map((kpi, index) => (
                   <Col xs={24} sm={12} md={6} key={index}>
-                    <Card
-                      style={{
-                        textAlign: "center",
-                        height: "100px",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        border: `1px solid ${kpi.border}`,
-                        background: kpi.gradient,
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                      }}
-                    >
-                      <Statistic
-                        title={kpi.title}
-                        value={kpi.value}
-                        precision={kpi.precision}
-                        valueStyle={{ color: kpi.color, fontSize: "18px" }}
-                        prefix={kpi.icon}
-                        suffix={kpi.suffix || ""}
-                      />
-                    </Card>
+                    <KpiTooltip tooltipData={getKpiTooltip(index)}>
+                      <Card
+                        style={{
+                          textAlign: "center",
+                          height: "100px",
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "center",
+                          border: `1px solid ${kpi.border}`,
+                          background: kpi.gradient,
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                          cursor: "help",
+                        }}
+                      >
+                        <Statistic
+                          title={
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: "4px",
+                              }}
+                            >
+                              {kpi.title}
+                            </div>
+                          }
+                          value={kpi.value}
+                          precision={kpi.precision}
+                          valueStyle={{ color: kpi.color, fontSize: "18px" }}
+                          prefix={kpi.icon}
+                          suffix={kpi.suffix || ""}
+                        />
+                      </Card>
+                    </KpiTooltip>
                   </Col>
                 ))}
               </Row>
@@ -1560,6 +1802,13 @@ const EficienciaView = ({ onNavigate }) => {
                   {calculationMethod === "DEA-M"
                     ? "Distribución y Ranking - Índice Malmquist"
                     : "Distribución y Ranking de Hospitales"}
+                  <ParameterTooltip
+                    tooltipData={{
+                      title: "Visualización de Resultados",
+                      content:
+                        "Muestra la distribución geográfica de los hospitales en el mapa y el ranking detallado en la tabla, permitiendo análisis comparativo y selección para estudios específicos.",
+                    }}
+                  />
                 </Title>{" "}
                 {/* Botones de acción - espacio reservado siempre presente */}
                 <div
@@ -1584,21 +1833,31 @@ const EficienciaView = ({ onNavigate }) => {
                         textAlign: "right",
                       }}
                     >
-                      <Button
-                        type="primary"
-                        size="middle"
-                        style={{
-                          backgroundColor: "#52c41a",
-                          borderColor: "#52c41a",
-                          marginBottom: "4px",
-                          minWidth: "220px",
-                        }}
-                        onClick={handleAddToComparison}
+                      <ActionTooltip
+                        tooltipData={getTooltip(
+                          "eficiencia",
+                          "acciones",
+                          "comparar"
+                        )}
                       >
-                        Comparar{" "}
-                        {selectedRows.length === 1 ? "Hospital" : "Hospitales"}{" "}
-                        ({selectedRows.length})
-                      </Button>
+                        <Button
+                          type="primary"
+                          size="middle"
+                          style={{
+                            backgroundColor: "#52c41a",
+                            borderColor: "#52c41a",
+                            marginBottom: "4px",
+                            minWidth: "220px",
+                          }}
+                          onClick={handleAddToComparison}
+                        >
+                          Comparar{" "}
+                          {selectedRows.length === 1
+                            ? "Hospital"
+                            : "Hospitales"}{" "}
+                          ({selectedRows.length})
+                        </Button>
+                      </ActionTooltip>
                       <div
                         style={{
                           fontSize: "12px",
@@ -1622,25 +1881,33 @@ const EficienciaView = ({ onNavigate }) => {
                       textAlign: "right",
                     }}
                   >
-                    <Button
-                      type="primary"
-                      size="middle"
-                      style={{
-                        backgroundColor: "#722ed1",
-                        borderColor: "#722ed1",
-                        minWidth: "180px",
-                        marginBottom: "4px", // Mismo margen que el botón de comparar
-                      }}
-                      onClick={() => {
-                        console.log("Navegando a análisis de determinantes");
-                        // Navegar a la vista de determinantes
-                        if (onNavigate) {
-                          onNavigate("determinantes");
-                        }
-                      }}
+                    <ActionTooltip
+                      tooltipData={getTooltip(
+                        "eficiencia",
+                        "acciones",
+                        "determinantes"
+                      )}
                     >
-                      Analizar determinantes
-                    </Button>
+                      <Button
+                        type="primary"
+                        size="middle"
+                        style={{
+                          backgroundColor: "#722ed1",
+                          borderColor: "#722ed1",
+                          minWidth: "180px",
+                          marginBottom: "4px", // Mismo margen que el botón de comparar
+                        }}
+                        onClick={() => {
+                          console.log("Navegando a análisis de determinantes");
+                          // Navegar a la vista de determinantes
+                          if (onNavigate) {
+                            onNavigate("determinantes");
+                          }
+                        }}
+                      >
+                        Analizar determinantes
+                      </Button>
+                    </ActionTooltip>
                     <div
                       style={{
                         fontSize: "12px",
@@ -1656,7 +1923,11 @@ const EficienciaView = ({ onNavigate }) => {
               </div>
               <Row gutter={[24, 0]} style={{ alignItems: "stretch" }}>
                 {/* Mapa de Chile */}
-                <Col xs={24} lg={10} style={{ display: "flex" }}>
+                <Col
+                  xs={24}
+                  lg={calculationMethod === "DEA-M" ? 8 : 10}
+                  style={{ display: "flex" }}
+                >
                   <div
                     style={{
                       background: "#fff",
@@ -1747,7 +2018,11 @@ const EficienciaView = ({ onNavigate }) => {
                   </div>
                 </Col>{" "}
                 {/* Tabla de Hospitales */}
-                <Col xs={24} lg={14} style={{ display: "flex" }}>
+                <Col
+                  xs={24}
+                  lg={calculationMethod === "DEA-M" ? 16 : 14}
+                  style={{ display: "flex" }}
+                >
                   <div
                     style={{
                       background: "#fff",
