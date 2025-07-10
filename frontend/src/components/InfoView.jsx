@@ -7,8 +7,8 @@ import {
   DatabaseOutlined,
   CalculatorOutlined,
   UnorderedListOutlined,
-  ClockCircleOutlined,
   MailOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 import { Layout, theme, Button, Typography, Menu } from "antd";
 
@@ -50,25 +50,129 @@ const InfoView = ({ onNavigate }) => {
             <p>Los datos utilizados en este panel provienen de:</p>
             <ul>
               <li>
-                <strong>Ministerio de Salud:</strong> Estadísticas oficiales de
-                hospitales públicos
+                <strong>FONASA (Fondo Nacional de Salud): </strong> Datos de
+                financiamiento, costos operacionales y presupuestos de
+                hospitales públicos de Chile
               </li>
               <li>
-                <strong>DANE:</strong> Información socioeconómica y demográfica
-              </li>
-              <li>
-                <strong>Registros hospitalarios:</strong> Datos operacionales y
-                financieros
-              </li>
-              <li>
-                <strong>Encuestas especializadas:</strong> Información sobre
-                recursos y servicios
+                <strong>
+                  DEIS (Departamento de Estadísticas e Información de Salud):{" "}
+                </strong>{" "}
+                Estadísticas oficiales de egresos hospitalarios, consultas
+                médicas, procedimientos y recursos hospitalarios del Ministerio
+                de Salud de Chile
               </li>
             </ul>
             <p>
-              Todos los datos son actualizados periódicamente para garantizar la
-              precisión y relevancia del análisis.
+              Los datos se actualizan anualmente tras un proceso de
+              postprocesado que garantiza la calidad y consistencia de la
+              información.
             </p>
+          </div>
+        );
+      case "datos":
+        return (
+          <div>
+            <Title level={3} style={{ color: "#fa8c16", marginBottom: "16px" }}>
+              Datos Utilizados
+            </Title>
+            <p>
+              Este panel procesa y analiza datos hospitalarios de Chile
+              correspondientes al período 2019-2022, incluyendo información
+              detallada sobre recursos, servicios y características
+              institucionales.
+            </p>
+
+            <Title level={4} style={{ color: "#fa8c16", marginTop: "24px" }}>
+              Variables de Entrada
+            </Title>
+            <ul>
+              <li>
+                <strong>Camas disponibles:</strong> Número total de camas
+                hospitalarias disponibles para atención de pacientes
+              </li>
+              <li>
+                <strong>Personal médico:</strong> Cantidad de profesionales
+                médicos (médicos, especialistas) en el hospital
+              </li>
+              <li>
+                <strong>Personal no médico:</strong> Cantidad de personal de
+                apoyo (enfermeros, técnicos, administrativos)
+              </li>
+              <li>
+                <strong>Presupuesto operacional:</strong> Recursos financieros
+                asignados para el funcionamiento del hospital (en millones de
+                pesos)
+              </li>
+            </ul>
+
+            <Title level={4} style={{ color: "#fa8c16", marginTop: "24px" }}>
+              Variables de Salida
+            </Title>
+            <ul>
+              <li>
+                <strong>Egresos hospitalarios:</strong> Número total de
+                pacientes dados de alta del hospital
+              </li>
+              <li>
+                <strong>Consultas de especialidad:</strong> Cantidad de
+                consultas médicas especializadas realizadas
+              </li>
+              <li>
+                <strong>Consultas de urgencia:</strong> Número de atenciones de
+                urgencia prestadas
+              </li>
+              <li>
+                <strong>Procedimientos quirúrgicos:</strong> Cantidad total de
+                cirugías y procedimientos invasivos realizados
+              </li>
+            </ul>
+
+            <Title level={4} style={{ color: "#fa8c16", marginTop: "24px" }}>
+              Variables de Control y Contextualización
+            </Title>
+            <ul>
+              <li>
+                <strong>Región geográfica:</strong> Ubicación administrativa del
+                hospital (15 regiones de Chile)
+              </li>
+              <li>
+                <strong>Tipo de hospital:</strong> Clasificación según
+                complejidad y servicios ofrecidos
+              </li>
+              <li>
+                <strong>Dependencia administrativa:</strong> Entidad responsable
+                de la gestión (Servicio de Salud, Municipal, etc.)
+              </li>
+              <li>
+                <strong>Población objetivo:</strong> Características
+                demográficas del área de influencia del hospital
+              </li>
+            </ul>
+
+            <Title level={4} style={{ color: "#fa8c16", marginTop: "24px" }}>
+              Características del Dataset
+            </Title>
+            <ul>
+              <li>
+                <strong>Período temporal:</strong> 2014-2023
+              </li>
+              <li>
+                <strong>Cobertura:</strong> Hospitales públicos de todo Chile
+              </li>
+              <li>
+                <strong>Total de observaciones:</strong> ~190 registros
+                hospital-año
+              </li>
+              <li>
+                <strong>Procesamiento:</strong> Extracción, limpieza y
+                consolidación
+              </li>
+              <li>
+                <strong>Actualización:</strong> Datos actualizados hasta
+                diciembre 2023
+              </li>
+            </ul>
           </div>
         );
       case "dea":
@@ -77,20 +181,62 @@ const InfoView = ({ onNavigate }) => {
             <Title level={3} style={{ color: "#722ed1", marginBottom: "16px" }}>
               Análisis Envolvente de Datos (DEA)
             </Title>
+            <div
+              style={{
+                marginBottom: "24px",
+                padding: "16px",
+                backgroundColor: "#f9f9f9",
+                borderLeft: "4px solid #722ed1",
+                borderRadius: "4px",
+              }}
+            >
+              <p style={{ margin: 0, fontStyle: "italic", color: "#666" }}>
+                <strong>Definición técnica:</strong> El Data Envelopment
+                Analysis (DEA) es una técnica no paramétrica basada en
+                programación lineal que evalúa la eficiencia técnica relativa de
+                unidades de decisión (DMUs) homogéneas que transforman múltiples
+                entradas en múltiples salidas. Construye una frontera de
+                eficiencia empírica que envuelve todas las observaciones,
+                identificando las DMUs eficientes que forman dicha frontera y
+                calculando medidas de ineficiencia para las unidades no
+                eficientes.
+              </p>
+            </div>
             <p>
-              El DEA es una técnica de programación lineal que permite evaluar
-              la eficiencia relativa de unidades de decisión (hospitales) que
-              utilizan múltiples inputs para producir múltiples outputs.
+              Imagina que queremos comparar qué tan bien funcionan diferentes
+              hospitales. El DEA es como crear una "línea de meta" que
+              representa el mejor desempeño posible, y luego medir qué tan cerca
+              están todos los demás hospitales de esa línea.
             </p>
             <p>
-              <strong>Características principales:</strong>
+              <strong>¿Cómo funciona en nuestro sistema?</strong>
             </p>
             <ul>
-              <li>No requiere especificación de forma funcional</li>
-              <li>Permite múltiples inputs y outputs</li>
-              <li>Identifica benchmarks para unidades ineficientes</li>
-              <li>Proporciona medidas de eficiencia técnica</li>
+              <li>
+                <strong>Filtrado inteligente:</strong> Solo analizamos
+                hospitales con datos válidos (recursos y servicios mayores a
+                cero)
+              </li>
+              <li>
+                <strong>Cálculo de eficiencia:</strong> Cada hospital recibe una
+                puntuación entre 0 y 1, donde 1 significa "perfectamente
+                eficiente"
+              </li>
+              <li>
+                <strong>Identificación de problemas:</strong> El sistema detecta
+                automáticamente cuál recurso se está desperdiciando más
+              </li>
+              <li>
+                <strong>Clasificación:</strong> Los hospitales se organizan en
+                percentiles para facilitar las comparaciones
+              </li>
             </ul>
+            <p>
+              <strong>Resultado práctico:</strong> Obtienes un ranking de
+              hospitales y sabes exactamente dónde cada uno puede mejorar (por
+              ejemplo, "este hospital podría atender más pacientes con el mismo
+              personal").
+            </p>
           </div>
         );
       case "sfa":
@@ -99,46 +245,132 @@ const InfoView = ({ onNavigate }) => {
             <Title level={3} style={{ color: "#722ed1", marginBottom: "16px" }}>
               Análisis de Frontera Estocástica (SFA)
             </Title>
+            <div
+              style={{
+                marginBottom: "24px",
+                padding: "16px",
+                backgroundColor: "#f9f9f9",
+                borderLeft: "4px solid #722ed1",
+                borderRadius: "4px",
+              }}
+            >
+              <p style={{ margin: 0, fontStyle: "italic", color: "#666" }}>
+                <strong>Definición técnica:</strong> El Stochastic Frontier
+                Analysis (SFA) es un método econométrico paramétrico que estima
+                una frontera de producción estocástica mediante la
+                descomposición del término de error en dos componentes: ruido
+                estadístico (v<sub>i</sub>) y ineficiencia técnica (u
+                <sub>i</sub>). Utiliza técnicas de máxima verosimilitud para
+                estimar los parámetros de la función de producción y separar la
+                ineficiencia del ruido aleatorio, permitiendo inferencia
+                estadística sobre los determinantes de la eficiencia.
+              </p>
+            </div>
             <p>
-              El SFA es un método econométrico que estima una frontera de
-              producción que representa el máximo output alcanzable dado un
-              nivel de inputs.
+              El SFA es como tener un "detector de eficiencia" muy sofisticado.
+              A diferencia del DEA, este método entiende que en la vida real
+              siempre hay factores inesperados (como una pandemia o problemas
+              técnicos) que pueden afectar el rendimiento de un hospital.
             </p>
             <p>
-              <strong>Ventajas del SFA:</strong>
+              <strong>¿Cómo trabaja nuestro sistema?</strong>
             </p>
             <ul>
-              <li>Separa la ineficiencia del ruido estadístico</li>
-              <li>Permite inferencia estadística</li>
-              <li>Maneja el error de medición</li>
-              <li>Proporciona intervalos de confianza</li>
+              <li>
+                <strong>Filtrado inteligente:</strong> Separa hospitales con
+                datos válidos de aquellos con información incompleta
+              </li>
+              <li>
+                <strong>Transformación logarítmica:</strong> Convierte los datos
+                para obtener resultados más precisos y estables
+              </li>
+              <li>
+                <strong>Cálculo estadístico:</strong> Genera puntuaciones de
+                eficiencia considerando la variabilidad natural
+              </li>
+              <li>
+                <strong>Identificación de factores clave:</strong> Determina
+                automáticamente cuál recurso tiene mayor impacto en la
+                eficiencia
+              </li>
             </ul>
+            <p>
+              <strong>Ventaja principal:</strong> Puede distinguir entre
+              "hospital realmente ineficiente" y "hospital que tuvo mala
+              suerte", proporcionando evaluaciones más justas y realistas.
+            </p>
           </div>
         );
       case "dea-m":
         return (
           <div>
             <Title level={3} style={{ color: "#722ed1", marginBottom: "16px" }}>
-              DEA de Malmquist (DEA-M)
+              Índice de Malmquist (DEA-M)
             </Title>
+            <div
+              style={{
+                marginBottom: "24px",
+                padding: "16px",
+                backgroundColor: "#f9f9f9",
+                borderLeft: "4px solid #722ed1",
+                borderRadius: "4px",
+              }}
+            >
+              <p style={{ margin: 0, fontStyle: "italic", color: "#666" }}>
+                <strong>Definición técnica:</strong> El Índice de Malmquist es
+                una medida de productividad basada en DEA que descompone los
+                cambios en la productividad total de los factores (PTF) entre
+                dos períodos en dos componentes: cambio en eficiencia técnica
+                (catching-up effect) y cambio tecnológico (frontier-shift
+                effect). Se calcula como el cociente geométrico de las
+                distancias a las fronteras de producción de ambos períodos,
+                permitiendo evaluar el progreso productivo intertemporal de las
+                unidades de decisión.
+              </p>
+            </div>
             <p>
-              El índice de Malmquist basado en DEA permite analizar los cambios
-              en la productividad a lo largo del tiempo.
+              Imagina que quieres saber si un hospital está mejorando o
+              empeorando con el tiempo. El Índice de Malmquist es como tener una
+              "máquina del tiempo" que compara el mismo hospital en diferentes
+              años para ver su evolución.
             </p>
             <p>
-              <strong>Componentes del análisis:</strong>
+              <strong>¿Cómo funciona en nuestro análisis?</strong>
             </p>
             <ul>
               <li>
-                <strong>Cambio en eficiencia técnica:</strong> Mejora en la
-                gestión
+                <strong>Comparación temporal:</strong> Toma datos de dos años
+                diferentes del mismo hospital
               </li>
               <li>
-                <strong>Cambio tecnológico:</strong> Innovación y progreso
-                técnico
+                <strong>Cálculo de fronteras:</strong> Crea "líneas de
+                referencia" para cada año
               </li>
               <li>
-                <strong>Cambio en productividad total:</strong> Efecto combinado
+                <strong>Evaluación cruzada:</strong> Mide cómo le iría al
+                hospital de un año usando los estándares del otro año
+              </li>
+              <li>
+                <strong>Selección inteligente:</strong> Puede enfocarse en los
+                hospitales más grandes o relevantes para obtener resultados más
+                confiables
+              </li>
+            </ul>
+            <p>
+              <strong>Resultado práctico:</strong> Obtienes tres medidas clave:
+            </p>
+            <ul>
+              <li>
+                <strong>Cambio en gestión:</strong> ¿El hospital se está
+                administrando mejor o peor?
+              </li>
+              <li>
+                <strong>Progreso tecnológico:</strong> ¿Ha mejorado la
+                tecnología disponible en el sector?
+              </li>
+              <li>
+                <strong>Cambio total de productividad:</strong> ¿El hospital
+                produce más o menos con los mismos recursos?
               </li>
             </ul>
           </div>
@@ -147,21 +379,77 @@ const InfoView = ({ onNavigate }) => {
         return (
           <div>
             <Title level={3} style={{ color: "#722ed1", marginBottom: "16px" }}>
-              Modelo Tobit
+              Análisis de Determinantes
             </Title>
+            <div
+              style={{
+                marginBottom: "24px",
+                padding: "16px",
+                backgroundColor: "#f9f9f9",
+                borderLeft: "4px solid #722ed1",
+                borderRadius: "4px",
+              }}
+            >
+              <p style={{ margin: 0, fontStyle: "italic", color: "#666" }}>
+                <strong>Definición técnica:</strong> El análisis de
+                determinantes de la eficiencia emplea modelos de regresión (OLS
+                o Tobit) en dos etapas: primero se estiman puntuaciones de
+                eficiencia mediante DEA o SFA, luego se utiliza estas
+                puntuaciones como variable dependiente para identificar los
+                factores institucionales, ambientales y organizacionales que
+                explican las diferencias en eficiencia. El modelo Tobit es
+                particularmente apropiado cuando la variable dependiente está
+                censurada (bounded entre 0 y 1), mientras que OLS se emplea para
+                variables dependientes continuas no censuradas.
+              </p>
+            </div>
             <p>
-              El modelo Tobit se utiliza para analizar los determinantes de la
-              eficiencia hospitalaria cuando la variable dependiente está
-              censurada (valores entre 0 y 1).
+              Este análisis es como ser un "detective de la eficiencia". Su
+              trabajo es descubrir qué factores hacen que algunos hospitales
+              sean más eficientes que otros. ¿Es el tamaño del hospital? ¿La
+              ubicación? ¿El tipo de servicios que ofrece?
             </p>
             <p>
-              <strong>Aplicaciones:</strong>
+              <strong>¿Cómo investiga nuestro sistema?</strong>
             </p>
             <ul>
-              <li>Identificación de factores que afectan la eficiencia</li>
-              <li>Análisis de variables continuas censuradas</li>
-              <li>Evaluación del impacto de políticas</li>
-              <li>Predicción de niveles de eficiencia</li>
+              <li>
+                <strong>Cálculo de eficiencia base:</strong> Primero determina
+                qué tan eficiente es cada hospital usando DEA o SFA
+              </li>
+              <li>
+                <strong>Análisis estadístico:</strong> Examina la relación entre
+                la eficiencia y diferentes características del hospital
+              </li>
+              <li>
+                <strong>Filtrado de datos limpios:</strong> Solo usa información
+                completa y confiable
+              </li>
+              <li>
+                <strong>Identificación automática:</strong> Encuentra los
+                factores más importantes estadísticamente
+              </li>
+            </ul>
+            <p>
+              <strong>Resultados que obtienes:</strong>
+            </p>
+            <ul>
+              <li>
+                <strong>Factores clave:</strong> Los 5 elementos más importantes
+                que afectan la eficiencia
+              </li>
+              <li>
+                <strong>Nivel de confianza:</strong> Qué tan seguros podemos
+                estar de estos resultados
+              </li>
+              <li>
+                <strong>Capacidad explicativa:</strong> Qué porcentaje de la
+                eficiencia hospitalaria podemos explicar
+              </li>
+              <li>
+                <strong>Recomendaciones implícitas:</strong> Dónde enfocar los
+                esfuerzos de mejora
+              </li>
             </ul>
           </div>
         );
@@ -169,31 +457,85 @@ const InfoView = ({ onNavigate }) => {
         return (
           <div>
             <Title level={3} style={{ color: "#722ed1", marginBottom: "16px" }}>
-              PCA & K-means Clustering
+              Análisis de Grupos (PCA & K-means)
             </Title>
+            <div
+              style={{
+                marginBottom: "24px",
+                padding: "16px",
+                backgroundColor: "#f9f9f9",
+                borderLeft: "4px solid #722ed1",
+                borderRadius: "4px",
+              }}
+            >
+              <p style={{ margin: 0, fontStyle: "italic", color: "#666" }}>
+                <strong>Definición técnica:</strong> El análisis combinado
+                PCA-K-means integra el Análisis de Componentes Principales (PCA)
+                para la reducción de dimensionalidad con el algoritmo de
+                clustering K-means para la segmentación. PCA transforma las
+                variables originales mediante combinaciones lineales ortogonales
+                que maximizan la varianza explicada, mientras que K-means agrupa
+                las observaciones minimizando la suma de cuadrados
+                intra-cluster. La metodología incluye selección automática del
+                número óptimo de clusters mediante índices de validación como el
+                coeficiente de silueta.
+              </p>
+            </div>
             <p>
-              Combinación de Análisis de Componentes Principales (PCA) y
-              clustering K-means para identificar grupos de hospitales
-              similares.
+              Imagina que tienes cientos de hospitales y quieres organizarlos en
+              grupos que se parezcan entre sí. Este análisis es como tener un
+              "organizador automático" que encuentra patrones ocultos y agrupa
+              hospitales similares.
             </p>
             <p>
-              <strong>Proceso metodológico:</strong>
+              <strong>¿Cómo organiza nuestro sistema?</strong>
             </p>
             <ul>
               <li>
-                <strong>PCA:</strong> Reducción de dimensionalidad de variables
+                <strong>Simplificación inteligente (PCA):</strong> Toma muchas
+                características de los hospitales y las resume en las más
+                importantes
               </li>
               <li>
-                <strong>K-means:</strong> Agrupación de hospitales similares
+                <strong>Estandarización:</strong> Ajusta todas las medidas para
+                que sean comparables
               </li>
               <li>
-                <strong>Análisis de clusters:</strong> Caracterización de grupos
+                <strong>Búsqueda del número óptimo:</strong> Determina
+                automáticamente cuántos grupos tienen más sentido
               </li>
               <li>
-                <strong>Benchmarking:</strong> Identificación de mejores
-                prácticas
+                <strong>Agrupación automática (K-means):</strong> Asigna cada
+                hospital al grupo que mejor le corresponde
               </li>
             </ul>
+            <p>
+              <strong>Resultados útiles:</strong>
+            </p>
+            <ul>
+              <li>
+                <strong>Grupos naturales:</strong> Hospitales organizados por
+                similitudes reales
+              </li>
+              <li>
+                <strong>Características de cada grupo:</strong> Qué hace único a
+                cada tipo de hospital
+              </li>
+              <li>
+                <strong>Benchmarks apropiados:</strong> Comparaciones justas
+                entre hospitales similares
+              </li>
+              <li>
+                <strong>Identificación de mejores prácticas:</strong> Hospitales
+                modelo dentro de cada grupo
+              </li>
+            </ul>
+            <p>
+              <strong>Ejemplo práctico:</strong> Podríamos encontrar grupos como
+              "hospitales rurales pequeños", "centros urbanos especializados" o
+              "hospitales generales medianos", cada uno con sus propias
+              características y estándares de comparación.
+            </p>
           </div>
         );
       case "glosario":
@@ -207,7 +549,7 @@ const InfoView = ({ onNavigate }) => {
             >
               <div>
                 <strong>Eficiencia Técnica:</strong> Capacidad de producir el
-                máximo output con un nivel dado de inputs.
+                máximo output con un nivel dado de entradas.
               </div>
               <div>
                 <strong>DMU (Decision Making Unit):</strong> Unidad de decisión,
@@ -222,52 +564,12 @@ const InfoView = ({ onNavigate }) => {
                 para medir el desempeño.
               </div>
               <div>
-                <strong>Input:</strong> Recursos utilizados (personal, camas,
+                <strong>Entrada:</strong> Recursos utilizados (personal, camas,
                 presupuesto).
               </div>
               <div>
-                <strong>Output:</strong> Resultados producidos (consultas,
+                <strong>Salida:</strong> Resultados producidos (consultas,
                 cirugías, egresos).
-              </div>
-            </div>
-          </div>
-        );
-      case "actualizaciones":
-        return (
-          <div>
-            <Title level={3} style={{ color: "#13c2c2", marginBottom: "16px" }}>
-              Actualizaciones del Sistema
-            </Title>
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "16px" }}
-            >
-              <div
-                style={{
-                  padding: "12px",
-                  border: "1px solid #e8e8e8",
-                  borderRadius: "6px",
-                }}
-              >
-                <strong>Versión 2.1.0 - Junio 2025</strong>
-                <ul>
-                  <li>Implementación de análisis PCA & K-means</li>
-                  <li>Mejoras en la visualización de resultados</li>
-                  <li>Optimización del rendimiento</li>
-                </ul>
-              </div>
-              <div
-                style={{
-                  padding: "12px",
-                  border: "1px solid #e8e8e8",
-                  borderRadius: "6px",
-                }}
-              >
-                <strong>Versión 2.0.0 - Marzo 2025</strong>
-                <ul>
-                  <li>Nueva interfaz de usuario</li>
-                  <li>Integración de modelo Tobit</li>
-                  <li>Actualización de fuentes de datos</li>
-                </ul>
               </div>
             </div>
           </div>
@@ -279,21 +581,15 @@ const InfoView = ({ onNavigate }) => {
               Información de Contacto
             </Title>
             <div
-              style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+              style={{ display: "flex", flexDirection: "column", gap: "8px" }}
             >
               <div>
-                <strong>Equipo de Desarrollo:</strong>
-                <br />
-                Universidad de Santiago de Chile
-                <br />
-                Departamento de Ingeniería Civil en Informática
+                <strong>Rodrigo Javier Escobar Zamorano</strong>
               </div>
-              <div>
-                <strong>Contacto Principal:</strong>
-                <br />
-                Email: rodrigo.escobar.z@usach.cl
-                <br />
-              </div>
+              <div>rodrigo.escobar.z@usach.cl</div>
+              <div>Estudiante de Ingeniería Civil en Informática</div>
+              <div>Universidad de Santiago de Chile</div>
+              <div>Departamento de Ingeniería Informática</div>
             </div>
           </div>
         );
@@ -322,6 +618,11 @@ const InfoView = ({ onNavigate }) => {
       label: "Fuentes de datos",
     },
     {
+      key: "datos",
+      icon: <FileTextOutlined />,
+      label: "Datos utilizados",
+    },
+    {
       key: "metodologias",
       icon: <CalculatorOutlined />,
       label: "Metodologías",
@@ -340,7 +641,7 @@ const InfoView = ({ onNavigate }) => {
         },
         {
           key: "tobit",
-          label: "Tobit",
+          label: "Análisis de determinantes",
         },
         {
           key: "pca-kmeans",
@@ -352,11 +653,6 @@ const InfoView = ({ onNavigate }) => {
       key: "glosario",
       icon: <UnorderedListOutlined />,
       label: "Glosario",
-    },
-    {
-      key: "actualizaciones",
-      icon: <ClockCircleOutlined />,
-      label: "Actualizaciones",
     },
     {
       key: "contacto",
