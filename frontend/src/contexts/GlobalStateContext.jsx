@@ -3,9 +3,9 @@ import React, { createContext, useContext, useReducer } from "react";
 // Estado inicial
 const initialState = {
   // Parámetros de cálculo
-  inputcols: [],
-  outputcols: [],
-  año: new Date().getFullYear(),
+  inputcols: ["bienesyservicios", "remuneraciones"],
+  outputcols: ["consultas", "grdxegresos"],
+  año: 2023,
   metodologia: "DEA",
 
   // Datos calculados
@@ -105,7 +105,7 @@ const globalStateReducer = (state, action) => {
       return { ...state, error: action.payload, loading: false };
 
     case actionTypes.RESET_STATE:
-      return { ...initialState, año: new Date().getFullYear() };
+      return { ...initialState, año: 2023 };
 
     // Casos para datos temporales
     case actionTypes.SET_TEMPORAL_YEAR_A:
