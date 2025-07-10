@@ -48,6 +48,7 @@ import CustomTooltip, {
   ColumnTooltip,
 } from "./CustomTooltip";
 import { getTooltip } from "../data/tooltips";
+import ApiService from "../services/api";
 
 const { Content, Sider } = Layout;
 const { Title } = Typography;
@@ -198,24 +199,15 @@ const DeterminantesView = ({ onNavigate }) => {
         return;
       }
 
-      // Construcción de la URL con parámetros
-      const params = new URLSearchParams({
-        method: calculationMethod,
-        year: selectedYear.toString(),
-        input_cols: selectedInputs.join(","),
-        output_cols: selectedOutputs.join(","),
-        independent_vars: selectedIndependentVars.join(","),
-      });
-
-      const response = await fetch(
-        `http://localhost:8000/determinantes-efficiency?${params}`
+      // Usar ApiService en lugar de fetch hardcodeado
+      const data = await ApiService.fetchDeterminantesEfficiency(
+        calculationMethod,
+        selectedYear,
+        selectedInputs,
+        selectedOutputs,
+        selectedIndependentVars
       );
 
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
       console.log("Respuesta del backend:", data); // Debug
       setAnalysisResults(data);
       message.success("Análisis completado exitosamente");

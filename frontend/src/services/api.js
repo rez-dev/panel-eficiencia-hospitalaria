@@ -94,6 +94,59 @@ class ApiService {
       throw error;
     }
   }
+
+  async fetchDeterminantesEfficiency(method, year, inputCols, outputCols, independentVars) {
+    try {
+      const params = new URLSearchParams({
+        method,
+        year: year.toString(),
+        input_cols: inputCols.join(','),
+        output_cols: outputCols.join(','),
+        independent_vars: independentVars.join(','),
+      });
+
+      console.log(`Fetching determinantes efficiency with method ${method} for year ${year}`);
+
+      const response = await fetch(`${API_BASE_URL}/determinantes-efficiency?${params}`);
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error in fetchDeterminantesEfficiency:', error);
+      throw error;
+    }
+  }
+
+  async fetchPcaClustering(method, year, inputCols, outputCols, nComponents, nClusters) {
+    try {
+      const params = new URLSearchParams({
+        method,
+        year: year.toString(),
+        input_cols: inputCols.join(','),
+        output_cols: outputCols.join(','),
+        n_components: nComponents.toString(),
+        scale: 'true',
+        random_state: '42',
+      });
+
+      // Solo agregar k si no es "auto"
+      if (nClusters && nClusters !== "auto") {
+        params.append('k', nClusters.toString());
+      }
+
+      console.log(`Fetching PCA clustering with method ${method} for year ${year}`);
+
+      const response = await fetch(`${API_BASE_URL}/pca-clustering?${params}`);
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error in fetchPcaClustering:', error);
+      throw error;
+    }
+  }
 }
 
 export default new ApiService();

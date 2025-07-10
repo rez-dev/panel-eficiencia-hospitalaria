@@ -50,6 +50,7 @@ import {
 } from "recharts";
 import { ParameterTooltip, KpiTooltip, ActionTooltip } from "./CustomTooltip";
 import { getTooltip } from "../data/tooltips";
+import ApiService from "../services/api";
 
 const { Content, Sider } = Layout;
 const { Title } = Typography;
@@ -137,26 +138,15 @@ const PcaClusterView = ({ onNavigate }) => {
               : `Para ${state.metodologia}: ${state.inputcols.length} entrada(s) + ${state.outputcols.length} salida(s) = ${totalFeatures} características.`
           } Por favor, reduzca el número de componentes o aumente el número de variables.`
         );
-      } // Construir parámetros basados en el estado global y selecciones locales
-      const params = new URLSearchParams({
-        year: state.año,
-        input_cols: state.inputcols.join(","),
-        output_cols: state.outputcols.join(","),
-        method: state.metodologia,
-        n_components: numComponents,
-        ...(numClusters && { k: numClusters }), // Solo agregar k si no es null (auto-selección)
-        scale: true,
-        random_state: 42,
-      });
-
-      const response = await fetch(
-        `http://localhost:8000/pca-clustering?${params}`
+      } // Usar ApiService en lugar de fetch hardcodeado
+      const data = await ApiService.fetchPcaClustering(
+        state.metodologia,
+        state.año,
+        state.inputcols,
+        state.outputcols,
+        numComponents,
+        numClusters || "auto"
       );
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-      const data = await response.json();
 
       // Actualizar estados locales con los datos recibidos
       setPcaData(data.results);
