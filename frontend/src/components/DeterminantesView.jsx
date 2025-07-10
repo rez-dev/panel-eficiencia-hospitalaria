@@ -41,7 +41,12 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import CustomTooltip, { ParameterTooltip, KpiTooltip, ActionTooltip, ColumnTooltip } from "./CustomTooltip";
+import CustomTooltip, {
+  ParameterTooltip,
+  KpiTooltip,
+  ActionTooltip,
+  ColumnTooltip,
+} from "./CustomTooltip";
 import { getTooltip } from "../data/tooltips";
 
 const { Content, Sider } = Layout;
@@ -337,7 +342,11 @@ const DeterminantesView = ({ onNavigate }) => {
                 }}
               >
                 <ParameterTooltip
-                  tooltipData={getTooltip("determinantes", "secciones", "parametrosCalculo")}
+                  tooltipData={getTooltip(
+                    "determinantes",
+                    "secciones",
+                    "parametrosCalculo"
+                  )}
                 >
                   <Title
                     level={4}
@@ -366,9 +375,16 @@ const DeterminantesView = ({ onNavigate }) => {
                   }}
                 />
                 <ParameterTooltip
-                  tooltipData={getTooltip("determinantes", "secciones", "variablesIndependientes")}
+                  tooltipData={getTooltip(
+                    "determinantes",
+                    "secciones",
+                    "variablesIndependientes"
+                  )}
                 >
-                  <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                  <Title
+                    level={5}
+                    style={{ margin: 0, color: "#333", cursor: "help" }}
+                  >
                     Variables Independientes
                   </Title>
                 </ParameterTooltip>
@@ -397,9 +413,16 @@ const DeterminantesView = ({ onNavigate }) => {
                   }}
                 />
                 <ParameterTooltip
-                  tooltipData={getTooltip("determinantes", "parametros", "entradas")}
+                  tooltipData={getTooltip(
+                    "determinantes",
+                    "parametros",
+                    "entradas"
+                  )}
                 >
-                  <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                  <Title
+                    level={5}
+                    style={{ margin: 0, color: "#333", cursor: "help" }}
+                  >
                     Variables de Entrada (Inputs)
                   </Title>
                 </ParameterTooltip>
@@ -428,9 +451,16 @@ const DeterminantesView = ({ onNavigate }) => {
                   }}
                 />
                 <ParameterTooltip
-                  tooltipData={getTooltip("determinantes", "parametros", "salidas")}
+                  tooltipData={getTooltip(
+                    "determinantes",
+                    "parametros",
+                    "salidas"
+                  )}
                 >
-                  <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                  <Title
+                    level={5}
+                    style={{ margin: 0, color: "#333", cursor: "help" }}
+                  >
                     Variables de Salida (Outputs)
                   </Title>
                 </ParameterTooltip>
@@ -459,9 +489,16 @@ const DeterminantesView = ({ onNavigate }) => {
                   }}
                 />
                 <ParameterTooltip
-                  tooltipData={getTooltip("determinantes", "secciones", "variableDependiente")}
+                  tooltipData={getTooltip(
+                    "determinantes",
+                    "secciones",
+                    "variableDependiente"
+                  )}
                 >
-                  <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                  <Title
+                    level={5}
+                    style={{ margin: 0, color: "#333", cursor: "help" }}
+                  >
                     Variable Dependiente
                   </Title>
                 </ParameterTooltip>
@@ -475,7 +512,11 @@ const DeterminantesView = ({ onNavigate }) => {
                 options={[{ value: "eficiencia", label: "Eficiencia Técnica" }]}
               />
               <ActionTooltip
-                tooltipData={getTooltip("determinantes", "acciones", "calcular")}
+                tooltipData={getTooltip(
+                  "determinantes",
+                  "acciones",
+                  "calcular"
+                )}
               >
                 <Button
                   type="primary"
@@ -584,7 +625,11 @@ const DeterminantesView = ({ onNavigate }) => {
                 />
               </ParameterTooltip>
               <ParameterTooltip
-                tooltipData={getTooltip("determinantes", "parametros", "metodologia")}
+                tooltipData={getTooltip(
+                  "determinantes",
+                  "parametros",
+                  "metodologia"
+                )}
               >
                 <Radio.Group
                   value={calculationMethod}
@@ -638,7 +683,11 @@ const DeterminantesView = ({ onNavigate }) => {
               </Col>
               <Col xs={24} sm={8} md={8}>
                 <KpiTooltip
-                  tooltipData={getTooltip("determinantes", "kpis", "variablesSignificativas")}
+                  tooltipData={getTooltip(
+                    "determinantes",
+                    "kpis",
+                    "variablesSignificativas"
+                  )}
                 >
                   <Card
                     style={{
@@ -670,7 +719,11 @@ const DeterminantesView = ({ onNavigate }) => {
               </Col>
               <Col xs={24} sm={8} md={8}>
                 <KpiTooltip
-                  tooltipData={getTooltip("determinantes", "kpis", "observaciones")}
+                  tooltipData={getTooltip(
+                    "determinantes",
+                    "kpis",
+                    "observaciones"
+                  )}
                 >
                   <Card
                     style={{
@@ -724,9 +777,16 @@ const DeterminantesView = ({ onNavigate }) => {
                 }}
               >
                 <ParameterTooltip
-                  tooltipData={getTooltip("determinantes", "secciones", "resultados")}
+                  tooltipData={getTooltip(
+                    "determinantes",
+                    "secciones",
+                    "resultados"
+                  )}
                 >
-                  <Title level={4} style={{ margin: 0, marginRight: "8px", cursor: "help" }}>
+                  <Title
+                    level={4}
+                    style={{ margin: 0, marginRight: "8px", cursor: "help" }}
+                  >
                     Variables y Factores Determinantes
                   </Title>
                 </ParameterTooltip>
@@ -769,7 +829,11 @@ const DeterminantesView = ({ onNavigate }) => {
                       }}
                     >
                       <ParameterTooltip
-                        tooltipData={getTooltip("determinantes", "grafico", "titulo")}
+                        tooltipData={getTooltip(
+                          "determinantes",
+                          "grafico",
+                          "titulo"
+                        )}
                       >
                         <Title
                           level={5}
@@ -795,8 +859,20 @@ const DeterminantesView = ({ onNavigate }) => {
                         Normalizar:
                       </span>
                       <CustomTooltip
-                        title={getTooltip("determinantes", "grafico", "normalizacion")?.title}
-                        content={getTooltip("determinantes", "grafico", "normalizacion")?.content}
+                        title={
+                          getTooltip(
+                            "determinantes",
+                            "grafico",
+                            "normalizacion"
+                          )?.title
+                        }
+                        content={
+                          getTooltip(
+                            "determinantes",
+                            "grafico",
+                            "normalizacion"
+                          )?.content
+                        }
                       >
                         <Switch
                           size="small"
@@ -979,7 +1055,12 @@ const DeterminantesView = ({ onNavigate }) => {
                     }}
                   >
                     <ParameterTooltip
-                      tooltipData={getTooltip("determinantes", "tabla", "estadisticas", "titulo")}
+                      tooltipData={getTooltip(
+                        "determinantes",
+                        "tabla",
+                        "estadisticas",
+                        "titulo"
+                      )}
                     >
                       <Title
                         level={5}
@@ -998,7 +1079,12 @@ const DeterminantesView = ({ onNavigate }) => {
                       {
                         title: (
                           <ColumnTooltip
-                            tooltipData={getTooltip("determinantes", "tabla", "columnas", "variable")}
+                            tooltipData={getTooltip(
+                              "determinantes",
+                              "tabla",
+                              "columnas",
+                              "variable"
+                            )}
                           >
                             <span style={{ cursor: "help" }}>Variable</span>
                           </ColumnTooltip>
@@ -1011,7 +1097,12 @@ const DeterminantesView = ({ onNavigate }) => {
                       {
                         title: (
                           <ColumnTooltip
-                            tooltipData={getTooltip("determinantes", "tabla", "columnas", "coeficiente")}
+                            tooltipData={getTooltip(
+                              "determinantes",
+                              "tabla",
+                              "columnas",
+                              "coeficiente"
+                            )}
                           >
                             <span style={{ cursor: "help" }}>Coef.</span>
                           </ColumnTooltip>
@@ -1031,7 +1122,12 @@ const DeterminantesView = ({ onNavigate }) => {
                       {
                         title: (
                           <ColumnTooltip
-                            tooltipData={getTooltip("determinantes", "tabla", "columnas", "errorEstandar")}
+                            tooltipData={getTooltip(
+                              "determinantes",
+                              "tabla",
+                              "columnas",
+                              "errorEstandar"
+                            )}
                           >
                             <span style={{ cursor: "help" }}>Std.Err.</span>
                           </ColumnTooltip>
@@ -1051,7 +1147,12 @@ const DeterminantesView = ({ onNavigate }) => {
                       {
                         title: (
                           <ColumnTooltip
-                            tooltipData={getTooltip("determinantes", "tabla", "columnas", "tStatistic")}
+                            tooltipData={getTooltip(
+                              "determinantes",
+                              "tabla",
+                              "columnas",
+                              "tStatistic"
+                            )}
                           >
                             <span style={{ cursor: "help" }}>t</span>
                           </ColumnTooltip>
@@ -1065,7 +1166,12 @@ const DeterminantesView = ({ onNavigate }) => {
                       {
                         title: (
                           <ColumnTooltip
-                            tooltipData={getTooltip("determinantes", "tabla", "columnas", "pValor")}
+                            tooltipData={getTooltip(
+                              "determinantes",
+                              "tabla",
+                              "columnas",
+                              "pValor"
+                            )}
                           >
                             <span style={{ cursor: "help" }}>P&gt;|t|</span>
                           </ColumnTooltip>
@@ -1136,8 +1242,22 @@ const DeterminantesView = ({ onNavigate }) => {
                     }}
                   />
                   <CustomTooltip
-                    title={getTooltip("determinantes", "tabla", "estadisticas", "titulo")?.title}
-                    content={getTooltip("determinantes", "tabla", "estadisticas", "titulo")?.content}
+                    title={
+                      getTooltip(
+                        "determinantes",
+                        "tabla",
+                        "estadisticas",
+                        "titulo"
+                      )?.title
+                    }
+                    content={
+                      getTooltip(
+                        "determinantes",
+                        "tabla",
+                        "estadisticas",
+                        "titulo"
+                      )?.content
+                    }
                   >
                     <div
                       style={{
@@ -1151,15 +1271,15 @@ const DeterminantesView = ({ onNavigate }) => {
                       }}
                     >
                       <strong>Estadísticas del modelo:</strong>
-                      R² = {analysisResults?.r_cuadrado?.toFixed(3) || "--"} | R²
-                      ajustado ={" "}
-                      {analysisResults?.r_cuadrado_ajustado?.toFixed(3) || "--"} |
-                      Variables significativas ={" "}
+                      R² = {analysisResults?.r_cuadrado?.toFixed(3) || "--"} |
+                      R² ajustado ={" "}
+                      {analysisResults?.r_cuadrado_ajustado?.toFixed(3) || "--"}{" "}
+                      | Variables significativas ={" "}
                       {analysisResults?.variables_clave?.length || "--"}
                       <br />
                       <strong>Método de eficiencia:</strong>{" "}
-                      {analysisResults?.metodo_eficiencia || calculationMethod} |
-                      <strong>Año:</strong> {selectedYear} |
+                      {analysisResults?.metodo_eficiencia || calculationMethod}{" "}
+                      |<strong>Año:</strong> {selectedYear} |
                       <strong>Variable dependiente:</strong>{" "}
                       {analysisResults?.variable_dependiente ||
                         "Eficiencia Técnica"}
