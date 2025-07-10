@@ -9,6 +9,7 @@ import {
   ClockCircleOutlined,
   SearchOutlined,
   EditFilled,
+  InfoCircleOutlined,
 } from "@ant-design/icons";
 import {
   Layout,
@@ -40,6 +41,8 @@ import {
   Cell,
   Legend,
 } from "recharts";
+import CustomTooltip, { ParameterTooltip, KpiTooltip, ActionTooltip, ColumnTooltip } from "./CustomTooltip";
+import { getTooltip } from "../data/tooltips";
 
 const { Content, Sider } = Layout;
 const { Title } = Typography;
@@ -322,19 +325,32 @@ const DeterminantesView = ({ onNavigate }) => {
           ) : (
             <>
               {" "}
-              <Title
-                level={4}
+              <div
                 style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                   marginTop: "4px",
                   marginBottom: "20px",
-                  color: "#333",
-                  textAlign: "center",
                   borderBottom: "1px solid #e8e8e8",
                   paddingBottom: "12px",
                 }}
               >
-                Parámetros de Cálculo
-              </Title>{" "}
+                <ParameterTooltip
+                  tooltipData={getTooltip("determinantes", "secciones", "parametrosCalculo")}
+                >
+                  <Title
+                    level={4}
+                    style={{
+                      margin: 0,
+                      color: "#333",
+                      cursor: "help",
+                    }}
+                  >
+                    Parámetros de Cálculo
+                  </Title>
+                </ParameterTooltip>
+              </div>{" "}
               <div
                 style={{
                   display: "flex",
@@ -349,9 +365,13 @@ const DeterminantesView = ({ onNavigate }) => {
                     marginRight: "8px",
                   }}
                 />
-                <Title level={5} style={{ margin: 0, color: "#333" }}>
-                  Variables Independientes
-                </Title>
+                <ParameterTooltip
+                  tooltipData={getTooltip("determinantes", "secciones", "variablesIndependientes")}
+                >
+                  <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                    Variables Independientes
+                  </Title>
+                </ParameterTooltip>
               </div>
               <Select
                 mode="multiple"
@@ -376,9 +396,13 @@ const DeterminantesView = ({ onNavigate }) => {
                     marginRight: "8px",
                   }}
                 />
-                <Title level={5} style={{ margin: 0, color: "#333" }}>
-                  Variables de Entrada (Inputs)
-                </Title>
+                <ParameterTooltip
+                  tooltipData={getTooltip("determinantes", "parametros", "entradas")}
+                >
+                  <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                    Variables de Entrada (Inputs)
+                  </Title>
+                </ParameterTooltip>
               </div>
               <Select
                 mode="multiple"
@@ -403,9 +427,13 @@ const DeterminantesView = ({ onNavigate }) => {
                     marginRight: "8px",
                   }}
                 />
-                <Title level={5} style={{ margin: 0, color: "#333" }}>
-                  Variables de Salida (Outputs)
-                </Title>
+                <ParameterTooltip
+                  tooltipData={getTooltip("determinantes", "parametros", "salidas")}
+                >
+                  <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                    Variables de Salida (Outputs)
+                  </Title>
+                </ParameterTooltip>
               </div>
               <Select
                 mode="multiple"
@@ -430,9 +458,13 @@ const DeterminantesView = ({ onNavigate }) => {
                     marginRight: "8px",
                   }}
                 />
-                <Title level={5} style={{ margin: 0, color: "#333" }}>
-                  Variable Dependiente
-                </Title>
+                <ParameterTooltip
+                  tooltipData={getTooltip("determinantes", "secciones", "variableDependiente")}
+                >
+                  <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                    Variable Dependiente
+                  </Title>
+                </ParameterTooltip>
               </div>{" "}
               <Select
                 placeholder="Variable a explicar"
@@ -442,20 +474,24 @@ const DeterminantesView = ({ onNavigate }) => {
                 style={{ width: "100%", marginBottom: "16px" }}
                 options={[{ value: "eficiencia", label: "Eficiencia Técnica" }]}
               />
-              <Button
-                type="primary"
-                size="large"
-                loading={loading}
-                style={{
-                  width: "100%",
-                  marginTop: "20px",
-                  backgroundColor: "#1890ff",
-                  borderColor: "#1890ff",
-                }}
-                onClick={handleCalculateAnalysis}
+              <ActionTooltip
+                tooltipData={getTooltip("determinantes", "acciones", "calcular")}
               >
-                {loading ? "Calculando..." : "Calcular"}
-              </Button>
+                <Button
+                  type="primary"
+                  size="large"
+                  loading={loading}
+                  style={{
+                    width: "100%",
+                    marginTop: "20px",
+                    backgroundColor: "#1890ff",
+                    borderColor: "#1890ff",
+                  }}
+                  onClick={handleCalculateAnalysis}
+                >
+                  {loading ? "Calculando..." : "Calcular"}
+                </Button>
+              </ActionTooltip>
             </>
           )}
         </div>
@@ -526,31 +562,39 @@ const DeterminantesView = ({ onNavigate }) => {
               Análisis de determinantes de eficiencia
             </Title>{" "}
             <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-              <Select
-                value={selectedYear}
-                onChange={setSelectedYear}
-                style={{ width: 120 }}
-                options={[
-                  { value: 2014, label: "2014" },
-                  { value: 2015, label: "2015" },
-                  { value: 2016, label: "2016" },
-                  { value: 2017, label: "2017" },
-                  { value: 2018, label: "2018" },
-                  { value: 2019, label: "2019" },
-                  { value: 2020, label: "2020" },
-                  { value: 2021, label: "2021" },
-                  { value: 2022, label: "2022" },
-                  { value: 2023, label: "2023" },
-                ]}
-              />
-              <Radio.Group
-                value={calculationMethod}
-                onChange={(e) => setCalculationMethod(e.target.value)}
-                size="middle"
+              <ParameterTooltip
+                tooltipData={getTooltip("determinantes", "parametros", "año")}
               >
-                <Radio.Button value="SFA">SFA</Radio.Button>
-                <Radio.Button value="DEA">DEA</Radio.Button>
-              </Radio.Group>
+                <Select
+                  value={selectedYear}
+                  onChange={setSelectedYear}
+                  style={{ width: 120 }}
+                  options={[
+                    { value: 2014, label: "2014" },
+                    { value: 2015, label: "2015" },
+                    { value: 2016, label: "2016" },
+                    { value: 2017, label: "2017" },
+                    { value: 2018, label: "2018" },
+                    { value: 2019, label: "2019" },
+                    { value: 2020, label: "2020" },
+                    { value: 2021, label: "2021" },
+                    { value: 2022, label: "2022" },
+                    { value: 2023, label: "2023" },
+                  ]}
+                />
+              </ParameterTooltip>
+              <ParameterTooltip
+                tooltipData={getTooltip("determinantes", "parametros", "metodologia")}
+              >
+                <Radio.Group
+                  value={calculationMethod}
+                  onChange={(e) => setCalculationMethod(e.target.value)}
+                  size="middle"
+                >
+                  <Radio.Button value="SFA">SFA</Radio.Button>
+                  <Radio.Button value="DEA">DEA</Radio.Button>
+                </Radio.Group>
+              </ParameterTooltip>
             </div>
           </div>{" "}
           {/* KPI Cards */}
@@ -560,89 +604,101 @@ const DeterminantesView = ({ onNavigate }) => {
               style={{ marginBottom: "8px", justifyContent: "center" }}
             >
               <Col xs={24} sm={8} md={8}>
-                <Card
-                  style={{
-                    textAlign: "center",
-                    height: "100px",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    border: "1px solid #e8f4f8",
-                    background:
-                      "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                  }}
+                <KpiTooltip
+                  tooltipData={getTooltip("determinantes", "kpis", "rCuadrado")}
                 >
-                  <Statistic
-                    title="R²"
-                    value={analysisResults?.r_cuadrado || "--"}
-                    precision={analysisResults?.r_cuadrado ? 3 : 0}
-                    valueStyle={{ color: "#1890ff", fontSize: "18px" }}
-                    prefix={<LineChartOutlined />}
-                    titleStyle={{
-                      marginTop: "0px",
-                      marginBottom: "4px",
-                      fontSize: "13px",
-                      lineHeight: "1.2",
+                  <Card
+                    style={{
+                      textAlign: "center",
+                      height: "100px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      border: "1px solid #e8f4f8",
+                      background:
+                        "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                     }}
-                  />
-                </Card>
+                  >
+                    <Statistic
+                      title="R²"
+                      value={analysisResults?.r_cuadrado || "--"}
+                      precision={analysisResults?.r_cuadrado ? 3 : 0}
+                      valueStyle={{ color: "#1890ff", fontSize: "18px" }}
+                      prefix={<LineChartOutlined />}
+                      titleStyle={{
+                        marginTop: "0px",
+                        marginBottom: "4px",
+                        fontSize: "13px",
+                        lineHeight: "1.2",
+                      }}
+                    />
+                  </Card>
+                </KpiTooltip>
               </Col>
               <Col xs={24} sm={8} md={8}>
-                <Card
-                  style={{
-                    textAlign: "center",
-                    height: "100px",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    border: "1px solid #f0f9e8",
-                    background:
-                      "linear-gradient(135deg, #f6ffed 0%, #f0f9e8 100%)",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                  }}
+                <KpiTooltip
+                  tooltipData={getTooltip("determinantes", "kpis", "variablesSignificativas")}
                 >
-                  <Statistic
-                    title="β significativos"
-                    value={analysisResults?.variables_clave?.length || "--"}
-                    valueStyle={{ color: "#52c41a", fontSize: "18px" }}
-                    prefix={<TrophyOutlined />}
-                    titleStyle={{
-                      marginTop: "0px",
-                      marginBottom: "4px",
-                      fontSize: "13px",
-                      lineHeight: "1.2",
+                  <Card
+                    style={{
+                      textAlign: "center",
+                      height: "100px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      border: "1px solid #f0f9e8",
+                      background:
+                        "linear-gradient(135deg, #f6ffed 0%, #f0f9e8 100%)",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                     }}
-                  />
-                </Card>
+                  >
+                    <Statistic
+                      title="β significativos"
+                      value={analysisResults?.variables_clave?.length || "--"}
+                      valueStyle={{ color: "#52c41a", fontSize: "18px" }}
+                      prefix={<TrophyOutlined />}
+                      titleStyle={{
+                        marginTop: "0px",
+                        marginBottom: "4px",
+                        fontSize: "13px",
+                        lineHeight: "1.2",
+                      }}
+                    />
+                  </Card>
+                </KpiTooltip>
               </Col>
               <Col xs={24} sm={8} md={8}>
-                <Card
-                  style={{
-                    textAlign: "center",
-                    height: "100px",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    border: "1px solid #fff1f0",
-                    background:
-                      "linear-gradient(135deg, #fff2f0 0%, #ffebe6 100%)",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                  }}
+                <KpiTooltip
+                  tooltipData={getTooltip("determinantes", "kpis", "observaciones")}
                 >
-                  <Statistic
-                    title="N° Observaciones"
-                    value={analysisResults?.observaciones || "--"}
-                    valueStyle={{ color: "#fa8c16", fontSize: "18px" }}
-                    prefix={<TeamOutlined />}
-                    titleStyle={{
-                      marginTop: "0px",
-                      marginBottom: "4px",
-                      fontSize: "13px",
-                      lineHeight: "1.2",
+                  <Card
+                    style={{
+                      textAlign: "center",
+                      height: "100px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      border: "1px solid #fff1f0",
+                      background:
+                        "linear-gradient(135deg, #fff2f0 0%, #ffebe6 100%)",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                     }}
-                  />
-                </Card>
+                  >
+                    <Statistic
+                      title="N° Observaciones"
+                      value={analysisResults?.observaciones || "--"}
+                      valueStyle={{ color: "#fa8c16", fontSize: "18px" }}
+                      prefix={<TeamOutlined />}
+                      titleStyle={{
+                        marginTop: "0px",
+                        marginBottom: "4px",
+                        fontSize: "13px",
+                        lineHeight: "1.2",
+                      }}
+                    />
+                  </Card>
+                </KpiTooltip>
               </Col>
             </Row>
           </div>
@@ -658,12 +714,23 @@ const DeterminantesView = ({ onNavigate }) => {
               }}
             >
               {" "}
-              <Title
-                level={4}
-                style={{ marginTop: 10, margin: 0, textAlign: "left" }}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginTop: 10,
+                  margin: 0,
+                  textAlign: "left",
+                }}
               >
-                Variables y Factores Determinantes
-              </Title>
+                <ParameterTooltip
+                  tooltipData={getTooltip("determinantes", "secciones", "resultados")}
+                >
+                  <Title level={4} style={{ margin: 0, marginRight: "8px", cursor: "help" }}>
+                    Variables y Factores Determinantes
+                  </Title>
+                </ParameterTooltip>
+              </div>
             </div>{" "}
             <Row gutter={[24, 0]} style={{ alignItems: "stretch" }}>
               {/* Gráfico de Correlación */}
@@ -692,17 +759,31 @@ const DeterminantesView = ({ onNavigate }) => {
                       marginBottom: "12px",
                     }}
                   >
-                    <Title
-                      level={5}
+                    <div
                       style={{
-                        marginTop: "0px",
-                        marginBottom: "0px",
-                        textAlign: "center",
+                        display: "flex",
+                        alignItems: "center",
                         flex: 1,
+                        justifyContent: "center",
+                        gap: "8px",
                       }}
                     >
-                      Top 5 Determinantes de Eficiencia
-                    </Title>
+                      <ParameterTooltip
+                        tooltipData={getTooltip("determinantes", "grafico", "titulo")}
+                      >
+                        <Title
+                          level={5}
+                          style={{
+                            marginTop: "0px",
+                            marginBottom: "0px",
+                            textAlign: "center",
+                            cursor: "help",
+                          }}
+                        >
+                          Top 5 Determinantes de Eficiencia
+                        </Title>
+                      </ParameterTooltip>
+                    </div>
                     <div
                       style={{
                         display: "flex",
@@ -713,12 +794,17 @@ const DeterminantesView = ({ onNavigate }) => {
                       <span style={{ fontSize: "12px", color: "#666" }}>
                         Normalizar:
                       </span>
-                      <Switch
-                        size="small"
-                        checked={normalizeChart}
-                        onChange={setNormalizeChart}
-                        title="Normalizar coeficientes a escala [-1, 1]"
-                      />
+                      <CustomTooltip
+                        title={getTooltip("determinantes", "grafico", "normalizacion")?.title}
+                        content={getTooltip("determinantes", "grafico", "normalizacion")?.content}
+                      >
+                        <Switch
+                          size="small"
+                          checked={normalizeChart}
+                          onChange={setNormalizeChart}
+                          title=""
+                        />
+                      </CustomTooltip>
                     </div>
                   </div>
                   <div
@@ -882,27 +968,54 @@ const DeterminantesView = ({ onNavigate }) => {
                   }}
                 >
                   {" "}
-                  <Title
-                    level={5}
+                  <div
                     style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                       marginTop: "0px",
                       marginBottom: "12px",
-                      textAlign: "center",
+                      gap: "8px",
                     }}
                   >
-                    Resultados del Análisis Econométrico
-                  </Title>{" "}
+                    <ParameterTooltip
+                      tooltipData={getTooltip("determinantes", "tabla", "estadisticas", "titulo")}
+                    >
+                      <Title
+                        level={5}
+                        style={{
+                          margin: 0,
+                          textAlign: "center",
+                          cursor: "help",
+                        }}
+                      >
+                        Resultados del Análisis Econométrico
+                      </Title>
+                    </ParameterTooltip>
+                  </div>{" "}
                   <Table
                     columns={[
                       {
-                        title: "Variable",
+                        title: (
+                          <ColumnTooltip
+                            tooltipData={getTooltip("determinantes", "tabla", "columnas", "variable")}
+                          >
+                            <span style={{ cursor: "help" }}>Variable</span>
+                          </ColumnTooltip>
+                        ),
                         dataIndex: "variable",
                         key: "variable",
                         width: "30%",
                         render: (value) => formatVariableName(value),
                       },
                       {
-                        title: "Coef.",
+                        title: (
+                          <ColumnTooltip
+                            tooltipData={getTooltip("determinantes", "tabla", "columnas", "coeficiente")}
+                          >
+                            <span style={{ cursor: "help" }}>Coef.</span>
+                          </ColumnTooltip>
+                        ),
                         dataIndex: "coeficiente",
                         key: "coeficiente",
                         width: "20%",
@@ -916,7 +1029,13 @@ const DeterminantesView = ({ onNavigate }) => {
                         },
                       },
                       {
-                        title: "Std.Err.",
+                        title: (
+                          <ColumnTooltip
+                            tooltipData={getTooltip("determinantes", "tabla", "columnas", "errorEstandar")}
+                          >
+                            <span style={{ cursor: "help" }}>Std.Err.</span>
+                          </ColumnTooltip>
+                        ),
                         dataIndex: "errorEstandar",
                         key: "errorEstandar",
                         width: "20%",
@@ -930,7 +1049,13 @@ const DeterminantesView = ({ onNavigate }) => {
                         },
                       },
                       {
-                        title: "t",
+                        title: (
+                          <ColumnTooltip
+                            tooltipData={getTooltip("determinantes", "tabla", "columnas", "tStatistic")}
+                          >
+                            <span style={{ cursor: "help" }}>t</span>
+                          </ColumnTooltip>
+                        ),
                         dataIndex: "tStatistic",
                         key: "tStatistic",
                         width: "15%",
@@ -938,7 +1063,13 @@ const DeterminantesView = ({ onNavigate }) => {
                           typeof value === "number" ? value.toFixed(3) : value,
                       },
                       {
-                        title: "P>|t|",
+                        title: (
+                          <ColumnTooltip
+                            tooltipData={getTooltip("determinantes", "tabla", "columnas", "pValor")}
+                          >
+                            <span style={{ cursor: "help" }}>P&gt;|t|</span>
+                          </ColumnTooltip>
+                        ),
                         dataIndex: "pvalor",
                         key: "pvalor",
                         width: "15%",
@@ -1004,38 +1135,44 @@ const DeterminantesView = ({ onNavigate }) => {
                         : "Selecciona las variables y haz clic en 'Calcular' para ver los resultados del análisis econométrico",
                     }}
                   />
-                  <div
-                    style={{
-                      marginTop: "16px",
-                      padding: "12px",
-                      background: "#f8f9fa",
-                      borderRadius: "4px",
-                      fontSize: "12px",
-                      color: "#666",
-                    }}
+                  <CustomTooltip
+                    title={getTooltip("determinantes", "tabla", "estadisticas", "titulo")?.title}
+                    content={getTooltip("determinantes", "tabla", "estadisticas", "titulo")?.content}
                   >
-                    <strong>Estadísticas del modelo:</strong>
-                    R² = {analysisResults?.r_cuadrado?.toFixed(3) || "--"} | R²
-                    ajustado ={" "}
-                    {analysisResults?.r_cuadrado_ajustado?.toFixed(3) || "--"} |
-                    Variables significativas ={" "}
-                    {analysisResults?.variables_clave?.length || "--"}
-                    <br />
-                    <strong>Método de eficiencia:</strong>{" "}
-                    {analysisResults?.metodo_eficiencia || calculationMethod} |
-                    <strong>Año:</strong> {selectedYear} |
-                    <strong>Variable dependiente:</strong>{" "}
-                    {analysisResults?.variable_dependiente ||
-                      "Eficiencia Técnica"}
-                    <br />
-                    <strong>Observaciones:</strong>{" "}
-                    {analysisResults?.observaciones || "--"} |
-                    <strong>Mensaje:</strong>{" "}
-                    {analysisResults?.mensaje || "Análisis pendiente"}
-                    <br />
-                    <strong>Significancia:</strong> *** p&lt;0.001, **
-                    p&lt;0.01, * p&lt;0.05, NS = No significativo
-                  </div>
+                    <div
+                      style={{
+                        marginTop: "16px",
+                        padding: "12px",
+                        background: "#f8f9fa",
+                        borderRadius: "4px",
+                        fontSize: "12px",
+                        color: "#666",
+                        cursor: "help",
+                      }}
+                    >
+                      <strong>Estadísticas del modelo:</strong>
+                      R² = {analysisResults?.r_cuadrado?.toFixed(3) || "--"} | R²
+                      ajustado ={" "}
+                      {analysisResults?.r_cuadrado_ajustado?.toFixed(3) || "--"} |
+                      Variables significativas ={" "}
+                      {analysisResults?.variables_clave?.length || "--"}
+                      <br />
+                      <strong>Método de eficiencia:</strong>{" "}
+                      {analysisResults?.metodo_eficiencia || calculationMethod} |
+                      <strong>Año:</strong> {selectedYear} |
+                      <strong>Variable dependiente:</strong>{" "}
+                      {analysisResults?.variable_dependiente ||
+                        "Eficiencia Técnica"}
+                      <br />
+                      <strong>Observaciones:</strong>{" "}
+                      {analysisResults?.observaciones || "--"} |
+                      <strong>Mensaje:</strong>{" "}
+                      {analysisResults?.mensaje || "Análisis pendiente"}
+                      <br />
+                      <strong>Significancia:</strong> *** p&lt;0.001, **
+                      p&lt;0.01, * p&lt;0.05, NS = No significativo
+                    </div>
+                  </CustomTooltip>
                 </div>
               </Col>
             </Row>

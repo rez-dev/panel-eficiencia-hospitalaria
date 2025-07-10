@@ -31,9 +31,52 @@ import {
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useGlobalState } from "../contexts/GlobalStateContext";
+
+// Importar componentes personalizados
 import StateIndicator from "./StateIndicator";
+import { useGlobalState } from "../contexts/GlobalStateContext";
 import ApiService from "../services/api";
+import CustomTooltip from "./CustomTooltip";
+import { getTooltip } from "../data/tooltips";
+
+// Helper component para tooltips de encabezados
+const SectionTooltip = ({ children, tooltipData }) => {
+  if (!tooltipData) return children;
+  return (
+    <CustomTooltip
+      title={tooltipData.title}
+      content={tooltipData.content}
+      details={tooltipData.details}
+    >
+      {children}
+    </CustomTooltip>
+  );
+};
+
+// Helper component para tooltips de parámetros
+const ParameterTooltip = ({ children, tooltipData }) => {
+  if (!tooltipData) return children;
+  return (
+    <CustomTooltip
+      title={tooltipData.title}
+      content={tooltipData.content}
+      details={tooltipData.details}
+      options={tooltipData.options}
+    >
+      {children}
+    </CustomTooltip>
+  );
+};
+
+// Helper component para tooltips de KPIs
+const KpiTooltip = ({ children, tooltipData }) => {
+  if (!tooltipData) return children;
+  return (
+    <CustomTooltip title={tooltipData.title} content={tooltipData.content}>
+      {children}
+    </CustomTooltip>
+  );
+};
 
 // Componente de leyenda personalizado para Leaflet
 const MapLegend = () => {
@@ -861,19 +904,27 @@ const ComparacionView = () => {
             </div>
           ) : (
             <>
-              <Title
-                level={4}
-                style={{
-                  marginTop: "4px",
-                  marginBottom: "20px",
-                  color: "#333",
-                  textAlign: "center",
-                  borderBottom: "1px solid #e8e8e8",
-                  paddingBottom: "12px",
+              <SectionTooltip
+                tooltipData={{
+                  title: "Configuración del Análisis",
+                  content:
+                    "Ajusta los parámetros para personalizar el cálculo de eficiencia hospitalaria según tus necesidades de análisis.",
                 }}
               >
-                Parámetros de Cálculo
-              </Title>
+                <Title
+                  level={4}
+                  style={{
+                    marginTop: "4px",
+                    marginBottom: "20px",
+                    color: "#333",
+                    textAlign: "center",
+                    borderBottom: "1px solid #e8e8e8",
+                    paddingBottom: "12px",
+                  }}
+                >
+                  Parámetros de Cálculo
+                </Title>
+              </SectionTooltip>
               <div
                 style={{
                   display: "flex",
@@ -888,9 +939,17 @@ const ComparacionView = () => {
                     marginRight: "8px",
                   }}
                 />
-                <Title level={5} style={{ margin: 0, color: "#333" }}>
-                  Entradas
-                </Title>
+                <ParameterTooltip
+                  tooltipData={getTooltip(
+                    "comparacion",
+                    "parametros",
+                    "entradas"
+                  )}
+                >
+                  <Title level={5} style={{ margin: 0, color: "#333" }}>
+                    Entradas
+                  </Title>
+                </ParameterTooltip>
               </div>{" "}
               <Select
                 mode="multiple"
@@ -921,9 +980,17 @@ const ComparacionView = () => {
                     marginRight: "8px",
                   }}
                 />
-                <Title level={5} style={{ margin: 0, color: "#333" }}>
-                  Salidas
-                </Title>
+                <ParameterTooltip
+                  tooltipData={getTooltip(
+                    "comparacion",
+                    "parametros",
+                    "salidas"
+                  )}
+                >
+                  <Title level={5} style={{ margin: 0, color: "#333" }}>
+                    Salidas
+                  </Title>
+                </ParameterTooltip>
               </div>{" "}
               <Select
                 mode="multiple"
@@ -939,43 +1006,47 @@ const ComparacionView = () => {
                   { value: "quirofanos", label: "Quirófanos" },
                 ]}
               />{" "}
-              <Button
-                type="primary"
-                size="large"
-                style={{
-                  width: "100%",
-                  marginTop: "20px",
-                  backgroundColor: "#1890ff",
-                  borderColor: "#1890ff",
-                }}
-                loading={loading}
-                onClick={() => {
-                  const logData = {
-                    inputcols,
-                    outputcols,
-                    selectedYear,
-                    calculationMethod,
-                  };
-                  console.log("Calculando con:", logData);
-                  console.log(
-                    "Hospitales seleccionados antes del cálculo:",
-                    hospitalesSeleccionados
-                  );
-                  console.log(
-                    "Estructura de hospitales seleccionados:",
-                    hospitalesSeleccionados.map((h) => ({
-                      hospital: h.hospital,
-                      id: h.id,
-                      key: h.key,
-                      nombre: h.nombre,
-                      name: h.name,
-                    }))
-                  );
-                  fetchData(); // Llamar a la función de la API
-                }}
+              <SectionTooltip
+                tooltipData={getTooltip("comparacion", "acciones", "calcular")}
               >
-                Calcular
-              </Button>
+                <Button
+                  type="primary"
+                  size="large"
+                  style={{
+                    width: "100%",
+                    marginTop: "20px",
+                    backgroundColor: "#1890ff",
+                    borderColor: "#1890ff",
+                  }}
+                  loading={loading}
+                  onClick={() => {
+                    const logData = {
+                      inputcols,
+                      outputcols,
+                      selectedYear,
+                      calculationMethod,
+                    };
+                    console.log("Calculando con:", logData);
+                    console.log(
+                      "Hospitales seleccionados antes del cálculo:",
+                      hospitalesSeleccionados
+                    );
+                    console.log(
+                      "Estructura de hospitales seleccionados:",
+                      hospitalesSeleccionados.map((h) => ({
+                        hospital: h.hospital,
+                        id: h.id,
+                        key: h.key,
+                        nombre: h.nombre,
+                        name: h.name,
+                      }))
+                    );
+                    fetchData(); // Llamar a la función de la API
+                  }}
+                >
+                  Calcular
+                </Button>
+              </SectionTooltip>
             </>
           )}
         </div>
@@ -1049,15 +1120,23 @@ const ComparacionView = () => {
               Comparación hospitalaria
             </Title>
             <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-              <Radio.Group
-                value={calculationMethod}
-                onChange={(e) => actions.setMetodologia(e.target.value)}
-                size="middle"
+              <ParameterTooltip
+                tooltipData={getTooltip(
+                  "comparacion",
+                  "parametros",
+                  "metodologia"
+                )}
               >
-                <Radio.Button value="SFA">SFA</Radio.Button>
-                <Radio.Button value="DEA">DEA</Radio.Button>
-                <Radio.Button value="DEA-M">DEA-M</Radio.Button>
-              </Radio.Group>
+                <Radio.Group
+                  value={calculationMethod}
+                  onChange={(e) => actions.setMetodologia(e.target.value)}
+                  size="middle"
+                >
+                  <Radio.Button value="SFA">SFA</Radio.Button>
+                  <Radio.Button value="DEA">DEA</Radio.Button>
+                  <Radio.Button value="DEA-M">DEA-M</Radio.Button>
+                </Radio.Group>
+              </ParameterTooltip>
             </div>
           </div>
 
@@ -1128,14 +1207,22 @@ const ComparacionView = () => {
                       }}
                     >
                       {" "}
-                      <Statistic
-                        title="Gap Insumos"
-                        value={comparisonKPIs.insumoGap}
-                        precision={1}
-                        suffix="%"
-                        valueStyle={{ color: "#1890ff", fontSize: "18px" }}
-                        prefix={<EditFilled />}
-                      />
+                      <KpiTooltip
+                        tooltipData={getTooltip(
+                          "comparacion",
+                          "kpis",
+                          "gapInsumos"
+                        )}
+                      >
+                        <Statistic
+                          title="Gap Insumos"
+                          value={comparisonKPIs.insumoGap}
+                          precision={1}
+                          suffix="%"
+                          valueStyle={{ color: "#1890ff", fontSize: "18px" }}
+                          prefix={<EditFilled />}
+                        />
+                      </KpiTooltip>
                     </Card>
                   </Col>{" "}
                   <Col xs={24} sm={8} md={8}>
@@ -1153,14 +1240,22 @@ const ComparacionView = () => {
                       }}
                     >
                       {" "}
-                      <Statistic
-                        title="Gap Productos"
-                        value={comparisonKPIs.salidaGap}
-                        precision={1}
-                        suffix="%"
-                        valueStyle={{ color: "#52c41a", fontSize: "18px" }}
-                        prefix={<TrophyOutlined />}
-                      />
+                      <KpiTooltip
+                        tooltipData={getTooltip(
+                          "comparacion",
+                          "kpis",
+                          "gapProductos"
+                        )}
+                      >
+                        <Statistic
+                          title="Gap Productos"
+                          value={comparisonKPIs.salidaGap}
+                          precision={1}
+                          suffix="%"
+                          valueStyle={{ color: "#52c41a", fontSize: "18px" }}
+                          prefix={<TrophyOutlined />}
+                        />
+                      </KpiTooltip>
                     </Card>
                   </Col>{" "}
                   <Col xs={24} sm={8} md={8}>
@@ -1178,14 +1273,22 @@ const ComparacionView = () => {
                       }}
                     >
                       {" "}
-                      <Statistic
-                        title="Gap Eficiencia"
-                        value={comparisonKPIs.eficienciaGap}
-                        precision={1}
-                        suffix="%"
-                        valueStyle={{ color: "#fa8c16", fontSize: "18px" }}
-                        prefix={<LineChartOutlined />}
-                      />
+                      <KpiTooltip
+                        tooltipData={getTooltip(
+                          "comparacion",
+                          "kpis",
+                          "gapEficiencia"
+                        )}
+                      >
+                        <Statistic
+                          title="Gap Eficiencia"
+                          value={comparisonKPIs.eficienciaGap}
+                          precision={1}
+                          suffix="%"
+                          valueStyle={{ color: "#fa8c16", fontSize: "18px" }}
+                          prefix={<LineChartOutlined />}
+                        />
+                      </KpiTooltip>
                     </Card>
                   </Col>{" "}
                 </Row>{" "}
@@ -1382,7 +1485,6 @@ const ComparacionView = () => {
                                     size="small"
                                     style={{ width: "100px" }}
                                     options={[
-                                      { value: 2024, label: "2024" },
                                       { value: 2023, label: "2023" },
                                       { value: 2022, label: "2022" },
                                       { value: 2021, label: "2021" },
@@ -1402,66 +1504,82 @@ const ComparacionView = () => {
                                 <Row gutter={[0, 10]}>
                                   {/* Eficiencia Técnica */}
                                   <Col span={24}>
-                                    <div
-                                      style={{
-                                        background:
-                                          "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
-                                        padding: "12px",
-                                        borderRadius: "6px",
-                                        textAlign: "center",
-                                      }}
+                                    <KpiTooltip
+                                      tooltipData={getTooltip(
+                                        "comparacion",
+                                        "metricas",
+                                        "eficienciaTecnica"
+                                      )}
                                     >
                                       <div
                                         style={{
-                                          fontSize: "20px",
-                                          fontWeight: "bold",
-                                          color: "#1890ff",
+                                          background:
+                                            "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+                                          padding: "12px",
+                                          borderRadius: "6px",
+                                          textAlign: "center",
                                         }}
                                       >
-                                        {hospital.eficiencia}%
+                                        <div
+                                          style={{
+                                            fontSize: "20px",
+                                            fontWeight: "bold",
+                                            color: "#1890ff",
+                                          }}
+                                        >
+                                          {hospital.eficiencia}%
+                                        </div>
+                                        <div
+                                          style={{
+                                            fontSize: "11px",
+                                            color: "#666",
+                                            marginTop: "2px",
+                                          }}
+                                        >
+                                          Eficiencia Técnica
+                                        </div>
                                       </div>
-                                      <div
-                                        style={{
-                                          fontSize: "11px",
-                                          color: "#666",
-                                          marginTop: "2px",
-                                        }}
-                                      >
-                                        Eficiencia Técnica
-                                      </div>
-                                    </div>
+                                    </KpiTooltip>
                                   </Col>
 
                                   {/* Percentil */}
                                   <Col span={24}>
-                                    <div
-                                      style={{
-                                        background:
-                                          "linear-gradient(135deg, #f6ffed 0%, #f0f9e8 100%)",
-                                        padding: "12px",
-                                        borderRadius: "6px",
-                                        textAlign: "center",
-                                      }}
+                                    <KpiTooltip
+                                      tooltipData={getTooltip(
+                                        "comparacion",
+                                        "metricas",
+                                        "percentilNacional"
+                                      )}
                                     >
                                       <div
                                         style={{
-                                          fontSize: "18px",
-                                          fontWeight: "bold",
-                                          color: "#52c41a",
+                                          background:
+                                            "linear-gradient(135deg, #f6ffed 0%, #f0f9e8 100%)",
+                                          padding: "12px",
+                                          borderRadius: "6px",
+                                          textAlign: "center",
                                         }}
                                       >
-                                        {hospital.percentil}°
+                                        <div
+                                          style={{
+                                            fontSize: "18px",
+                                            fontWeight: "bold",
+                                            color: "#52c41a",
+                                          }}
+                                        >
+                                          {hospital.percentil}°
+                                        </div>
+                                        <div
+                                          style={{
+                                            fontSize: "11px",
+                                            color: "#666",
+                                            marginTop: "2px",
+                                          }}
+                                        >
+                                          Percentil Nacional
+                                        </div>
                                       </div>
-                                      <div
-                                        style={{
-                                          fontSize: "11px",
-                                          color: "#666",
-                                          marginTop: "2px",
-                                        }}
-                                      >
-                                        Percentil Nacional
-                                      </div>
-                                    </div>
+                                    </KpiTooltip>
                                   </Col>
 
                                   {/* Información General */}
@@ -1580,16 +1698,24 @@ const ComparacionView = () => {
                                         border: "1px solid #ffd591",
                                       }}
                                     >
-                                      <div
-                                        style={{
-                                          fontSize: "11px",
-                                          color: "#d48806",
-                                          marginBottom: "8px",
-                                          fontWeight: "600",
-                                        }}
+                                      <ParameterTooltip
+                                        tooltipData={getTooltip(
+                                          "comparacion",
+                                          "parametros",
+                                          "entradas"
+                                        )}
                                       >
-                                        📥 Entradas (Inputs)
-                                      </div>
+                                        <div
+                                          style={{
+                                            fontSize: "11px",
+                                            color: "#d48806",
+                                            marginBottom: "8px",
+                                            fontWeight: "600",
+                                          }}
+                                        >
+                                          📥 Entradas (Inputs)
+                                        </div>
+                                      </ParameterTooltip>
                                       <div
                                         style={{
                                           display: "flex",
@@ -1692,16 +1818,24 @@ const ComparacionView = () => {
                                         border: "1px solid #b7eb8f",
                                       }}
                                     >
-                                      <div
-                                        style={{
-                                          fontSize: "11px",
-                                          color: "#389e0d",
-                                          marginBottom: "8px",
-                                          fontWeight: "600",
-                                        }}
+                                      <ParameterTooltip
+                                        tooltipData={getTooltip(
+                                          "comparacion",
+                                          "parametros",
+                                          "salidas"
+                                        )}
                                       >
-                                        📤 Salidas (Outputs)
-                                      </div>
+                                        <div
+                                          style={{
+                                            fontSize: "11px",
+                                            color: "#389e0d",
+                                            marginBottom: "8px",
+                                            fontWeight: "600",
+                                          }}
+                                        >
+                                          📤 Salidas (Outputs)
+                                        </div>
+                                      </ParameterTooltip>
                                       <div
                                         style={{
                                           display: "flex",
@@ -1855,15 +1989,41 @@ const ComparacionView = () => {
                                         border: "1px solid #e9ecef",
                                       }}
                                     >
-                                      <div
-                                        style={{
-                                          fontSize: "11px",
-                                          color: "#666",
-                                          marginBottom: "6px",
-                                        }}
+                                      <KpiTooltip
+                                        tooltipData={(() => {
+                                          const eficiencia =
+                                            hospital.eficiencia;
+                                          if (eficiencia >= 90) {
+                                            return getTooltip(
+                                              "comparacion",
+                                              "clasificacion",
+                                              "altaEficiencia"
+                                            );
+                                          } else if (eficiencia >= 80) {
+                                            return getTooltip(
+                                              "comparacion",
+                                              "clasificacion",
+                                              "eficienciaMedia"
+                                            );
+                                          } else {
+                                            return getTooltip(
+                                              "comparacion",
+                                              "clasificacion",
+                                              "eficienciaBaja"
+                                            );
+                                          }
+                                        })()}
                                       >
-                                        Clasificación por Eficiencia:
-                                      </div>
+                                        <div
+                                          style={{
+                                            fontSize: "11px",
+                                            color: "#666",
+                                            marginBottom: "6px",
+                                          }}
+                                        >
+                                          Clasificación por Eficiencia:
+                                        </div>
+                                      </KpiTooltip>
                                       <div
                                         style={{
                                           display: "flex",

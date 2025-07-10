@@ -10,6 +10,7 @@ import {
   ClockCircleOutlined,
   SearchOutlined,
   EditFilled,
+  InfoCircleOutlined,
 } from "@ant-design/icons";
 import {
   Layout,
@@ -47,6 +48,8 @@ import {
   Pie,
   LabelList,
 } from "recharts";
+import { ParameterTooltip, KpiTooltip, ActionTooltip } from "./CustomTooltip";
+import { getTooltip } from "../data/tooltips";
 
 const { Content, Sider } = Layout;
 const { Title } = Typography;
@@ -510,19 +513,24 @@ const PcaClusterView = ({ onNavigate }) => {
           ) : (
             <>
               {" "}
-              <Title
-                level={4}
-                style={{
-                  marginTop: "4px",
-                  marginBottom: "20px",
-                  color: "#333",
-                  textAlign: "center",
-                  borderBottom: "1px solid #e8e8e8",
-                  paddingBottom: "12px",
-                }}
+              <ParameterTooltip
+                tooltipData={getTooltip("pcaCluster", "secciones", "parametrosCalculo")}
               >
-                Parámetros de Cálculo
-              </Title>
+                <Title
+                  level={4}
+                  style={{
+                    marginTop: "4px",
+                    marginBottom: "20px",
+                    color: "#333",
+                    textAlign: "center",
+                    borderBottom: "1px solid #e8e8e8",
+                    paddingBottom: "12px",
+                    cursor: "help",
+                  }}
+                >
+                  Parámetros de Cálculo
+                </Title>
+              </ParameterTooltip>
               {/* N° de componentes section */}
               <div
                 style={{
@@ -537,10 +545,14 @@ const PcaClusterView = ({ onNavigate }) => {
                     color: "#1890ff",
                     marginRight: "8px",
                   }}
-                />{" "}
-                <Title level={5} style={{ margin: 0, color: "#333" }}>
-                  N° de componentes (máx: 3)
-                </Title>
+                />
+                <ParameterTooltip
+                  tooltipData={getTooltip("pcaCluster", "parametros", "componentes")}
+                >
+                  <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                    N° de componentes (máx: 3)
+                  </Title>
+                </ParameterTooltip>
               </div>{" "}
               <div
                 style={{
@@ -608,9 +620,13 @@ const PcaClusterView = ({ onNavigate }) => {
                     marginRight: "8px",
                   }}
                 />
-                <Title level={5} style={{ margin: 0, color: "#333" }}>
-                  N° de clústeres
-                </Title>
+                <ParameterTooltip
+                  tooltipData={getTooltip("pcaCluster", "parametros", "clusters")}
+                >
+                  <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                    N° de clústeres
+                  </Title>
+                </ParameterTooltip>
               </div>{" "}
               <div
                 style={{
@@ -661,9 +677,13 @@ const PcaClusterView = ({ onNavigate }) => {
                     marginRight: "8px",
                   }}
                 />
-                <Title level={5} style={{ margin: 0, color: "#333" }}>
-                  Variables de entrada
-                </Title>
+                <ParameterTooltip
+                  tooltipData={getTooltip("pcaCluster", "parametros", "entradas")}
+                >
+                  <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                    Variables de entrada
+                  </Title>
+                </ParameterTooltip>
               </div>
               <Select
                 mode="multiple"
@@ -687,9 +707,13 @@ const PcaClusterView = ({ onNavigate }) => {
                     marginRight: "8px",
                   }}
                 />
-                <Title level={5} style={{ margin: 0, color: "#333" }}>
-                  Variables de salida
-                </Title>
+                <ParameterTooltip
+                  tooltipData={getTooltip("pcaCluster", "parametros", "salidas")}
+                >
+                  <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                    Variables de salida
+                  </Title>
+                </ParameterTooltip>
               </div>
               <Select
                 mode="multiple"
@@ -700,20 +724,24 @@ const PcaClusterView = ({ onNavigate }) => {
                 options={availableOutputs}
                 disabled={state.loading}
               />
-              <Button
-                type="primary"
-                size="large"
-                loading={state.loading}
-                style={{
-                  width: "100%",
-                  marginTop: "20px",
-                  backgroundColor: "#1890ff",
-                  borderColor: "#1890ff",
-                }}
-                onClick={fetchPcaClusterData}
+              <ActionTooltip
+                tooltipData={getTooltip("pcaCluster", "acciones", "calcular")}
               >
-                {state.loading ? "Calculando..." : "Calcular"}
-              </Button>
+                <Button
+                  type="primary"
+                  size="large"
+                  loading={state.loading}
+                  style={{
+                    width: "100%",
+                    marginTop: "20px",
+                    backgroundColor: "#1890ff",
+                    borderColor: "#1890ff",
+                  }}
+                  onClick={fetchPcaClusterData}
+                >
+                  {state.loading ? "Calculando..." : "Calcular"}
+                </Button>
+              </ActionTooltip>
             </>
           )}
         </div>
@@ -784,24 +812,32 @@ const PcaClusterView = ({ onNavigate }) => {
               Análisis de componentes y clusterización
             </Title>{" "}
             <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-              <Select
-                value={state.año}
-                onChange={actions.setAño}
-                style={{ width: 120 }}
-                options={availableYears.map((year) => ({
-                  value: year,
-                  label: year.toString(),
-                }))}
-              />
-              <Radio.Group
-                value={state.metodologia}
-                onChange={(e) => actions.setMetodologia(e.target.value)}
-                size="middle"
+              <ParameterTooltip
+                tooltipData={getTooltip("pcaCluster", "parametros", "año")}
               >
-                <Radio.Button value="SFA">SFA</Radio.Button>
-                <Radio.Button value="DEA">DEA</Radio.Button>
-                <Radio.Button value="DEA-M">DEA-M</Radio.Button>
-              </Radio.Group>
+                <Select
+                  value={state.año}
+                  onChange={actions.setAño}
+                  style={{ width: 120 }}
+                  options={availableYears.map((year) => ({
+                    value: year,
+                    label: year.toString(),
+                  }))}
+                />
+              </ParameterTooltip>
+              <ParameterTooltip
+                tooltipData={getTooltip("pcaCluster", "parametros", "metodologia")}
+              >
+                <Radio.Group
+                  value={state.metodologia}
+                  onChange={(e) => actions.setMetodologia(e.target.value)}
+                  size="middle"
+                >
+                  <Radio.Button value="SFA">SFA</Radio.Button>
+                  <Radio.Button value="DEA">DEA</Radio.Button>
+                  <Radio.Button value="DEA-M">DEA-M</Radio.Button>
+                </Radio.Group>
+              </ParameterTooltip>
             </div>{" "}
           </div>{" "}
           {/* Mostrar errores */}
@@ -844,23 +880,27 @@ const PcaClusterView = ({ onNavigate }) => {
                   }}
                 >
                   {" "}
-                  <Statistic
-                    title="Varianza explicada"
-                    value={
-                      metrics?.total_variance_explained
-                        ? (metrics.total_variance_explained * 100).toFixed(1)
-                        : "--"
-                    }
-                    suffix={metrics?.total_variance_explained ? "%" : ""}
-                    valueStyle={{ color: "#1890ff", fontSize: "18px" }}
-                    prefix={<LineChartOutlined />}
-                    titleStyle={{
-                      marginTop: "0px",
-                      marginBottom: "4px",
-                      fontSize: "13px",
-                      lineHeight: "1.2",
-                    }}
-                  />
+                  <KpiTooltip 
+                    tooltipData={getTooltip('pcaCluster', 'kpis', 'varianzaExplicada')}
+                  >
+                    <Statistic
+                      title="Varianza explicada"
+                      value={
+                        metrics?.total_variance_explained
+                          ? (metrics.total_variance_explained * 100).toFixed(1)
+                          : "--"
+                      }
+                      suffix={metrics?.total_variance_explained ? "%" : ""}
+                      valueStyle={{ color: "#1890ff", fontSize: "18px" }}
+                      prefix={<LineChartOutlined />}
+                      titleStyle={{
+                        marginTop: "0px",
+                        marginBottom: "4px",
+                        fontSize: "13px",
+                        lineHeight: "1.2",
+                      }}
+                    />
+                  </KpiTooltip>
                 </Card>
               </Col>
               <Col xs={24} sm={8} md={8}>
@@ -878,18 +918,22 @@ const PcaClusterView = ({ onNavigate }) => {
                   }}
                 >
                   {" "}
-                  <Statistic
-                    title="N° Clústeres"
-                    value={metrics?.k_clusters || numClusters || "--"}
-                    valueStyle={{ color: "#52c41a", fontSize: "18px" }}
-                    prefix={<TeamOutlined />}
-                    titleStyle={{
-                      marginTop: "0px",
-                      marginBottom: "4px",
-                      fontSize: "13px",
-                      lineHeight: "1.2",
-                    }}
-                  />
+                  <KpiTooltip
+                    tooltipData={getTooltip('pcaCluster', 'kpis', 'numClusters')}
+                  >
+                    <Statistic
+                      title="N° Clústeres"
+                      value={metrics?.k_clusters || numClusters || "--"}
+                      valueStyle={{ color: "#52c41a", fontSize: "18px" }}
+                      prefix={<TeamOutlined />}
+                      titleStyle={{
+                        marginTop: "0px",
+                        marginBottom: "4px",
+                        fontSize: "13px",
+                        lineHeight: "1.2",
+                      }}
+                    />
+                  </KpiTooltip>
                 </Card>
               </Col>
               <Col xs={24} sm={8} md={8}>
@@ -907,22 +951,26 @@ const PcaClusterView = ({ onNavigate }) => {
                   }}
                 >
                   {" "}
-                  <Statistic
-                    title="Silhouette"
-                    value={
-                      metrics?.silhouette_score
-                        ? metrics.silhouette_score.toFixed(2)
-                        : "--"
-                    }
-                    valueStyle={{ color: "#fa8c16", fontSize: "18px" }}
-                    prefix={<TrophyOutlined />}
-                    titleStyle={{
-                      marginTop: "0px",
-                      marginBottom: "4px",
-                      fontSize: "13px",
-                      lineHeight: "1.2",
-                    }}
-                  />
+                  <KpiTooltip
+                    tooltipData={getTooltip('pcaCluster', 'kpis', 'silhouette')}
+                  >
+                    <Statistic
+                      title="Silhouette"
+                      value={
+                        metrics?.silhouette_score
+                          ? metrics.silhouette_score.toFixed(2)
+                          : "--"
+                      }
+                      valueStyle={{ color: "#fa8c16", fontSize: "18px" }}
+                      prefix={<TrophyOutlined />}
+                      titleStyle={{
+                        marginTop: "0px",
+                        marginBottom: "4px",
+                        fontSize: "13px",
+                        lineHeight: "1.2",
+                      }}
+                    />
+                  </KpiTooltip>
                 </Card>
               </Col>
             </Row>
@@ -939,12 +987,21 @@ const PcaClusterView = ({ onNavigate }) => {
               }}
             >
               {" "}
-              <Title
-                level={4}
-                style={{ marginTop: 10, margin: 0, textAlign: "left" }}
+              <ParameterTooltip
+                tooltipData={getTooltip('pcaCluster', 'secciones', 'componentesClusteres')}
               >
-                Componentes principales y clústeres
-              </Title>
+                <Title
+                  level={4}
+                  style={{ 
+                    marginTop: 10, 
+                    margin: 0, 
+                    textAlign: "left",
+                    cursor: "help" 
+                  }}
+                >
+                  Componentes principales y clústeres
+                </Title>
+              </ParameterTooltip>
             </div>{" "}
             <Row gutter={[24, 0]} style={{ alignItems: "stretch" }}>
               {" "}
@@ -966,19 +1023,27 @@ const PcaClusterView = ({ onNavigate }) => {
                   }}
                 >
                   {" "}
-                  <Title
-                    level={5}
-                    style={{
-                      marginTop: "0px",
-                      marginBottom: "12px",
-                      textAlign: "center",
-                    }}
+                  <ParameterTooltip
+                    tooltipData={numComponents >= 3 
+                      ? getTooltip('pcaCluster', 'grafico', 'componentes3D')
+                      : getTooltip('pcaCluster', 'grafico', 'componentes2D')
+                    }
                   >
-                    Clusterización{" "}
-                    {numComponents >= 3
-                      ? "(3D: PC1, PC2, PC3)"
-                      : "(2D: PC1, PC2)"}
-                  </Title>
+                    <Title
+                      level={5}
+                      style={{
+                        marginTop: "0px",
+                        marginBottom: "12px",
+                        textAlign: "center",
+                        cursor: "help"
+                      }}
+                    >
+                      Clusterización{" "}
+                      {numComponents >= 3
+                        ? "(3D: PC1, PC2, PC3)"
+                        : "(2D: PC1, PC2)"}
+                    </Title>
+                  </ParameterTooltip>
                   {/* Mostrar varianza explicada por componente cuando hay 3D */}
                   {numComponents >= 3 && metrics?.explained_variance_ratio && (
                     <div
@@ -1119,11 +1184,21 @@ const PcaClusterView = ({ onNavigate }) => {
                             color: "#1890ff",
                           }}
                         />{" "}
-                        <div style={{ fontSize: "16px", fontWeight: "500" }}>
-                          {state.loading
-                            ? "Cargando..."
-                            : "Gráfico de Clusterización"}
-                        </div>
+                        <ParameterTooltip
+                          tooltipData={getTooltip('pcaCluster', 'grafico', 'titulo')}
+                        >
+                          <div 
+                            style={{ 
+                              fontSize: "16px", 
+                              fontWeight: "500",
+                              cursor: "help"
+                            }}
+                          >
+                            {state.loading
+                              ? "Cargando..."
+                              : "Gráfico de Clusterización"}
+                          </div>
+                        </ParameterTooltip>
                         <div style={{ fontSize: "14px", marginTop: "8px" }}>
                           {state.loading
                             ? "Procesando datos..."
@@ -1171,17 +1246,22 @@ const PcaClusterView = ({ onNavigate }) => {
                       marginBottom: "16px",
                     }}
                   >
-                    <div
-                      style={{
-                        fontSize: "16px",
-                        fontWeight: "600",
-                        marginBottom: "12px",
-                        color: "#333",
-                        textAlign: "center",
-                      }}
+                    <ParameterTooltip
+                      tooltipData={getTooltip('pcaCluster', 'tabla', 'matrizComponentes', 'titulo')}
                     >
-                      Matriz de Componentes Principales
-                    </div>{" "}
+                      <div
+                        style={{
+                          fontSize: "16px",
+                          fontWeight: "600",
+                          marginBottom: "12px",
+                          color: "#333",
+                          textAlign: "center",
+                          cursor: "help"
+                        }}
+                      >
+                        Matriz de Componentes Principales
+                      </div>
+                    </ParameterTooltip>{" "}
                     <Table
                       columns={getComponentsTableColumns()}
                       dataSource={getComponentsTableData()}
@@ -1223,17 +1303,22 @@ const PcaClusterView = ({ onNavigate }) => {
                     }}
                   >
                     {" "}
-                    <div
-                      style={{
-                        fontSize: "16px",
-                        fontWeight: "600",
-                        marginBottom: "12px",
-                        color: "#333",
-                        textAlign: "center",
-                      }}
+                    <ParameterTooltip
+                      tooltipData={getTooltip('pcaCluster', 'tabla', 'caracterizacionClusters', 'titulo')}
                     >
-                      Caracterización de los clústeres
-                    </div>{" "}
+                      <div
+                        style={{
+                          fontSize: "16px",
+                          fontWeight: "600",
+                          marginBottom: "12px",
+                          color: "#333",
+                          textAlign: "center",
+                          cursor: "help"
+                        }}
+                      >
+                        Caracterización de los clústeres
+                      </div>
+                    </ParameterTooltip>{" "}
                     <Table
                       columns={[
                         {
