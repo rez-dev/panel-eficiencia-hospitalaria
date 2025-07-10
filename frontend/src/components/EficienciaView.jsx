@@ -1355,7 +1355,11 @@ const EficienciaView = ({ onNavigate }) => {
               </ParameterTooltip>
               {calculationMethod === "DEA-M" && (
                 <ParameterTooltip
-                  tooltipData={getTooltip("eficiencia", "parametros", "variableTop")}
+                  tooltipData={getTooltip(
+                    "eficiencia",
+                    "parametros",
+                    "variableTop"
+                  )}
                 >
                   <Button
                     type="text"
@@ -1423,7 +1427,10 @@ const EficienciaView = ({ onNavigate }) => {
                         "años"
                       )}
                     >
-                      <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                      <Title
+                        level={5}
+                        style={{ margin: 0, color: "#333", cursor: "help" }}
+                      >
                         Años
                       </Title>
                     </ParameterTooltip>
@@ -1513,7 +1520,10 @@ const EficienciaView = ({ onNavigate }) => {
                     "entradas"
                   )}
                 >
-                  <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                  <Title
+                    level={5}
+                    style={{ margin: 0, color: "#333", cursor: "help" }}
+                  >
                     Entradas
                   </Title>
                 </ParameterTooltip>
@@ -1554,7 +1564,10 @@ const EficienciaView = ({ onNavigate }) => {
                     "salidas"
                   )}
                 >
-                  <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                  <Title
+                    level={5}
+                    style={{ margin: 0, color: "#333", cursor: "help" }}
+                  >
                     Salidas
                   </Title>
                 </ParameterTooltip>
@@ -1596,7 +1609,10 @@ const EficienciaView = ({ onNavigate }) => {
                         "variableTop"
                       )}
                     >
-                      <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                      <Title
+                        level={5}
+                        style={{ margin: 0, color: "#333", cursor: "help" }}
+                      >
                         Variable Top
                       </Title>
                     </ParameterTooltip>
@@ -1834,11 +1850,11 @@ const EficienciaView = ({ onNavigate }) => {
                 >
                   <Title
                     level={4}
-                    style={{ 
-                      marginTop: 10, 
-                      margin: 0, 
+                    style={{
+                      marginTop: 10,
+                      margin: 0,
                       textAlign: "left",
-                      cursor: "help" 
+                      cursor: "help",
                     }}
                   >
                     {calculationMethod === "DEA-M"
