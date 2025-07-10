@@ -1275,24 +1275,16 @@ const EficienciaView = ({ onNavigate }) => {
                 paddingTop: "16px",
               }}
             >
-              <Button
-                type="text"
-                icon={<SettingFilled />}
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "18px",
-                  color: "#666",
+              <ParameterTooltip
+                tooltipData={{
+                  title: "Configuración del Análisis",
+                  content:
+                    "Ajusta los parámetros para personalizar el cálculo de eficiencia hospitalaria según tus necesidades de análisis.",
                 }}
-                title="Parámetros de Cálculo"
-              />
-              {calculationMethod === "DEA-M" && (
+              >
                 <Button
                   type="text"
-                  icon={<CalendarOutlined />}
+                  icon={<SettingFilled />}
                   style={{
                     width: "40px",
                     height: "40px",
@@ -1300,40 +1292,34 @@ const EficienciaView = ({ onNavigate }) => {
                     alignItems: "center",
                     justifyContent: "center",
                     fontSize: "18px",
-                    color: "#722ed1",
+                    color: "#666",
+                    cursor: "help",
                   }}
-                  title="Años"
                 />
-              )}
-              <Button
-                type="text"
-                icon={<EditFilled />}
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "18px",
-                  color: "#1890ff",
-                }}
-                title="Entradas"
-              />{" "}
-              <Button
-                type="text"
-                icon={<EditFilled />}
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "18px",
-                  color: "#52c41a",
-                }}
-                title="Salidas"
-              />
+              </ParameterTooltip>
               {calculationMethod === "DEA-M" && (
+                <ParameterTooltip
+                  tooltipData={getTooltip("eficiencia", "parametros", "años")}
+                >
+                  <Button
+                    type="text"
+                    icon={<CalendarOutlined />}
+                    style={{
+                      width: "40px",
+                      height: "40px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "18px",
+                      color: "#722ed1",
+                      cursor: "help",
+                    }}
+                  />
+                </ParameterTooltip>
+              )}
+              <ParameterTooltip
+                tooltipData={getTooltip("eficiencia", "parametros", "entradas")}
+              >
                 <Button
                   type="text"
                   icon={<EditFilled />}
@@ -1344,35 +1330,75 @@ const EficienciaView = ({ onNavigate }) => {
                     alignItems: "center",
                     justifyContent: "center",
                     fontSize: "18px",
-                    color: "#722ed1",
+                    color: "#1890ff",
+                    cursor: "help",
                   }}
-                  title="Variable Top"
                 />
+              </ParameterTooltip>
+              <ParameterTooltip
+                tooltipData={getTooltip("eficiencia", "parametros", "salidas")}
+              >
+                <Button
+                  type="text"
+                  icon={<EditFilled />}
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "18px",
+                    color: "#52c41a",
+                    cursor: "help",
+                  }}
+                />
+              </ParameterTooltip>
+              {calculationMethod === "DEA-M" && (
+                <ParameterTooltip
+                  tooltipData={getTooltip("eficiencia", "parametros", "variableTop")}
+                >
+                  <Button
+                    type="text"
+                    icon={<EditFilled />}
+                    style={{
+                      width: "40px",
+                      height: "40px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "18px",
+                      color: "#722ed1",
+                      cursor: "help",
+                    }}
+                  />
+                </ParameterTooltip>
               )}
             </div>
           ) : (
             <>
               {" "}
-              <Title
-                level={4}
-                style={{
-                  marginTop: "4px",
-                  marginBottom: "20px",
-                  color: "#333",
-                  textAlign: "center",
-                  borderBottom: "1px solid #e8e8e8",
-                  paddingBottom: "12px",
+              <ParameterTooltip
+                tooltipData={{
+                  title: "Configuración del Análisis",
+                  content:
+                    "Ajusta los parámetros para personalizar el cálculo de eficiencia hospitalaria según tus necesidades de análisis.",
                 }}
               >
-                Parámetros de Cálculo
-                <ParameterTooltip
-                  tooltipData={{
-                    title: "Configuración del Análisis",
-                    content:
-                      "Ajusta los parámetros para personalizar el cálculo de eficiencia hospitalaria según tus necesidades de análisis.",
+                <Title
+                  level={4}
+                  style={{
+                    marginTop: "4px",
+                    marginBottom: "20px",
+                    color: "#333",
+                    textAlign: "center",
+                    borderBottom: "1px solid #e8e8e8",
+                    paddingBottom: "12px",
+                    cursor: "help",
                   }}
-                />
-              </Title>
+                >
+                  Parámetros de Cálculo
+                </Title>
+              </ParameterTooltip>
               {/* Sección de Años - solo para DEA-M */}
               {calculationMethod === "DEA-M" && (
                 <>
@@ -1390,16 +1416,17 @@ const EficienciaView = ({ onNavigate }) => {
                         marginRight: "8px",
                       }}
                     />
-                    <Title level={5} style={{ margin: 0, color: "#333" }}>
-                      Años
-                      <ParameterTooltip
-                        tooltipData={getTooltip(
-                          "eficiencia",
-                          "parametros",
-                          "años"
-                        )}
-                      />
-                    </Title>
+                    <ParameterTooltip
+                      tooltipData={getTooltip(
+                        "eficiencia",
+                        "parametros",
+                        "años"
+                      )}
+                    >
+                      <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                        Años
+                      </Title>
+                    </ParameterTooltip>
                   </div>
 
                   <div style={{ marginBottom: "12px" }}>
@@ -1479,16 +1506,17 @@ const EficienciaView = ({ onNavigate }) => {
                     marginRight: "8px",
                   }}
                 />
-                <Title level={5} style={{ margin: 0, color: "#333" }}>
-                  Entradas
-                  <ParameterTooltip
-                    tooltipData={getTooltip(
-                      "eficiencia",
-                      "parametros",
-                      "entradas"
-                    )}
-                  />
-                </Title>
+                <ParameterTooltip
+                  tooltipData={getTooltip(
+                    "eficiencia",
+                    "parametros",
+                    "entradas"
+                  )}
+                >
+                  <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                    Entradas
+                  </Title>
+                </ParameterTooltip>
               </div>{" "}
               <Select
                 mode="multiple"
@@ -1519,16 +1547,17 @@ const EficienciaView = ({ onNavigate }) => {
                     marginRight: "8px",
                   }}
                 />
-                <Title level={5} style={{ margin: 0, color: "#333" }}>
-                  Salidas
-                  <ParameterTooltip
-                    tooltipData={getTooltip(
-                      "eficiencia",
-                      "parametros",
-                      "salidas"
-                    )}
-                  />
-                </Title>
+                <ParameterTooltip
+                  tooltipData={getTooltip(
+                    "eficiencia",
+                    "parametros",
+                    "salidas"
+                  )}
+                >
+                  <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                    Salidas
+                  </Title>
+                </ParameterTooltip>
               </div>{" "}
               <Select
                 mode="multiple"
@@ -1560,16 +1589,17 @@ const EficienciaView = ({ onNavigate }) => {
                         marginRight: "8px",
                       }}
                     />
-                    <Title level={5} style={{ margin: 0, color: "#333" }}>
-                      Variable Top
-                      <ParameterTooltip
-                        tooltipData={getTooltip(
-                          "eficiencia",
-                          "parametros",
-                          "variableTop"
-                        )}
-                      />
-                    </Title>
+                    <ParameterTooltip
+                      tooltipData={getTooltip(
+                        "eficiencia",
+                        "parametros",
+                        "variableTop"
+                      )}
+                    >
+                      <Title level={5} style={{ margin: 0, color: "#333", cursor: "help" }}>
+                        Variable Top
+                      </Title>
+                    </ParameterTooltip>
                   </div>{" "}
                   <Select
                     placeholder="Seleccionar variable de análisis"
@@ -1795,21 +1825,27 @@ const EficienciaView = ({ onNavigate }) => {
                   height: "60px", // Altura fija exacta
                 }}
               >
-                <Title
-                  level={4}
-                  style={{ marginTop: 10, margin: 0, textAlign: "left" }}
+                <ParameterTooltip
+                  tooltipData={{
+                    title: "Visualización de Resultados",
+                    content:
+                      "Muestra la distribución geográfica de los hospitales en el mapa y el ranking detallado en la tabla, permitiendo análisis comparativo y selección para estudios específicos.",
+                  }}
                 >
-                  {calculationMethod === "DEA-M"
-                    ? "Distribución y Ranking - Índice Malmquist"
-                    : "Distribución y Ranking de Hospitales"}
-                  <ParameterTooltip
-                    tooltipData={{
-                      title: "Visualización de Resultados",
-                      content:
-                        "Muestra la distribución geográfica de los hospitales en el mapa y el ranking detallado en la tabla, permitiendo análisis comparativo y selección para estudios específicos.",
+                  <Title
+                    level={4}
+                    style={{ 
+                      marginTop: 10, 
+                      margin: 0, 
+                      textAlign: "left",
+                      cursor: "help" 
                     }}
-                  />
-                </Title>{" "}
+                  >
+                    {calculationMethod === "DEA-M"
+                      ? "Distribución y Ranking - Índice Malmquist"
+                      : "Distribución y Ranking de Hospitales"}
+                  </Title>
+                </ParameterTooltip>{" "}
                 {/* Botones de acción - espacio reservado siempre presente */}
                 <div
                   style={{
