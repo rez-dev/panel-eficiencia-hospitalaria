@@ -1909,9 +1909,23 @@ const EficienciaView = ({ onNavigate }) => {
                         )}
                       >
                         <Button
-                          type="primary"
                           size="middle"
                           onClick={handleAddToComparison}
+                          style={{
+                            backgroundColor: "#fff",
+                            borderColor: "#d9d9d9",
+                            color: "#000",
+                            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                            transition: "all 0.3s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "translateY(-2px)";
+                            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.15)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "translateY(0)";
+                            e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
+                          }}
                         >
                           Comparar{" "}
                           {selectedRows.length === 1
@@ -1951,11 +1965,23 @@ const EficienciaView = ({ onNavigate }) => {
                       )}
                     >
                       <Button
-                        type="primary"
                         size="middle"
                         style={{
                           minWidth: "180px",
                           marginBottom: "4px",
+                          backgroundColor: "#fff",
+                          borderColor: "#d9d9d9",
+                          color: "#000",
+                          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                          transition: "all 0.3s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = "translateY(-2px)";
+                          e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.15)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = "translateY(0)";
+                          e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
                         }}
                         onClick={() => {
                           console.log("Navegando a análisis de determinantes");
