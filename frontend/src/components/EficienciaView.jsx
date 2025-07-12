@@ -1713,10 +1713,6 @@ const EficienciaView = ({ onNavigate }) => {
         >
           {" "}
           <Spin spinning={loading} tip="Cargando datos...">
-            {/* Indicador de Estado Global */}
-            <div style={{ width: "100%", maxWidth: "1200px" }}>
-              <StateIndicator />
-            </div>
             {/* Header con título y selector de año */}
             <div
               style={{
@@ -1850,14 +1846,14 @@ const EficienciaView = ({ onNavigate }) => {
             </div>
             {/* Sección de Mapa y Tabla */}
             <div
-              style={{ width: "100%", maxWidth: "1200px", marginTop: "16px" }}
+              style={{ width: "100%", maxWidth: "1200px", marginTop: "32px" }}
             >
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "flex-start",
-                  marginBottom: "16px",
+                  marginBottom: "8px",
                   height: "60px", // Altura fija exacta
                 }}
               >

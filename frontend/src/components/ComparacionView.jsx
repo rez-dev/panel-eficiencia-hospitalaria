@@ -1094,11 +1094,6 @@ const ComparacionView = () => {
             height: "calc(100vh - 128px)",
           }}
         >
-          {/* Indicador de Estado Global */}
-          <div style={{ width: "100%", maxWidth: "1200px" }}>
-            <StateIndicator />
-          </div>
-
           {/* Header con título y selector de metodología */}
           <div
             style={{
@@ -1107,7 +1102,7 @@ const ComparacionView = () => {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              marginBottom: "32px",
+              marginBottom: "40px",
               marginTop: "8px",
             }}
           >
@@ -1414,16 +1409,24 @@ const ComparacionView = () => {
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "flex-start",
-                    marginBottom: "16px",
+                    marginBottom: "0px",
                     height: "60px", // Altura fija exacta
                   }}
                 >
-                  <Title
-                    level={4}
-                    style={{ marginTop: 10, margin: 0, textAlign: "left" }}
+                  <SectionTooltip
+                    tooltipData={{
+                      title: "Mapa y Comparación",
+                      content:
+                        "Visualización geográfica de los hospitales seleccionados y comparación detallada de sus métricas de eficiencia, entradas y salidas.",
+                    }}
                   >
-                    Distribución y comparación de hospitales
-                  </Title>
+                    <Title
+                      level={4}
+                      style={{ marginTop: 10, margin: 0, textAlign: "left" }}
+                    >
+                      Distribución y comparación de hospitales
+                    </Title>
+                  </SectionTooltip>
                 </div>
                 <Row gutter={[24, 0]} style={{ alignItems: "stretch" }}>
                   {/* Mapa de Chile */}
@@ -1544,9 +1547,7 @@ const ComparacionView = () => {
                                     ? index === 0
                                       ? `${hospital.hospital} - Año A`
                                       : `${hospital.hospital} - Año B`
-                                    : index === 0
-                                    ? "Hospital A"
-                                    : "Hospital B"}
+                                    : hospital.hospital}
                                 </Title>
                                 <Title
                                   level={4}
@@ -1560,9 +1561,7 @@ const ComparacionView = () => {
                                       : "0px",
                                   }}
                                 >
-                                  {!isTemporalComparison
-                                    ? hospital.hospital
-                                    : ""}
+                                  {isTemporalComparison ? "" : ""}
                                 </Title>{" "}
                                 {/* Selector de año solo para comparación temporal */}
                                 {isTemporalComparison && (
@@ -1595,8 +1594,8 @@ const ComparacionView = () => {
                               {/* Métricas del Hospital */}
                               <div style={{ flex: 1 }}>
                                 <Row gutter={[0, 10]}>
-                                  {/* Eficiencia Técnica */}
-                                  <Col span={24}>
+                                  {/* Eficiencia Técnica y Percentil en la misma fila */}
+                                  <Col span={12}>
                                     <KpiTooltip
                                       tooltipData={getTooltip(
                                         "comparacion",
@@ -1611,11 +1610,12 @@ const ComparacionView = () => {
                                           padding: "12px",
                                           borderRadius: "6px",
                                           textAlign: "center",
+                                          marginRight: "4px",
                                         }}
                                       >
                                         <div
                                           style={{
-                                            fontSize: "20px",
+                                            fontSize: "18px",
                                             fontWeight: "bold",
                                             color: "#1890ff",
                                           }}
@@ -1624,7 +1624,7 @@ const ComparacionView = () => {
                                         </div>
                                         <div
                                           style={{
-                                            fontSize: "11px",
+                                            fontSize: "10px",
                                             color: "#666",
                                             marginTop: "2px",
                                           }}
@@ -1635,8 +1635,7 @@ const ComparacionView = () => {
                                     </KpiTooltip>
                                   </Col>
 
-                                  {/* Percentil */}
-                                  <Col span={24}>
+                                  <Col span={12}>
                                     <KpiTooltip
                                       tooltipData={getTooltip(
                                         "comparacion",
@@ -1651,11 +1650,12 @@ const ComparacionView = () => {
                                           padding: "12px",
                                           borderRadius: "6px",
                                           textAlign: "center",
+                                          marginLeft: "4px",
                                         }}
                                       >
                                         <div
                                           style={{
-                                            fontSize: "18px",
+                                            fontSize: "16px",
                                             fontWeight: "bold",
                                             color: "#52c41a",
                                           }}
@@ -1664,7 +1664,7 @@ const ComparacionView = () => {
                                         </div>
                                         <div
                                           style={{
-                                            fontSize: "11px",
+                                            fontSize: "10px",
                                             color: "#666",
                                             marginTop: "2px",
                                           }}
@@ -1675,21 +1675,23 @@ const ComparacionView = () => {
                                     </KpiTooltip>
                                   </Col>
 
-                                  {/* Información General */}
-                                  <Col span={24}>
+                                  {/* Información General y Clasificación por Eficiencia en la misma fila */}
+                                  <Col span={12}>
                                     <div
                                       style={{
                                         background: "#f8f9fa",
                                         padding: "12px",
                                         borderRadius: "6px",
                                         border: "1px solid #e9ecef",
+                                        marginRight: "4px",
+                                        height: "100%",
                                       }}
                                     >
                                       <div
                                         style={{
-                                          fontSize: "11px",
+                                          fontSize: "10px",
                                           color: "#666",
-                                          marginBottom: "8px",
+                                          marginBottom: "6px",
                                           fontWeight: "600",
                                         }}
                                       >
@@ -1699,7 +1701,7 @@ const ComparacionView = () => {
                                         style={{
                                           display: "flex",
                                           flexDirection: "column",
-                                          gap: "4px",
+                                          gap: "3px",
                                         }}
                                       >
                                         <div
@@ -1710,7 +1712,7 @@ const ComparacionView = () => {
                                         >
                                           <span
                                             style={{
-                                              fontSize: "10px",
+                                              fontSize: "9px",
                                               color: "#666",
                                             }}
                                           >
@@ -1718,7 +1720,7 @@ const ComparacionView = () => {
                                           </span>
                                           <span
                                             style={{
-                                              fontSize: "10px",
+                                              fontSize: "9px",
                                               fontWeight: "500",
                                             }}
                                           >
@@ -1733,7 +1735,7 @@ const ComparacionView = () => {
                                         >
                                           <span
                                             style={{
-                                              fontSize: "10px",
+                                              fontSize: "9px",
                                               color: "#666",
                                             }}
                                           >
@@ -1741,7 +1743,7 @@ const ComparacionView = () => {
                                           </span>
                                           <span
                                             style={{
-                                              fontSize: "10px",
+                                              fontSize: "9px",
                                               fontWeight: "500",
                                             }}
                                           >
@@ -1761,7 +1763,7 @@ const ComparacionView = () => {
                                         >
                                           <span
                                             style={{
-                                              fontSize: "10px",
+                                              fontSize: "9px",
                                               color: "#666",
                                             }}
                                           >
@@ -1769,13 +1771,107 @@ const ComparacionView = () => {
                                           </span>
                                           <span
                                             style={{
-                                              fontSize: "10px",
+                                              fontSize: "9px",
                                               fontWeight: "500",
                                             }}
                                           >
                                             {hospital.complejidad || "N/A"}
                                           </span>
                                         </div>
+                                      </div>
+                                    </div>
+                                  </Col>
+
+                                  <Col span={12}>
+                                    <div
+                                      style={{
+                                        background: "#f8f9fa",
+                                        padding: "12px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #e9ecef",
+                                        marginLeft: "4px",
+                                        height: "100%",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        justifyContent: "center",
+                                      }}
+                                    >
+                                      <KpiTooltip
+                                        tooltipData={(() => {
+                                          const eficiencia =
+                                            hospital.eficiencia;
+                                          if (eficiencia >= 90) {
+                                            return getTooltip(
+                                              "comparacion",
+                                              "clasificacion",
+                                              "altaEficiencia"
+                                            );
+                                          } else if (eficiencia >= 80) {
+                                            return getTooltip(
+                                              "comparacion",
+                                              "clasificacion",
+                                              "eficienciaMedia"
+                                            );
+                                          } else {
+                                            return getTooltip(
+                                              "comparacion",
+                                              "clasificacion",
+                                              "eficienciaBaja"
+                                            );
+                                          }
+                                        })()}
+                                      >
+                                        <div
+                                          style={{
+                                            fontSize: "10px",
+                                            color: "#666",
+                                            marginBottom: "6px",
+                                            fontWeight: "600",
+                                            textAlign: "center",
+                                          }}
+                                        >
+                                          Clasificación por Eficiencia
+                                        </div>
+                                      </KpiTooltip>
+                                      <div
+                                        style={{
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                        }}
+                                      >
+                                        <div
+                                          style={{
+                                            width: "10px",
+                                            height: "10px",
+                                            borderRadius: "50%",
+                                            backgroundColor:
+                                              hospital.eficiencia >= 90
+                                                ? "#52c41a"
+                                                : hospital.eficiencia >= 80
+                                                ? "#1890ff"
+                                                : "#fa8c16",
+                                            marginRight: "6px",
+                                          }}
+                                        ></div>
+                                        <span
+                                          style={{
+                                            fontSize: "11px",
+                                            fontWeight: "500",
+                                            color:
+                                              hospital.eficiencia >= 90
+                                                ? "#52c41a"
+                                                : hospital.eficiencia >= 80
+                                                ? "#1890ff"
+                                                : "#fa8c16",
+                                          }}
+                                        >
+                                          {hospital.eficiencia >= 90
+                                            ? "Alta Eficiencia"
+                                            : hospital.eficiencia >= 80
+                                            ? "Eficiencia Media"
+                                            : "Eficiencia Baja"}
+                                        </span>
                                       </div>
                                     </div>
                                   </Col>
@@ -1806,7 +1902,7 @@ const ComparacionView = () => {
                                             fontWeight: "600",
                                           }}
                                         >
-                                          📥 Entradas (Inputs)
+                                          📥 Entradas
                                         </div>
                                       </ParameterTooltip>
                                       <div
@@ -1926,7 +2022,7 @@ const ComparacionView = () => {
                                             fontWeight: "600",
                                           }}
                                         >
-                                          📤 Salidas (Outputs)
+                                          📤 Salidas
                                         </div>
                                       </ParameterTooltip>
                                       <div
@@ -2068,94 +2164,6 @@ const ComparacionView = () => {
                                             </span>
                                           </div>
                                         )}
-                                      </div>
-                                    </div>
-                                  </Col>
-
-                                  {/* Clasificación por Eficiencia */}
-                                  <Col span={24}>
-                                    <div
-                                      style={{
-                                        background: "#f8f9fa",
-                                        padding: "10px",
-                                        borderRadius: "6px",
-                                        border: "1px solid #e9ecef",
-                                      }}
-                                    >
-                                      <KpiTooltip
-                                        tooltipData={(() => {
-                                          const eficiencia =
-                                            hospital.eficiencia;
-                                          if (eficiencia >= 90) {
-                                            return getTooltip(
-                                              "comparacion",
-                                              "clasificacion",
-                                              "altaEficiencia"
-                                            );
-                                          } else if (eficiencia >= 80) {
-                                            return getTooltip(
-                                              "comparacion",
-                                              "clasificacion",
-                                              "eficienciaMedia"
-                                            );
-                                          } else {
-                                            return getTooltip(
-                                              "comparacion",
-                                              "clasificacion",
-                                              "eficienciaBaja"
-                                            );
-                                          }
-                                        })()}
-                                      >
-                                        <div
-                                          style={{
-                                            fontSize: "11px",
-                                            color: "#666",
-                                            marginBottom: "6px",
-                                          }}
-                                        >
-                                          Clasificación por Eficiencia:
-                                        </div>
-                                      </KpiTooltip>
-                                      <div
-                                        style={{
-                                          display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: "center",
-                                        }}
-                                      >
-                                        <div
-                                          style={{
-                                            width: "10px",
-                                            height: "10px",
-                                            borderRadius: "50%",
-                                            backgroundColor:
-                                              hospital.eficiencia >= 90
-                                                ? "#52c41a"
-                                                : hospital.eficiencia >= 80
-                                                ? "#1890ff"
-                                                : "#fa8c16",
-                                            marginRight: "6px",
-                                          }}
-                                        ></div>
-                                        <span
-                                          style={{
-                                            fontSize: "12px",
-                                            fontWeight: "500",
-                                            color:
-                                              hospital.eficiencia >= 90
-                                                ? "#52c41a"
-                                                : hospital.eficiencia >= 80
-                                                ? "#1890ff"
-                                                : "#fa8c16",
-                                          }}
-                                        >
-                                          {hospital.eficiencia >= 90
-                                            ? "Alta Eficiencia"
-                                            : hospital.eficiencia >= 80
-                                            ? "Eficiencia Media"
-                                            : "Eficiencia Baja"}
-                                        </span>
                                       </div>
                                     </div>
                                   </Col>
