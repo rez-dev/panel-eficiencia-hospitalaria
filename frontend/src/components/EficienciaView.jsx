@@ -273,28 +273,28 @@ const EficienciaView = ({ onNavigate }) => {
         title: "Hospitales críticos",
         value: 12,
         precision: 0,
-        color: "#52c41a",
+        color: "#1890ff",
         icon: <TrophyOutlined />,
-        gradient: "linear-gradient(135deg, #f6ffed 0%, #f0f9e8 100%)",
-        border: "#f0f9e8",
+        gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+        border: "#e8f4f8",
       },
       {
         title: "Variable clave",
         value: 3,
         precision: 0,
-        color: "#fa8c16",
+        color: "#1890ff",
         icon: <TeamOutlined />,
-        gradient: "linear-gradient(135deg, #fff2f0 0%, #ffebe6 100%)",
-        border: "#fff1f0",
+        gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+        border: "#e8f4f8",
       },
       {
         title: "Varianza",
         value: 0.156,
         precision: 3,
-        color: "#722ed1",
+        color: "#1890ff",
         icon: <ClockCircleOutlined />,
-        gradient: "linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)",
-        border: "#f0e6ff",
+        gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+        border: "#e8f4f8",
       },
     ],
     DEA: [
@@ -311,28 +311,28 @@ const EficienciaView = ({ onNavigate }) => {
         title: "Hospitales críticos",
         value: 6,
         precision: 0,
-        color: "#52c41a",
+        color: "#1890ff",
         icon: <TrophyOutlined />,
-        gradient: "linear-gradient(135deg, #f6ffed 0%, #f0f9e8 100%)",
-        border: "#f0f9e8",
+        gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+        border: "#e8f4f8",
       },
       {
         title: "Slack más alto promedio",
         value: 15.4,
         precision: 1,
-        color: "#fa8c16",
+        color: "#1890ff",
         icon: <TeamOutlined />,
-        gradient: "linear-gradient(135deg, #fff2f0 0%, #ffebe6 100%)",
-        border: "#fff1f0",
+        gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+        border: "#e8f4f8",
       },
       {
         title: "Total Hospitales",
         value: 0,
         precision: 0,
-        color: "#722ed1",
+        color: "#1890ff",
         icon: <ClockCircleOutlined />,
-        gradient: "linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)",
-        border: "#f0e6ff",
+        gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+        border: "#e8f4f8",
       },
     ],
     "DEA-M": [
@@ -350,28 +350,28 @@ const EficienciaView = ({ onNavigate }) => {
         title: "ΔEficiencia",
         value: "--",
         precision: 3,
-        color: "#52c41a",
+        color: "#1890ff",
         icon: <TrophyOutlined />,
-        gradient: "linear-gradient(135deg, #f6ffed 0%, #f0f9e8 100%)",
-        border: "#f0f9e8",
+        gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+        border: "#e8f4f8",
       },
       {
         title: "ΔTecnología",
         value: "--",
         precision: 3,
-        color: "#fa8c16",
+        color: "#1890ff",
         icon: <TeamOutlined />,
-        gradient: "linear-gradient(135deg, #fff2f0 0%, #ffebe6 100%)",
-        border: "#fff1f0",
+        gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+        border: "#e8f4f8",
       },
       {
         title: "Hosp. Mejorados",
         value: "--",
         precision: 1,
-        color: "#722ed1",
+        color: "#1890ff",
         icon: <ClockCircleOutlined />,
-        gradient: "linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)",
-        border: "#f0e6ff",
+        gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+        border: "#e8f4f8",
         suffix: "%",
       },
     ],
@@ -401,10 +401,10 @@ const EficienciaView = ({ onNavigate }) => {
           value: metrics.pct_criticos || 0,
           precision: 1,
           suffix: "%",
-          color: "#52c41a",
+          color: "#1890ff",
           icon: <TrophyOutlined />,
-          gradient: "linear-gradient(135deg, #f6ffed 0%, #f0f9e8 100%)",
-          border: "#f0f9e8",
+          gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+          border: "#e8f4f8",
         },
         {
           title: "Variable clave",
@@ -428,19 +428,19 @@ const EficienciaView = ({ onNavigate }) => {
             return "No determinada";
           })(),
           precision: 0,
-          color: "#fa8c16",
+          color: "#1890ff",
           icon: <TeamOutlined />,
-          gradient: "linear-gradient(135deg, #fff2f0 0%, #ffebe6 100%)",
-          border: "#fff1f0",
+          gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+          border: "#e8f4f8",
         },
         {
           title: "Varianza",
           value: metrics.varianza || 0,
           precision: 2,
-          color: "#722ed1",
+          color: "#1890ff",
           icon: <ClockCircleOutlined />,
-          gradient: "linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)",
-          border: "#f0e6ff",
+          gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+          border: "#e8f4f8",
         },
       ];
     } else if (method === "DEA-M") {
@@ -459,28 +459,28 @@ const EficienciaView = ({ onNavigate }) => {
           title: "ΔEficiencia",
           value: metrics.delta_eficiencia_promedio || 0,
           precision: 3,
-          color: "#52c41a",
+          color: "#1890ff",
           icon: <TrophyOutlined />,
-          gradient: "linear-gradient(135deg, #f6ffed 0%, #f0f9e8 100%)",
-          border: "#f0f9e8",
+          gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+          border: "#e8f4f8",
         },
         {
           title: "ΔTecnología",
           value: metrics.delta_tecnologia_promedio || 0,
           precision: 3,
-          color: "#fa8c16",
+          color: "#1890ff",
           icon: <TeamOutlined />,
-          gradient: "linear-gradient(135deg, #fff2f0 0%, #ffebe6 100%)",
-          border: "#fff1f0",
+          gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+          border: "#e8f4f8",
         },
         {
           title: "Hosp. Mejorados",
           value: metrics.pct_hosp_mejorados || 0,
           precision: 1,
-          color: "#722ed1",
+          color: "#1890ff",
           icon: <ClockCircleOutlined />,
-          gradient: "linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)",
-          border: "#f0e6ff",
+          gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+          border: "#e8f4f8",
           suffix: "%",
         },
       ];
@@ -500,10 +500,10 @@ const EficienciaView = ({ onNavigate }) => {
           value: metrics.pct_criticos || 0,
           precision: 1,
           suffix: "%",
-          color: "#52c41a",
+          color: "#1890ff",
           icon: <TrophyOutlined />,
-          gradient: "linear-gradient(135deg, #f6ffed 0%, #f0f9e8 100%)",
-          border: "#f0f9e8",
+          gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+          border: "#e8f4f8",
         },
         {
           title: "Slack más alto promedio",
@@ -527,19 +527,19 @@ const EficienciaView = ({ onNavigate }) => {
             return "No determinado";
           })(),
           precision: 0,
-          color: "#fa8c16",
+          color: "#1890ff",
           icon: <TeamOutlined />,
-          gradient: "linear-gradient(135deg, #fff2f0 0%, #ffebe6 100%)",
-          border: "#fff1f0",
+          gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+          border: "#e8f4f8",
         },
         {
           title: "Total hospitales",
           value: responseData.results ? responseData.results.length : 0,
           precision: 0,
-          color: "#722ed1",
+          color: "#1890ff",
           icon: <ClockCircleOutlined />,
-          gradient: "linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)",
-          border: "#f0e6ff",
+          gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+          border: "#e8f4f8",
         },
       ];
     }
@@ -1661,7 +1661,7 @@ const EficienciaView = ({ onNavigate }) => {
                     fetchData(); // Llamar a la función de la API
                   }}
                 >
-                  Calcular
+                  {loading ? "Calculando..." : "Calcular"}
                 </Button>
               </ActionTooltip>
             </>
@@ -1725,7 +1725,7 @@ const EficienciaView = ({ onNavigate }) => {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                marginBottom: "32px",
+                marginBottom: "40px",
                 marginTop: "8px",
               }}
             >
@@ -1797,29 +1797,49 @@ const EficienciaView = ({ onNavigate }) => {
                           display: "flex",
                           flexDirection: "column",
                           justifyContent: "center",
-                          border: `1px solid ${kpi.border}`,
-                          background: kpi.gradient,
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                          background:
+                            "linear-gradient(135deg, #f0f9ff 0%, #bae7ff 100%)",
+                          border: "1px solid #91d5ff",
+                          borderRadius: "12px",
+                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                          transition: "all 0.3s ease",
                           cursor: "help",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = "translateY(-4px)";
+                          e.currentTarget.style.boxShadow =
+                            "0 8px 20px rgba(0, 0, 0, 0.15)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = "translateY(0)";
+                          e.currentTarget.style.boxShadow =
+                            "0 4px 12px rgba(0, 0, 0, 0.1)";
                         }}
                       >
                         <Statistic
                           title={
-                            <div
+                            <span
                               style={{
+                                fontSize: "14px",
+                                fontWeight: "600",
+                                color: "#1890ff",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                gap: "4px",
+                                gap: "6px",
                               }}
                             >
+                              {kpi.icon}
                               {kpi.title}
-                            </div>
+                            </span>
                           }
                           value={kpi.value}
                           precision={kpi.precision}
-                          valueStyle={{ color: kpi.color, fontSize: "18px" }}
-                          prefix={kpi.icon}
+                          valueStyle={{
+                            color: "#1890ff",
+                            fontSize: "24px",
+                            fontWeight: "bold",
+                          }}
                           suffix={kpi.suffix || ""}
                         />
                       </Card>
@@ -1830,7 +1850,7 @@ const EficienciaView = ({ onNavigate }) => {
             </div>
             {/* Sección de Mapa y Tabla */}
             <div
-              style={{ width: "100%", maxWidth: "1200px", marginTop: "32px" }}
+              style={{ width: "100%", maxWidth: "1200px", marginTop: "16px" }}
             >
               <div
                 style={{
@@ -1895,12 +1915,6 @@ const EficienciaView = ({ onNavigate }) => {
                         <Button
                           type="primary"
                           size="middle"
-                          style={{
-                            backgroundColor: "#52c41a",
-                            borderColor: "#52c41a",
-                            marginBottom: "4px",
-                            minWidth: "220px",
-                          }}
                           onClick={handleAddToComparison}
                         >
                           Comparar{" "}
@@ -1944,10 +1958,8 @@ const EficienciaView = ({ onNavigate }) => {
                         type="primary"
                         size="middle"
                         style={{
-                          backgroundColor: "#722ed1",
-                          borderColor: "#722ed1",
                           minWidth: "180px",
-                          marginBottom: "4px", // Mismo margen que el botón de comparar
+                          marginBottom: "4px",
                         }}
                         onClick={() => {
                           console.log("Navegando a análisis de determinantes");

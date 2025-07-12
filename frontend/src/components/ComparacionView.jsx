@@ -1200,10 +1200,23 @@ const ComparacionView = () => {
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "center",
-                        border: "1px solid #e8f4f8",
                         background:
-                          "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                          "linear-gradient(135deg, #f0f9ff 0%, #bae7ff 100%)",
+                        border: "1px solid #91d5ff",
+                        borderRadius: "12px",
+                        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                        transition: "all 0.3s ease",
+                        cursor: "help",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "translateY(-4px)";
+                        e.currentTarget.style.boxShadow =
+                          "0 8px 20px rgba(0, 0, 0, 0.15)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow =
+                          "0 4px 12px rgba(0, 0, 0, 0.1)";
                       }}
                     >
                       {" "}
@@ -1215,12 +1228,30 @@ const ComparacionView = () => {
                         )}
                       >
                         <Statistic
-                          title="Gap Insumos"
+                          title={
+                            <span
+                              style={{
+                                fontSize: "14px",
+                                fontWeight: "600",
+                                color: "#1890ff",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: "6px",
+                              }}
+                            >
+                              <EditFilled />
+                              Gap Insumos
+                            </span>
+                          }
                           value={comparisonKPIs.insumoGap}
                           precision={1}
                           suffix="%"
-                          valueStyle={{ color: "#1890ff", fontSize: "18px" }}
-                          prefix={<EditFilled />}
+                          valueStyle={{
+                            color: "#1890ff",
+                            fontSize: "24px",
+                            fontWeight: "bold",
+                          }}
                         />
                       </KpiTooltip>
                     </Card>
@@ -1233,10 +1264,23 @@ const ComparacionView = () => {
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "center",
-                        border: "1px solid #f0f9e8",
                         background:
-                          "linear-gradient(135deg, #f6ffed 0%, #f0f9e8 100%)",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                          "linear-gradient(135deg, #f0f9ff 0%, #bae7ff 100%)",
+                        border: "1px solid #91d5ff",
+                        borderRadius: "12px",
+                        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                        transition: "all 0.3s ease",
+                        cursor: "help",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "translateY(-4px)";
+                        e.currentTarget.style.boxShadow =
+                          "0 8px 20px rgba(0, 0, 0, 0.15)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow =
+                          "0 4px 12px rgba(0, 0, 0, 0.1)";
                       }}
                     >
                       {" "}
@@ -1248,12 +1292,30 @@ const ComparacionView = () => {
                         )}
                       >
                         <Statistic
-                          title="Gap Productos"
+                          title={
+                            <span
+                              style={{
+                                fontSize: "14px",
+                                fontWeight: "600",
+                                color: "#1890ff",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: "6px",
+                              }}
+                            >
+                              <TrophyOutlined />
+                              Gap Productos
+                            </span>
+                          }
                           value={comparisonKPIs.salidaGap}
                           precision={1}
                           suffix="%"
-                          valueStyle={{ color: "#52c41a", fontSize: "18px" }}
-                          prefix={<TrophyOutlined />}
+                          valueStyle={{
+                            color: "#1890ff",
+                            fontSize: "24px",
+                            fontWeight: "bold",
+                          }}
                         />
                       </KpiTooltip>
                     </Card>
@@ -1266,10 +1328,23 @@ const ComparacionView = () => {
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "center",
-                        border: "1px solid #fff1f0",
                         background:
-                          "linear-gradient(135deg, #fff2f0 0%, #ffebe6 100%)",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                          "linear-gradient(135deg, #f0f9ff 0%, #bae7ff 100%)",
+                        border: "1px solid #91d5ff",
+                        borderRadius: "12px",
+                        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                        transition: "all 0.3s ease",
+                        cursor: "help",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "translateY(-4px)";
+                        e.currentTarget.style.boxShadow =
+                          "0 8px 20px rgba(0, 0, 0, 0.15)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow =
+                          "0 4px 12px rgba(0, 0, 0, 0.1)";
                       }}
                     >
                       {" "}
@@ -1281,12 +1356,30 @@ const ComparacionView = () => {
                         )}
                       >
                         <Statistic
-                          title="Gap Eficiencia"
+                          title={
+                            <span
+                              style={{
+                                fontSize: "14px",
+                                fontWeight: "600",
+                                color: "#1890ff",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: "6px",
+                              }}
+                            >
+                              <LineChartOutlined />
+                              Gap Eficiencia
+                            </span>
+                          }
                           value={comparisonKPIs.eficienciaGap}
                           precision={1}
                           suffix="%"
-                          valueStyle={{ color: "#fa8c16", fontSize: "18px" }}
-                          prefix={<LineChartOutlined />}
+                          valueStyle={{
+                            color: "#1890ff",
+                            fontSize: "24px",
+                            fontWeight: "bold",
+                          }}
                         />
                       </KpiTooltip>
                     </Card>
