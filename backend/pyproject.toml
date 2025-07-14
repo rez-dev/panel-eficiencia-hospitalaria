@@ -8,7 +8,7 @@ addopts = [
     "--disable-warnings",     # Deshabilitar warnings menores para output más limpio
 ]
 testpaths = [
-    ".",                      # Buscar tests en el directorio actual
+    "tests",                  # Buscar tests en la carpeta tests
 ]
 python_files = [
     "test_*.py",             # Archivos que empiecen con test_

@@ -861,7 +861,6 @@ const PcaClusterView = ({ onNavigate }) => {
                 >
                   <Radio.Button value="SFA">SFA</Radio.Button>
                   <Radio.Button value="DEA">DEA</Radio.Button>
-                  <Radio.Button value="DEA-M">DEA-M</Radio.Button>
                 </Radio.Group>
               </ParameterTooltip>
             </div>{" "}
