@@ -1,0 +1,35 @@
+[tool.pytest.ini_options]
+# Configuración de pytest para el proyecto
+minversion = "6.0"
+addopts = [
+    "-ra",                    # Mostrar resumen de resultados
+    "--strict-markers",       # Marcar markers no definidos como error
+    "--strict-config",        # Configuración estricta
+    "--disable-warnings",     # Deshabilitar warnings menores para output más limpio
+]
+testpaths = [
+    ".",                      # Buscar tests en el directorio actual
+]
+python_files = [
+    "test_*.py",             # Archivos que empiecen con test_
+    "*_test.py",             # Archivos que terminen con _test
+]
+python_classes = [
+    "Test*",                 # Clases que empiecen con Test
+]
+python_functions = [
+    "test_*",                # Funciones que empiecen con test_
+]
+markers = [
+    "slow: tests que tardan mucho tiempo",
+    "integration: tests de integración",
+    "unit: tests unitarios",
+    "api: tests de endpoints API",
+    "database: tests de base de datos",
+]
+
+# Configuración para warnings específicos
+filterwarnings = [
+    "ignore::DeprecationWarning:pydantic.*",
+    "ignore::sqlalchemy.exc.MovedIn20Warning",
+]

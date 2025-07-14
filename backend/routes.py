@@ -147,85 +147,6 @@ def get_all_hospitals_data(
             detail="Error interno del servidor al procesar la solicitud."
         )
 
-@app.get("/hospitals/summary", response_model=List[schemas.HospitalSummary])
-def get_hospitals_summary(db: Session = Depends(get_db)):
-    """
-    Obtiene un resumen consolidado de todos los hospitales del sistema.
-    
-    Retorna información básica de hospitales para listados rápidos y dashboards,
-    sin cargar el detalle completo de indicadores operacionales.
-    
-    Útil para:
-    - Componentes de selección de hospitales
-    - Mapas interactivos con markers
-    - Listados de referencia rápida
-    - Filtros dinámicos en el frontend
-    
-    Returns:
-        Lista de hospitales con campos principales: ID, nombre, región, complejidad
-    """
-    try:
-        hospitals = db.query(models.Hospital).all()
-        
-        if not hospitals:
-            raise HTTPException(status_code=404, detail="No se encontraron hospitales.")
-            
-        return hospitals
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error al obtener resumen de hospitales: {e}")
-        raise HTTPException(status_code=500, detail="Error interno del servidor.")
-
-@app.get("/hospitals/stats", response_model=schemas.HospitalStats)
-def get_hospitals_stats(db: Session = Depends(get_db)):
-    """
-    Obtiene estadísticas agregadas del sistema hospitalario chileno.
-    
-    Proporciona métricas generales del conjunto de hospitales para análisis
-    preliminares y dashboards de resumen ejecutivo.
-    
-    Returns:
-        Estadísticas del sistema hospitalario:
-        - total_hospitales: Número total de hospitales en el sistema
-        - total_consultas: Suma de todas las consultas médicas
-        - promedio_complejidad: Nivel promedio de complejidad hospitalaria
-        - años_disponibles: Lista de años con datos disponibles
-    """
-    try:
-        from sqlalchemy import func
-        
-        # Consultar estadísticas
-        total_hospitales = db.query(models.Hospital).count()
-        
-        if total_hospitales == 0:
-            raise HTTPException(status_code=404, detail="No se encontraron hospitales.")
-        
-        # Suma total de consultas
-        total_consultas = db.query(func.sum(models.Hospital.consultas)).scalar() or 0
-        
-        # Promedio de complejidad
-        promedio_complejidad = db.query(func.avg(models.Hospital.complejidad)).scalar() or 0
-        
-        # Años únicos disponibles
-        años_disponibles = db.query(models.Hospital.año).distinct().all()
-        años_list = [año[0] for año in años_disponibles if año[0] is not None]
-        años_list.sort()
-        
-        return schemas.HospitalStats(
-            total_hospitales=total_hospitales,
-            total_consultas=total_consultas,
-            promedio_complejidad=round(promedio_complejidad, 2),
-            años_disponibles=años_list
-        )
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error al obtener estadísticas de hospitales: {e}")
-        raise HTTPException(status_code=500, detail="Error interno del servidor.")
-
 @app.get("/hospitals/{hospital_id}", response_model=schemas.HospitalResponse)
 def get_hospital_by_id(hospital_id: int, db: Session = Depends(get_db)):
     """
@@ -253,28 +174,6 @@ def get_hospital_by_id(hospital_id: int, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Error al obtener hospital con ID {hospital_id}: {e}")
         raise HTTPException(status_code=500, detail="Error interno del servidor.")
-    
-# usar funcion say hello de utls/functions.py
-@app.get("/hello")
-def say_hello(name: str = "World"):
-    """
-    Endpoint de prueba para verificar conectividad con las funciones de utilidad.
-    
-    Utiliza la función `say_hello` del módulo utils.functions para generar
-    un saludo personalizado. Útil para testing y validación de módulos.
-    
-    Args:
-        name: Nombre de la persona a saludar (por defecto "World")
-    
-    Returns:
-        Saludo personalizado generado por la función de utilidad
-    """
-    try:
-        greeting = utils.say_hello(name)
-        return {"message": greeting}
-    except Exception as e:
-        logger.error(f"Error al saludar: {e}")
-        raise HTTPException(status_code=500, detail="Error interno del servidor al procesar el saludo.")
     
 # usar funcion sf calculate_sfa_metrics de utls/functions.py con hospitales filtrados 2014
 @app.get("/sfa")
@@ -1052,13 +951,19 @@ def analisis_determinantes_eficiencia(
         # Formatear respuesta
         coeficientes = []
         for _, row in coef_table.iterrows():
+            # Manejar valores no finitos (inf, -inf, nan) que no son JSON serializables
+            coef_val = float(row['Coef.']) if np.isfinite(row['Coef.']) else 0.0
+            stderr_val = float(row['Std.Err.']) if np.isfinite(row['Std.Err.']) else 0.0
+            t_val = float(row['t']) if np.isfinite(row['t']) else 0.0
+            p_val = float(row['P>|t|']) if np.isfinite(row['P>|t|']) else 1.0
+            
             coef = {
                 "variable": row['variable'],
-                "coeficiente": float(row['Coef.']),
-                "error_estandar": float(row['Std.Err.']),
-                "t_value": float(row['t']),
-                "p_value": float(row['P>|t|']),
-                "significativo": float(row['P>|t|']) < 0.05
+                "coeficiente": coef_val,
+                "error_estandar": stderr_val,
+                "t_value": t_val,
+                "p_value": p_val,
+                "significativo": bool(p_val < 0.05 and np.isfinite(row['P>|t|']))
             }
             coeficientes.append(coef)
         
@@ -1070,8 +975,8 @@ def analisis_determinantes_eficiencia(
             "output_cols": output_cols_list,
             "coeficientes": coeficientes,
             "variables_clave": meta['top_vars'],
-            "r_cuadrado": float(meta['r2']),
-            "r_cuadrado_ajustado": float(meta['r2_adj']),
+            "r_cuadrado": float(meta['r2']) if np.isfinite(meta['r2']) else 0.0,
+            "r_cuadrado_ajustado": float(meta['r2_adj']) if np.isfinite(meta['r2_adj']) else 0.0,
             "observaciones": meta['n_observations'],
             "mensaje": f"Análisis de determinantes completado usando {efficiency_method}. {len(coeficientes)} coeficientes calculados."
         }

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from database.database import engine
+from database.database import load_database_config, create_tables
 from database import models
 import logging
 import os
@@ -28,12 +28,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Crear las tablas
-models.Base.metadata.create_all(bind=engine) # Asegurar que las tablas de los modelos se creen
-
 # Importar y registrar las rutas
 from routes import app as routes_app
 app.include_router(routes_app)
+
+# Evento de startup para inicializar la base de datos
+@app.on_event("startup")
+async def startup_event():
+    """Inicializar base de datos al iniciar la aplicación."""
+    create_tables()
 
 if __name__ == "__main__":
     import uvicorn
