@@ -51,7 +51,8 @@ const InicioView = ({ onNavigate }) => {
               marginTop: "0px",
             }}
           >
-            Bienvenido al Panel Interactivo de Eficiencia Hospitalaria
+            Bienvenido al panel interactivo de análisis de eficiencia
+            hospitalaria
           </Title>{" "}
           <Paragraph
             style={{
