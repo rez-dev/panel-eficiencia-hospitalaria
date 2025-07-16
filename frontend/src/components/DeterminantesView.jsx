@@ -64,8 +64,10 @@ const DeterminantesView = ({ onNavigate }) => {
   ]);
   const [selectedOutputs, setSelectedOutputs] = useState(["consultas"]);
   const [selectedIndependentVars, setSelectedIndependentVars] = useState([
-    "remuneraciones",
+    "letalidad",
+    "indiceocupacional",
     "complejidad",
+    "indicerotacion",
   ]);
   const [loading, setLoading] = useState(false);
   const [analysisResults, setAnalysisResults] = useState(null);

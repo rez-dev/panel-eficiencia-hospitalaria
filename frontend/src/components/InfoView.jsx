@@ -78,99 +78,78 @@ const InfoView = ({ onNavigate }) => {
             </Title>
             <p>
               Este panel procesa y analiza datos hospitalarios de Chile
-              correspondientes al período 2019-2022, incluyendo información
+              correspondientes al período 2014-2023, incluyendo información
               detallada sobre recursos, servicios y características
               institucionales.
             </p>
 
             <Title level={4} style={{ color: "#fa8c16", marginTop: "24px" }}>
-              Variables de Entrada
+              Variables del Sistema
             </Title>
             <ul>
               <li>
-                <strong>Camas disponibles:</strong> Número total de camas
-                hospitalarias disponibles para atención de pacientes
+                <strong>Consultas:</strong> Total de consultas médicas
+                ambulatorias realizadas
               </li>
               <li>
-                <strong>Personal médico:</strong> Cantidad de profesionales
-                médicos (médicos, especialistas) en el hospital
+                <strong>GRD por egresos:</strong> Grupos relacionados por
+                diagnóstico ajustados por complejidad de egresos
               </li>
               <li>
-                <strong>Personal no médico:</strong> Cantidad de personal de
-                apoyo (enfermeros, técnicos, administrativos)
+                <strong>Bienes y servicios:</strong> Gastos en bienes y
+                servicios hospitalarios necesarios para la operación
               </li>
               <li>
-                <strong>Presupuesto operacional:</strong> Recursos financieros
-                asignados para el funcionamiento del hospital (en millones de
-                pesos)
-              </li>
-            </ul>
-
-            <Title level={4} style={{ color: "#fa8c16", marginTop: "24px" }}>
-              Variables de Salida
-            </Title>
-            <ul>
-              <li>
-                <strong>Egresos hospitalarios:</strong> Número total de
-                pacientes dados de alta del hospital
+                <strong>Remuneraciones:</strong> Gastos en personal médico,
+                técnico y administrativo del hospital
               </li>
               <li>
-                <strong>Consultas de especialidad:</strong> Cantidad de
-                consultas médicas especializadas realizadas
+                <strong>Días cama disponibles:</strong> Capacidad instalada
+                total de camas hospitalarias durante el año
               </li>
               <li>
-                <strong>Consultas de urgencia:</strong> Número de atenciones de
+                <strong>Consultas urgencias:</strong> Número de atenciones de
                 urgencia prestadas
               </li>
               <li>
-                <strong>Procedimientos quirúrgicos:</strong> Cantidad total de
-                cirugías y procedimientos invasivos realizados
-              </li>
-            </ul>
-
-            <Title level={4} style={{ color: "#fa8c16", marginTop: "24px" }}>
-              Variables de Control y Contextualización
-            </Title>
-            <ul>
-              <li>
-                <strong>Región geográfica:</strong> Ubicación administrativa del
-                hospital (15 regiones de Chile)
+                <strong>Exámenes:</strong> Cantidad de exámenes médicos y
+                procedimientos diagnósticos realizados
               </li>
               <li>
-                <strong>Tipo de hospital:</strong> Clasificación según
-                complejidad y servicios ofrecidos
+                <strong>Quirófanos:</strong> Número de quirófanos disponibles
+                para procedimientos médicos
               </li>
               <li>
-                <strong>Dependencia administrativa:</strong> Entidad responsable
-                de la gestión (Servicio de Salud, Municipal, etc.)
+                <strong>Año:</strong> Período temporal de los datos
+                hospitalarios analizados
               </li>
               <li>
-                <strong>Población objetivo:</strong> Características
-                demográficas del área de influencia del hospital
-              </li>
-            </ul>
-
-            <Title level={4} style={{ color: "#fa8c16", marginTop: "24px" }}>
-              Características del Dataset
-            </Title>
-            <ul>
-              <li>
-                <strong>Período temporal:</strong> 2014-2023
+                <strong>Complejidad:</strong> Nivel de complejidad hospitalaria
+                según cartera de servicios y especialidades
               </li>
               <li>
-                <strong>Cobertura:</strong> Hospitales públicos de todo Chile
+                <strong>Índice ocupacional:</strong> Porcentaje promedio de
+                ocupación de camas hospitalarias
               </li>
               <li>
-                <strong>Total de observaciones:</strong> ~190 registros
-                hospital-año
+                <strong>Índice rotación:</strong> Número de pacientes atendidos
+                por cama durante el año
               </li>
               <li>
-                <strong>Procesamiento:</strong> Extracción, limpieza y
-                consolidación
+                <strong>Promedio días estadía:</strong> Tiempo promedio de
+                hospitalización de pacientes
               </li>
               <li>
-                <strong>Actualización:</strong> Datos actualizados hasta
-                diciembre 2023
+                <strong>Letalidad:</strong> Tasa de mortalidad hospitalaria como
+                indicador de calidad
+              </li>
+              <li>
+                <strong>Egresos fallecidos:</strong> Número absoluto de
+                defunciones hospitalarias
+              </li>
+              <li>
+                <strong>Región:</strong> Ubicación geográfica del hospital según
+                división administrativa de Chile.
               </li>
             </ul>
           </div>
