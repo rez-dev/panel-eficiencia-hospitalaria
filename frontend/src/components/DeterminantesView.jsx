@@ -166,7 +166,6 @@ const DeterminantesView = ({ onNavigate }) => {
     { value: "remuneraciones", label: "Remuneraciones" },
     { value: "bienesyservicios", label: "Bienes y Servicios" },
     { value: "diascamadisponibles", label: "Días Cama Disponibles" },
-    { value: "quirofanos", label: "Quirófanos" },
   ];
 
   // Variables de salida (outputs) para SFA/DEA
@@ -175,6 +174,7 @@ const DeterminantesView = ({ onNavigate }) => {
     { value: "grdxegresos", label: "GRD x Egresos" },
     { value: "consultasurgencias", label: "Consultas Urgencias" },
     { value: "examenes", label: "Exámenes" },
+    { value: "quirofanos", label: "Quirófanos" },
   ];
 
   // Función para realizar el análisis de determinantes
