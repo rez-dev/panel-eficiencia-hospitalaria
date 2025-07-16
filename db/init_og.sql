@@ -19,13 +19,7 @@ CREATE TABLE IF NOT EXISTS hospitals (
     examenes REAL,
     quirofanos REAL,
     año INTEGER,
-    complejidad INTEGER,
-    indiceocupacional REAL,
-    indicerotacion REAL,
-    promediodiasestadia REAL,
-    letalidad REAL,
-    egresosfallecidos REAL,
-    region VARCHAR(128)
+    complejidad INTEGER
 );
 
 -- Limpiar datos existentes
@@ -48,13 +42,7 @@ COPY hospitals (
     examenes,
     quirofanos,
     año,
-    complejidad,
-    indiceocupacional,
-    indicerotacion,
-    promediodiasestadia,
-    letalidad,
-    egresosfallecidos,
-    region
+    complejidad
 )
 FROM '/docker-entrypoint-initdb.d/hospitals.csv'
 DELIMITER ','

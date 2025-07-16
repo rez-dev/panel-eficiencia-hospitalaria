@@ -87,6 +87,11 @@ const DeterminantesView = ({ onNavigate }) => {
       examenes: "Exámenes",
       quirofanos: "Quirófanos",
       complejidad: "Complejidad",
+      indiceocupacional: "Índice Ocupacional",
+      indicerotacion: "Índice de Rotación",
+      promediodiasestadia: "Promedio Días Estadía",
+      letalidad: "Letalidad",
+      egresosfallecidos: "Egresos Fallecidos",
       const: "Constante",
       intercept: "Intercepto",
     };
@@ -144,41 +149,31 @@ const DeterminantesView = ({ onNavigate }) => {
     }));
   };
 
-  // Variables disponibles para el análisis
+  // Variables disponibles para análisis independientes (para determinantes)
   const variablesDisponibles = [
-    { value: "remuneraciones", label: "Remuneraciones" },
-    { value: "bienesyservicios", label: "Bienes y Servicios" },
-    { value: "consultas", label: "Consultas" },
-    { value: "grdxegresos", label: "GRD x Egresos" },
-    { value: "diascamadisponibles", label: "Días Cama Disponibles" },
-    { value: "consultasurgencias", label: "Consultas Urgencias" },
-    { value: "examenes", label: "Exámenes" },
-    { value: "quirofanos", label: "Quirófanos" },
     { value: "complejidad", label: "Complejidad" },
+    { value: "indiceocupacional", label: "Índice Ocupacional" },
+    { value: "indicerotacion", label: "Índice de Rotación" },
+    { value: "promediodiasestadia", label: "Promedio Días Estadía" },
+    { value: "letalidad", label: "Letalidad" },
+    { value: "egresosfallecidos", label: "Egresos Fallecidos" },
   ];
 
-  const inputVariables = variablesDisponibles.filter((v) =>
-    [
-      "remuneraciones",
-      "bienesyservicios",
-      "diascamadisponibles",
-      "quirofanos",
-    ].includes(v.value)
-  );
+  // Variables de entrada (inputs) para SFA/DEA
+  const inputVariables = [
+    { value: "remuneraciones", label: "Remuneraciones" },
+    { value: "bienesyservicios", label: "Bienes y Servicios" },
+    { value: "diascamadisponibles", label: "Días Cama Disponibles" },
+    { value: "quirofanos", label: "Quirófanos" },
+  ];
 
-  const outputVariables = variablesDisponibles.filter((v) =>
-    ["consultas", "grdxegresos", "consultasurgencias", "examenes"].includes(
-      v.value
-    )
-  );
-
-  // Efecto para ajustar outputs cuando cambia el método
-  useEffect(() => {
-    if (calculationMethod === "SFA" && selectedOutputs.length > 1) {
-      // SFA solo permite un output, mantener solo el primero
-      setSelectedOutputs([selectedOutputs[0]]);
-    }
-  }, [calculationMethod, selectedOutputs]);
+  // Variables de salida (outputs) para SFA/DEA
+  const outputVariables = [
+    { value: "consultas", label: "Consultas" },
+    { value: "grdxegresos", label: "GRD x Egresos" },
+    { value: "consultasurgencias", label: "Consultas Urgencias" },
+    { value: "examenes", label: "Exámenes" },
+  ];
 
   // Función para realizar el análisis de determinantes
   const handleCalculateAnalysis = async () => {
@@ -464,7 +459,6 @@ const DeterminantesView = ({ onNavigate }) => {
                 onChange={setSelectedOutputs}
                 style={{ width: "100%", marginBottom: "16px" }}
                 options={outputVariables}
-                maxCount={calculationMethod === "SFA" ? 1 : undefined}
               />
               <div
                 style={{
@@ -972,11 +966,18 @@ const DeterminantesView = ({ onNavigate }) => {
                             top: 5,
                             right: 30,
                             left: 20,
-                            bottom: 5,
+                            bottom: 60,
                           }}
                         >
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="name" />
+                          <XAxis
+                            dataKey="name"
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                            interval={0}
+                            fontSize={11}
+                          />
                           <YAxis
                             domain={
                               normalizeChart
@@ -1024,7 +1025,6 @@ const DeterminantesView = ({ onNavigate }) => {
                             labelFormatter={(label) => `Variable: ${label}`}
                             separator=" | "
                           />
-                          <Legend />
                           <ReferenceLine y={0} stroke="#000" />
                           <Bar
                             dataKey="coeficiente"
@@ -1170,7 +1170,7 @@ const DeterminantesView = ({ onNavigate }) => {
                               "coeficiente"
                             )}
                           >
-                            <span style={{ cursor: "help" }}>Coef.</span>
+                            <span style={{ cursor: "help" }}>Coeficiente</span>
                           </ColumnTooltip>
                         ),
                         dataIndex: "coeficiente",
@@ -1195,7 +1195,9 @@ const DeterminantesView = ({ onNavigate }) => {
                               "errorEstandar"
                             )}
                           >
-                            <span style={{ cursor: "help" }}>Std.Err.</span>
+                            <span style={{ cursor: "help" }}>
+                              Error Estándar
+                            </span>
                           </ColumnTooltip>
                         ),
                         dataIndex: "errorEstandar",
@@ -1220,7 +1222,9 @@ const DeterminantesView = ({ onNavigate }) => {
                               "tStatistic"
                             )}
                           >
-                            <span style={{ cursor: "help" }}>t</span>
+                            <span style={{ cursor: "help" }}>
+                              Estadístico t
+                            </span>
                           </ColumnTooltip>
                         ),
                         dataIndex: "tStatistic",
@@ -1239,7 +1243,7 @@ const DeterminantesView = ({ onNavigate }) => {
                               "pValor"
                             )}
                           >
-                            <span style={{ cursor: "help" }}>P&gt;|t|</span>
+                            <span style={{ cursor: "help" }}>P-Valor</span>
                           </ColumnTooltip>
                         ),
                         dataIndex: "pvalor",

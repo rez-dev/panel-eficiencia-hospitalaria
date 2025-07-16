@@ -95,17 +95,17 @@ class ApiService {
     }
   }
 
-  async fetchDeterminantesEfficiency(method, year, inputCols, outputCols, independentVars) {
+  async fetchDeterminantesEfficiency(efficiency_method, year, inputCols, outputCols, independentVars) {
     try {
       const params = new URLSearchParams({
-        method,
+        efficiency_method,
         year: year.toString(),
         input_cols: inputCols.join(','),
         output_cols: outputCols.join(','),
         independent_vars: independentVars.join(','),
       });
 
-      console.log(`Fetching determinantes efficiency with method ${method} for year ${year}`);
+      console.log(`Fetching determinantes efficiency with method ${efficiency_method} for year ${year}`);
 
       const response = await fetch(`${API_BASE_URL}/determinantes-efficiency?${params}`);
       if (!response.ok) {

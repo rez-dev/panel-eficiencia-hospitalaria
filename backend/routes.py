@@ -920,7 +920,13 @@ def analisis_determinantes_eficiencia(
             'examenes': h.examenes,
             'quirofanos': h.quirofanos,
             'año': h.año,
-            'complejidad': h.complejidad
+            'complejidad': h.complejidad,
+            'indiceocupacional': h.indiceocupacional,
+            'indicerotacion': h.indicerotacion,
+            'promediodiasestadia': h.promediodiasestadia,
+            'letalidad': h.letalidad,
+            'egresosfallecidos': h.egresosfallecidos,
+            'region': h.region
         } for h in hospitales])
         
         # Verificar que las columnas existen

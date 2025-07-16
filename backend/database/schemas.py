@@ -18,6 +18,12 @@ class HospitalBase(BaseModel):
     quirofanos: float = Field(..., description="Número de quirófanos")
     año: int = Field(..., description="Año de los datos")
     complejidad: int = Field(..., description="Nivel de complejidad del hospital")
+    indiceocupacional: float = Field(..., description="Índice de ocupación")
+    indicerotacion: float = Field(..., description="Índice de rotación")
+    promediodiasestadia: float = Field(..., description="Promedio de días de estadía")
+    letalidad: float = Field(..., description="Tasa de letalidad")
+    egresosfallecidos: float = Field(..., description="Número de egresos fallecidos")
+    region: Optional[str] = Field(None, description="Nombre de la región")
 
 class HospitalResponse(HospitalBase):
     """Esquema para respuestas de Hospital (incluye ID)"""
@@ -32,7 +38,8 @@ class HospitalResponse(HospitalBase):
                 "hospital_id": 101100,
                 "region_id": 15,
                 "hospital_name": "Hospital Dr. Juan Noé Crevanni (Arica)",
-                "hospital_alternative_name": "Hospital Doctor Juan Noé",                "latitud": -18.4827,
+                "hospital_alternative_name": "Hospital Doctor Juan Noé",                
+                "latitud": -18.4827,
                 "longitud": -70.3126,
                 "consultas": 184208,
                 "grdxegresos": 11953.83,
@@ -68,6 +75,12 @@ class HospitalUpdate(BaseModel):
     quirofanos: Optional[float] = None
     año: Optional[int] = None
     complejidad: Optional[int] = None
+    indiceocupacional: Optional[float] = None
+    indicerotacion: Optional[float] = None
+    promediodiasestadia: Optional[float] = None
+    letalidad: Optional[float] = None
+    egresosfallecidos: Optional[float] = None
+    region: Optional[str] = None
 
 # Esquemas adicionales para respuestas específicas
 class HospitalSummary(BaseModel):
