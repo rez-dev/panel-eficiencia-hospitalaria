@@ -62,49 +62,13 @@ const InicioView = ({ onNavigate }) => {
           >
             Mide, compara y entiende el desempeño de la red asistencial de Chile
           </Paragraph>{" "}
-          <div style={{ textAlign: "center", marginBottom: "32px" }}>
-            <Button
-              type="primary"
-              size="large"
-              icon={<RocketFilled />}
-              onClick={() => onNavigate("eficiencia")}
-              style={{
-                fontSize: "18px",
-                height: "60px",
-                paddingLeft: "40px",
-                paddingRight: "40px",
-                background: "linear-gradient(135deg, #1890ff 0%, #096dd9 100%)",
-                borderColor: "transparent",
-                borderRadius: "12px",
-                boxShadow: "0 6px 16px rgba(24, 144, 255, 0.3)",
-                fontWeight: "600",
-                transition: "all 0.3s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-2px)";
-                e.currentTarget.style.boxShadow =
-                  "0 8px 24px rgba(24, 144, 255, 0.4)";
-                e.currentTarget.style.background =
-                  "linear-gradient(135deg, #096dd9 0%, #0050b3 100%)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow =
-                  "0 6px 16px rgba(24, 144, 255, 0.3)";
-                e.currentTarget.style.background =
-                  "linear-gradient(135deg, #1890ff 0%, #096dd9 100%)";
-              }}
-            >
-              Empezar Análisis
-            </Button>{" "}
-          </div>
-          <Row gutter={[24, 24]} style={{ marginBottom: "24px" }}>
+          <Row gutter={[24, 24]} style={{ marginBottom: "32px" }}>
             <Col xs={24} sm={12} lg={6}>
               <Card
                 style={{
                   background:
-                    "linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)",
-                  border: "1px solid #b7eb8f",
+                    "linear-gradient(135deg, #f0f9ff 0%, #bae7ff 100%)",
+                  border: "1px solid #91d5ff",
                   borderRadius: "12px",
                   boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
                   transition: "all 0.3s ease",
@@ -127,24 +91,24 @@ const InicioView = ({ onNavigate }) => {
                       style={{
                         fontSize: "14px",
                         fontWeight: "600",
-                        color: "#389e0d",
+                        color: "#1890ff",
                       }}
                     >
                       Total de Hospitales
                     </span>
                   }
-                  value={125}
+                  value={195}
                   prefix={
                     <MedicineBoxFilled
                       style={{
                         fontSize: "24px",
-                        color: "#52c41a",
+                        color: "#1890ff",
                         marginRight: "8px",
                       }}
                     />
                   }
                   valueStyle={{
-                    color: "#389e0d",
+                    color: "#1890ff",
                     fontSize: "32px",
                     fontWeight: "bold",
                   }}
@@ -207,8 +171,8 @@ const InicioView = ({ onNavigate }) => {
               <Card
                 style={{
                   background:
-                    "linear-gradient(135deg, #f9f0ff 0%, #d3adf7 100%)",
-                  border: "1px solid #b37feb",
+                    "linear-gradient(135deg, #f0f9ff 0%, #bae7ff 100%)",
+                  border: "1px solid #91d5ff",
                   borderRadius: "12px",
                   boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
                   transition: "all 0.3s ease",
@@ -231,24 +195,24 @@ const InicioView = ({ onNavigate }) => {
                       style={{
                         fontSize: "14px",
                         fontWeight: "600",
-                        color: "#722ed1",
+                        color: "#1890ff",
                       }}
                     >
                       Años de Datos
                     </span>
                   }
-                  value="2014-2024"
+                  value="2014-2023"
                   prefix={
                     <CalendarFilled
                       style={{
                         fontSize: "24px",
-                        color: "#722ed1",
+                        color: "#1890ff",
                         marginRight: "8px",
                       }}
                     />
                   }
                   valueStyle={{
-                    color: "#722ed1",
+                    color: "#1890ff",
                     fontSize: "28px",
                     fontWeight: "bold",
                   }}
@@ -259,8 +223,8 @@ const InicioView = ({ onNavigate }) => {
               <Card
                 style={{
                   background:
-                    "linear-gradient(135deg, #fff0f6 0%, #ffadd6 100%)",
-                  border: "1px solid #ff85c0",
+                    "linear-gradient(135deg, #f0f9ff 0%, #bae7ff 100%)",
+                  border: "1px solid #91d5ff",
                   borderRadius: "12px",
                   boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
                   transition: "all 0.3s ease",
@@ -283,7 +247,7 @@ const InicioView = ({ onNavigate }) => {
                       style={{
                         fontSize: "14px",
                         fontWeight: "600",
-                        color: "#eb2f96",
+                        color: "#1890ff",
                       }}
                     >
                       Herramientas de Análisis
@@ -294,13 +258,13 @@ const InicioView = ({ onNavigate }) => {
                     <ToolFilled
                       style={{
                         fontSize: "24px",
-                        color: "#eb2f96",
+                        color: "#1890ff",
                         marginRight: "8px",
                       }}
                     />
                   }
                   valueStyle={{
-                    color: "#eb2f96",
+                    color: "#1890ff",
                     fontSize: "32px",
                     fontWeight: "bold",
                   }}
@@ -308,6 +272,42 @@ const InicioView = ({ onNavigate }) => {
               </Card>
             </Col>
           </Row>
+          <div style={{ textAlign: "center", marginBottom: "32px" }}>
+            <Button
+              type="primary"
+              size="large"
+              icon={<RocketFilled />}
+              onClick={() => onNavigate("eficiencia")}
+              style={{
+                fontSize: "18px",
+                height: "60px",
+                paddingLeft: "40px",
+                paddingRight: "40px",
+                background: "linear-gradient(135deg, #1890ff 0%, #096dd9 100%)",
+                borderColor: "transparent",
+                borderRadius: "12px",
+                boxShadow: "0 6px 16px rgba(24, 144, 255, 0.3)",
+                fontWeight: "600",
+                transition: "all 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow =
+                  "0 8px 24px rgba(24, 144, 255, 0.4)";
+                e.currentTarget.style.background =
+                  "linear-gradient(135deg, #096dd9 0%, #0050b3 100%)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow =
+                  "0 6px 16px rgba(24, 144, 255, 0.3)";
+                e.currentTarget.style.background =
+                  "linear-gradient(135deg, #1890ff 0%, #096dd9 100%)";
+              }}
+            >
+              Comenzar Análisis
+            </Button>
+          </div>
           <Row gutter={[24, 24]}>
             <Col xs={24} lg={12}>
               <Card title="📊 Eficiencia Técnica" bordered={false}>
@@ -319,7 +319,7 @@ const InicioView = ({ onNavigate }) => {
                 </Paragraph>
                 <ul>
                   <li>Análisis de inputs y outputs</li>
-                  <li>Cálculo de scores de eficiencia</li>
+                  <li>Cálculo de eficiencia técnica hospitalaria</li>
                 </ul>
               </Card>
             </Col>
@@ -332,7 +332,6 @@ const InicioView = ({ onNavigate }) => {
                 <ul>
                   <li>Rankings de eficiencia</li>
                   <li>Análisis comparativo</li>
-                  <li>Identificación de outliers</li>
                 </ul>
               </Card>
             </Col>
@@ -341,13 +340,12 @@ const InicioView = ({ onNavigate }) => {
             <Col xs={24} lg={12}>
               <Card title="🔍 Análisis de Determinantes" bordered={false}>
                 <Paragraph>
-                  Identifica los factores que influyen en la eficiencia técnica
-                  de las instituciones de salud.
+                  Explora los factores que inciden sobre la eficiencia
+                  hospitalaria.
                 </Paragraph>
                 <ul>
-                  <li>Variables contextuales</li>
-                  <li>Factores organizacionales</li>
-                  <li>Análisis de regresión</li>
+                  <li>Variables explicativas seleccionadas</li>
+                  <li>Resultados del modelo de regresión</li>
                 </ul>
               </Card>
             </Col>
@@ -359,7 +357,6 @@ const InicioView = ({ onNavigate }) => {
                 </Paragraph>
                 <ul>
                   <li>Análisis de componentes principales</li>
-                  <li>Clustering jerárquico</li>
                   <li>Segmentación de hospitales</li>
                 </ul>
               </Card>

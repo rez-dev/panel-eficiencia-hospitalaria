@@ -1014,7 +1014,7 @@ const ComparacionView = () => {
                   size="large"
                   style={{
                     width: "100%",
-                    marginTop: "20px",
+                    marginTop: "12px",
                     backgroundColor: "#1890ff",
                     borderColor: "#1890ff",
                   }}

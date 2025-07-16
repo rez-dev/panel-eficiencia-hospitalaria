@@ -11,6 +11,8 @@ import {
   SearchOutlined,
   EditFilled,
   InfoCircleOutlined,
+  BarChartOutlined,
+  ApartmentOutlined,
 } from "@ant-design/icons";
 import {
   Layout,
@@ -445,7 +447,7 @@ const PcaClusterView = ({ onNavigate }) => {
               />
               <Button
                 type="text"
-                icon={<LineChartOutlined />}
+                icon={<BarChartOutlined />}
                 style={{
                   width: "40px",
                   height: "40px",
@@ -459,7 +461,7 @@ const PcaClusterView = ({ onNavigate }) => {
               />
               <Button
                 type="text"
-                icon={<TeamOutlined />}
+                icon={<ApartmentOutlined />}
                 style={{
                   width: "40px",
                   height: "40px",
@@ -473,21 +475,7 @@ const PcaClusterView = ({ onNavigate }) => {
               />
               <Button
                 type="text"
-                icon={<LineChartOutlined />}
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "18px",
-                  color: "#722ed1",
-                }}
-                title="Entradas"
-              />
-              <Button
-                type="text"
-                icon={<TrophyOutlined />}
+                icon={<EditFilled />}
                 style={{
                   width: "40px",
                   height: "40px",
@@ -496,6 +484,20 @@ const PcaClusterView = ({ onNavigate }) => {
                   justifyContent: "center",
                   fontSize: "18px",
                   color: "#1890ff",
+                }}
+                title="Entradas"
+              />
+              <Button
+                type="text"
+                icon={<EditFilled />}
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "18px",
+                  color: "#52c41a",
                 }}
                 title="Salidas"
               />
@@ -533,7 +535,7 @@ const PcaClusterView = ({ onNavigate }) => {
                   marginBottom: "12px",
                 }}
               >
-                <LineChartOutlined
+                <BarChartOutlined
                   style={{
                     fontSize: "16px",
                     color: "#1890ff",
@@ -551,7 +553,7 @@ const PcaClusterView = ({ onNavigate }) => {
                     level={5}
                     style={{ margin: 0, color: "#333", cursor: "help" }}
                   >
-                    N° de componentes (máx: 3)
+                    N° de componentes
                   </Title>
                 </ParameterTooltip>
               </div>{" "}
@@ -614,7 +616,7 @@ const PcaClusterView = ({ onNavigate }) => {
                   marginBottom: "12px",
                 }}
               >
-                <TeamOutlined
+                <ApartmentOutlined
                   style={{
                     fontSize: "16px",
                     color: "#52c41a",
@@ -678,10 +680,10 @@ const PcaClusterView = ({ onNavigate }) => {
                   marginBottom: "12px",
                 }}
               >
-                <LineChartOutlined
+                <EditFilled
                   style={{
                     fontSize: "16px",
-                    color: "#722ed1",
+                    color: "#1890ff",
                     marginRight: "8px",
                   }}
                 />
@@ -696,7 +698,7 @@ const PcaClusterView = ({ onNavigate }) => {
                     level={5}
                     style={{ margin: 0, color: "#333", cursor: "help" }}
                   >
-                    Variables de entrada
+                    Entradas
                   </Title>
                 </ParameterTooltip>
               </div>
@@ -715,10 +717,10 @@ const PcaClusterView = ({ onNavigate }) => {
                   marginBottom: "12px",
                 }}
               >
-                <TrophyOutlined
+                <EditFilled
                   style={{
                     fontSize: "16px",
-                    color: "#1890ff",
+                    color: "#52c41a",
                     marginRight: "8px",
                   }}
                 />
@@ -733,7 +735,7 @@ const PcaClusterView = ({ onNavigate }) => {
                     level={5}
                     style={{ margin: 0, color: "#333", cursor: "help" }}
                   >
-                    Variables de salida
+                    Salidas
                   </Title>
                 </ParameterTooltip>
               </div>

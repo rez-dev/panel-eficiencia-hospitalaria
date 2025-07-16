@@ -278,7 +278,7 @@ const DeterminantesView = ({ onNavigate }) => {
               />
               <Button
                 type="text"
-                icon={<TrophyOutlined />}
+                icon={<EditFilled />}
                 style={{
                   width: "40px",
                   height: "40px",
@@ -286,21 +286,7 @@ const DeterminantesView = ({ onNavigate }) => {
                   alignItems: "center",
                   justifyContent: "center",
                   fontSize: "18px",
-                  color: "#40a9ff",
-                }}
-                title="Variable Dependiente"
-              />
-              <Button
-                type="text"
-                icon={<SearchOutlined />}
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "18px",
-                  color: "#52c41a",
+                  color: "#1890ff",
                 }}
                 title="Variables de Entrada"
               />
@@ -314,9 +300,23 @@ const DeterminantesView = ({ onNavigate }) => {
                   alignItems: "center",
                   justifyContent: "center",
                   fontSize: "18px",
-                  color: "#f5222d",
+                  color: "#52c41a",
                 }}
                 title="Variables de Salida"
+              />
+              <Button
+                type="text"
+                icon={<TrophyOutlined />}
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "18px",
+                  color: "#1890ff",
+                }}
+                title="Variable Dependiente"
               />
             </div>
           ) : (
@@ -397,10 +397,10 @@ const DeterminantesView = ({ onNavigate }) => {
                   marginBottom: "12px",
                 }}
               >
-                <SearchOutlined
+                <EditFilled
                   style={{
                     fontSize: "16px",
-                    color: "#52c41a",
+                    color: "#1890ff",
                     marginRight: "8px",
                   }}
                 />
@@ -415,7 +415,7 @@ const DeterminantesView = ({ onNavigate }) => {
                     level={5}
                     style={{ margin: 0, color: "#333", cursor: "help" }}
                   >
-                    Variables de Entrada (Inputs)
+                    Entradas
                   </Title>
                 </ParameterTooltip>
               </div>
@@ -438,7 +438,7 @@ const DeterminantesView = ({ onNavigate }) => {
                 <EditFilled
                   style={{
                     fontSize: "16px",
-                    color: "#f5222d",
+                    color: "#52c41a",
                     marginRight: "8px",
                   }}
                 />
@@ -453,7 +453,7 @@ const DeterminantesView = ({ onNavigate }) => {
                     level={5}
                     style={{ margin: 0, color: "#333", cursor: "help" }}
                   >
-                    Variables de Salida (Outputs)
+                    Salidas
                   </Title>
                 </ParameterTooltip>
               </div>
