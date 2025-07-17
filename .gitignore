@@ -1,3 +1,5 @@
+# Ignore node_modules in e2e-tests
+/e2e-tests/node_modules/
 # Environment variables
 .env
 
