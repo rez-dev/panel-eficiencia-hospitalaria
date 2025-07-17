@@ -1,3 +1,4 @@
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -7,6 +8,20 @@ import numpy as np
 import pandas as pd
 import utils.functions as utils
 import os
+
+# --- Utilidad para limpiar NaN/inf de respuestas JSON ---
+def clean_floats_for_json(obj):
+    """
+    Reemplaza todos los valores float NaN, inf, -inf por 0 en dicts/lists anidados.
+    """
+    if isinstance(obj, dict):
+        return {k: clean_floats_for_json(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [clean_floats_for_json(v) for v in obj]
+    elif isinstance(obj, float):
+        return float(obj) if np.isfinite(obj) else 0.0
+    else:
+        return obj
 
 from database.database import get_db
 from database import models, schemas
@@ -246,10 +261,10 @@ def run_sfa(
         metrics['input_cols'] = input_cols_list
         metrics['output_cols'] = output_cols_list
         logger.info(f"Resultados SFA para el año {year}: {metrics}")
-        return {
+        return clean_floats_for_json({
             "results": results,
             "metrics": metrics
-        }
+        })
 
     except HTTPException:
         raise
@@ -323,10 +338,10 @@ def run_dea(
         metrics['input_cols'] = input_cols_list  
         metrics['output_cols'] = output_cols_list
         logger.info(f"Resultados DEA para el año {year}: {metrics}")
-        return {
+        return clean_floats_for_json({
             "results": results,
             "metrics": metrics
-        }
+        })
         
     except HTTPException:
         raise
@@ -515,13 +530,13 @@ def run_pca_clustering(
         logger.info(f"PCA + Clustering ejecutado para {year}: {cluster_meta['k']} clusters, "
                    f"silhouette={cluster_meta['silhouette']:.3f}, método={method}")
         
-        return {
+        return clean_floats_for_json({
             "results": results,
             "metrics": metrics,
             "components_matrix": components_matrix,
             "cluster_centers": cluster_centers,
             "cluster_summary": cluster_summary
-        }
+        })
         
     except HTTPException:
         raise
@@ -622,11 +637,11 @@ def run_pca(
         logger.info(f"PCA ejecutado para {year}: {n_components} componentes, "
                    f"varianza explicada={sum(pca_meta['explained_variance_ratio']):.2%}")
         
-        return {
+        return clean_floats_for_json({
             "results": results,
             "metrics": metrics,
             "components_matrix": components_matrix
-        }
+        })
         
     except HTTPException:
         raise
@@ -823,7 +838,7 @@ def run_malmquist(
             'n_hospitals': len(results)
         }
         
-        return {
+        return clean_floats_for_json({
             "results": results,  # Cambiar de detailed_results a results para consistencia
             "metrics": metrics,   # Agregar métricas en el formato esperado
             "analysis_info": {
@@ -836,7 +851,7 @@ def run_malmquist(
                 "top_input_column": top_input_col
             },
             "summary": summary
-        }
+        })
         
     except HTTPException:
         raise
@@ -988,7 +1003,7 @@ def analisis_determinantes_eficiencia(
         }
         
         logger.info(f"Análisis determinantes eficiencia completado. R² = {meta['r2']:.3f}, método = {efficiency_method}")
-        return respuesta
+        return clean_floats_for_json(respuesta)
         
     except HTTPException:
         raise
