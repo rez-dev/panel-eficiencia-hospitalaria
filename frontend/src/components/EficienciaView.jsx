@@ -207,6 +207,9 @@ const EficienciaView = ({ onNavigate }) => {
   const loading = state.loading;
   const error = state.error;
 
+  // Acceso a resultados completos del contexto global
+  const resultadosEficiencia = state.resultadosEficiencia;
+
   // Estados locales (mantener algunos para transición gradual)
   const [collapsed, setCollapsed] = useState(false);
   // selectedRows se sincroniza con el estado global
@@ -217,10 +220,15 @@ const EficienciaView = ({ onNavigate }) => {
   const [anoFinal, setAnoFinal] = useState(2018);
   const [variableTop, setVariableTop] = useState("");
 
-  // Estados para la API (gradualmente migrar al contexto global)
-  const [sfaData, setSfaData] = useState(null);
-  const [deaData, setDeaData] = useState(null);
-  const [malmquistData, setMalmquistData] = useState(null);
+  // Obtener el resultado actual según la metodología
+  const currentResult =
+    calculationMethod === "SFA"
+      ? resultadosEficiencia.SFA
+      : calculationMethod === "DEA"
+      ? resultadosEficiencia.DEA
+      : calculationMethod === "DEA-M"
+      ? resultadosEficiencia.DEAM
+      : null;
 
   // Sincronizar selectedRows con hospitalesSeleccionados del estado global
   useEffect(() => {
@@ -545,26 +553,10 @@ const EficienciaView = ({ onNavigate }) => {
     }
   }; // Función para generar KPIs dinámicamente basándose en los datos de la API
   const getCurrentKpis = () => {
-    // Verificar si tenemos datos válidos para la metodología actual
-    let currentData = null;
-
-    if (calculationMethod === "SFA" && sfaData && sfaData.metrics) {
-      currentData = sfaData;
-    } else if (calculationMethod === "DEA" && deaData && deaData.metrics) {
-      currentData = deaData;
-    } else if (
-      calculationMethod === "DEA-M" &&
-      malmquistData &&
-      malmquistData.metrics
-    ) {
-      currentData = malmquistData;
-    }
-
-    // Si tenemos datos válidos para la metodología actual, generar KPIs dinámicos
+    let currentData = currentResult;
     if (currentData && currentData.metrics) {
       return generateKpisFromData(currentData, calculationMethod);
     }
-
     // Si no hay datos calculados para la metodología actual, mostrar placeholders
     const placeholderKpis = kpiConfigs[calculationMethod] || [];
     return placeholderKpis.map((kpi) => ({
@@ -678,75 +670,46 @@ const EficienciaView = ({ onNavigate }) => {
   const fetchData = async () => {
     actions.setLoading(true);
     actions.setError(null);
-
     try {
       const inputCols =
         entradas.length > 0
           ? entradas
           : ["bienesyservicios", "remuneraciones", "diascamadisponibles"];
       const outputCols = salidas.length > 0 ? salidas : ["consultas"];
-
-      // Actualizar estado global con los parámetros usados en el cálculo
       actions.setInputCols(inputCols);
       actions.setOutputCols(outputCols);
-
+      let response;
       if (calculationMethod === "SFA") {
-        const response = await ApiService.fetchSFAMetrics(
+        response = await ApiService.fetchSFAMetrics(
           selectedYear,
           inputCols,
           outputCols
         );
-        setSfaData(response);
-
-        // Generar KPIs dinámicamente basándose en los datos recibidos
-        const dynamicKpis = generateKpisFromData(response, "SFA");
-
-        // Guardar en estado global
-        actions.setHospitales(response.results || []);
-        actions.setKpis(
-          response.kpis && response.kpis.length > 0
-            ? response.kpis
-            : dynamicKpis
-        );
+        actions.setResultadoSFA(response); // Siempre actualizar
       } else if (calculationMethod === "DEA") {
-        const response = await ApiService.fetchDEAMetrics(
+        response = await ApiService.fetchDEAMetrics(
           selectedYear,
           inputCols,
           outputCols
         );
-        setDeaData(response);
-
-        // Generar KPIs dinámicamente basándose en los datos recibidos
-        const dynamicKpis = generateKpisFromData(response, "DEA");
-
-        // Guardar en estado global
-        actions.setHospitales(response.results || []);
-        actions.setKpis(
-          response.kpis && response.kpis.length > 0
-            ? response.kpis
-            : dynamicKpis
-        );
+        actions.setResultadoDEA(response); // Siempre actualizar
       } else if (calculationMethod === "DEA-M") {
-        const response = await ApiService.fetchMalmquistMetrics(
+        response = await ApiService.fetchMalmquistMetrics(
           anoInicial,
           anoFinal,
           inputCols,
           outputCols,
           variableTop
         );
-        setMalmquistData(response);
-
-        // Generar KPIs dinámicamente basándose en los datos recibidos
-        const dynamicKpis = generateKpisFromData(response, "DEA-M");
-
-        // Guardar en estado global
-        actions.setHospitales(response.results || []);
-        actions.setKpis(
-          response.kpis && response.kpis.length > 0
-            ? response.kpis
-            : dynamicKpis
-        );
+        actions.setResultadoDEAM(response); // Siempre actualizar
       }
+      // Guardar hospitales y KPIs en el estado global
+      actions.setHospitales(response.results || []);
+      actions.setKpis(
+        response.kpis && response.kpis.length > 0
+          ? response.kpis
+          : generateKpisFromData(response, calculationMethod)
+      );
     } catch (err) {
       actions.setError(err.message);
       console.error("Error fetching data:", err);
@@ -754,31 +717,18 @@ const EficienciaView = ({ onNavigate }) => {
       actions.setLoading(false);
     }
   };
-  // Effect para sincronizar KPIs con el estado global cuando cambian los datos locales
+
+  // Effect para cargar datos automáticamente al cambiar de metodología si existen en el contexto global
   useEffect(() => {
-    let currentData = null;
-
-    if (calculationMethod === "SFA") {
-      currentData = sfaData;
-    } else if (calculationMethod === "DEA") {
-      currentData = deaData;
-    } else if (calculationMethod === "DEA-M") {
-      currentData = malmquistData;
+    if (currentResult) {
+      actions.setHospitales(currentResult.results || []);
+      actions.setKpis(
+        currentResult.kpis && currentResult.kpis.length > 0
+          ? currentResult.kpis
+          : generateKpisFromData(currentResult, calculationMethod)
+      );
     }
-
-    if (
-      currentData &&
-      currentData.metrics &&
-      (!state.kpis || state.kpis.length === 0)
-    ) {
-      const dynamicKpis = generateKpisFromData(currentData, calculationMethod);
-      actions.setKpis(dynamicKpis);
-    }
-  }, [sfaData, deaData, malmquistData, calculationMethod, state.kpis, actions]);
-  // Effect para cargar datos cuando cambian los parámetros (comentado para que solo se ejecute con el botón Calcular)
-  // useEffect(() => {
-  //   fetchData();
-  // }, [selectedYear, calculationMethod]);
+  }, [calculationMethod, currentResult]);
 
   // Función para manejar la búsqueda
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
@@ -1919,12 +1869,15 @@ const EficienciaView = ({ onNavigate }) => {
                             transition: "all 0.3s ease",
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = "translateY(-2px)";
-                            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.15)";
+                            e.currentTarget.style.transform =
+                              "translateY(-2px)";
+                            e.currentTarget.style.boxShadow =
+                              "0 4px 12px rgba(0, 0, 0, 0.15)";
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.transform = "translateY(0)";
-                            e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
+                            e.currentTarget.style.boxShadow =
+                              "0 2px 8px rgba(0, 0, 0, 0.1)";
                           }}
                         >
                           Comparar{" "}
@@ -1977,11 +1930,13 @@ const EficienciaView = ({ onNavigate }) => {
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.transform = "translateY(-2px)";
-                          e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.15)";
+                          e.currentTarget.style.boxShadow =
+                            "0 4px 12px rgba(0, 0, 0, 0.15)";
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.transform = "translateY(0)";
-                          e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
+                          e.currentTarget.style.boxShadow =
+                            "0 2px 8px rgba(0, 0, 0, 0.1)";
                         }}
                         onClick={() => {
                           console.log("Navegando a análisis de determinantes");

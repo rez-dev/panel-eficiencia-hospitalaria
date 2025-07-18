@@ -12,6 +12,13 @@ const initialState = {
   hospitales: [],
   kpis: [],
 
+  // Resultados completos de eficiencia por metodología
+  resultadosEficiencia: {
+    SFA: null,
+    DEA: null,
+    DEAM: null, // DEA-Malmquist
+  },
+
   // Selecciones para comparación
   hospitalesSeleccionados: [],
 
@@ -50,6 +57,10 @@ const actionTypes = {
   SET_TEMPORAL_LOADING: "SET_TEMPORAL_LOADING",
   SET_TEMPORAL_ERROR: "SET_TEMPORAL_ERROR",
   CLEAR_TEMPORAL_DATA: "CLEAR_TEMPORAL_DATA",
+  // Acciones para resultados completos de eficiencia
+  SET_RESULTADO_SFA: "SET_RESULTADO_SFA",
+  SET_RESULTADO_DEA: "SET_RESULTADO_DEA",
+  SET_RESULTADO_DEAM: "SET_RESULTADO_DEAM",
 };
 
 // Reducer para manejar el estado
@@ -153,6 +164,32 @@ const globalStateReducer = (state, action) => {
           yearB: null,
           loading: false,
           error: null,
+        },
+      };
+
+    // Acciones para resultados completos de eficiencia
+    case actionTypes.SET_RESULTADO_SFA:
+      return {
+        ...state,
+        resultadosEficiencia: {
+          ...state.resultadosEficiencia,
+          SFA: action.payload,
+        },
+      };
+    case actionTypes.SET_RESULTADO_DEA:
+      return {
+        ...state,
+        resultadosEficiencia: {
+          ...state.resultadosEficiencia,
+          DEA: action.payload,
+        },
+      };
+    case actionTypes.SET_RESULTADO_DEAM:
+      return {
+        ...state,
+        resultadosEficiencia: {
+          ...state.resultadosEficiencia,
+          DEAM: action.payload,
         },
       };
 
@@ -260,6 +297,17 @@ export const GlobalStateProvider = ({ children }) => {
     dispatch({ type: actionTypes.CLEAR_TEMPORAL_DATA });
   };
 
+  // Acciones para resultados completos de eficiencia
+  const setResultadoSFA = (resultado) => {
+    dispatch({ type: actionTypes.SET_RESULTADO_SFA, payload: resultado });
+  };
+  const setResultadoDEA = (resultado) => {
+    dispatch({ type: actionTypes.SET_RESULTADO_DEA, payload: resultado });
+  };
+  const setResultadoDEAM = (resultado) => {
+    dispatch({ type: actionTypes.SET_RESULTADO_DEAM, payload: resultado });
+  };
+
   const value = {
     state,
     actions: {
@@ -282,6 +330,10 @@ export const GlobalStateProvider = ({ children }) => {
       setTemporalLoading,
       setTemporalError,
       clearTemporalData,
+      // Acciones para resultados completos de eficiencia
+      setResultadoSFA,
+      setResultadoDEA,
+      setResultadoDEAM,
     },
   };
 
