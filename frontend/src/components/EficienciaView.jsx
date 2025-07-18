@@ -749,6 +749,15 @@ const EficienciaView = ({ onNavigate }) => {
     // Usar el estado global en lugar del estado local
     const hospitalesFromState = state.hospitales;
 
+    // Si no hay resultados para la metodología seleccionada, retornar array vacío
+    if (
+      !currentResult ||
+      !currentResult.results ||
+      currentResult.results.length === 0
+    ) {
+      return [];
+    }
+
     // Asegurar que siempre sea un array
     if (
       !Array.isArray(hospitalesFromState) ||
