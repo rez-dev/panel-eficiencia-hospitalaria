@@ -27,6 +27,7 @@ import {
   Space,
   Spin,
   Alert,
+  message,
 } from "antd";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
@@ -218,7 +219,8 @@ const EficienciaView = ({ onNavigate }) => {
   const [searchedColumn, setSearchedColumn] = useState("");
   const [anoInicial, setAnoInicial] = useState(2014);
   const [anoFinal, setAnoFinal] = useState(2018);
-  const [variableTop, setVariableTop] = useState("");
+  const [variableTop, setVariableTop] = useState("remuneraciones");
+  const [localLoading, setLocalLoading] = useState(false);
 
   // Obtener el resultado actual según la metodología
   const currentResult =
@@ -671,6 +673,7 @@ const EficienciaView = ({ onNavigate }) => {
     actions.setLoading(true);
     actions.setError(null);
     try {
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Espera 2 segundos
       const inputCols =
         entradas.length > 0
           ? entradas
@@ -1617,18 +1620,20 @@ const EficienciaView = ({ onNavigate }) => {
                     backgroundColor: "#1890ff",
                     borderColor: "#1890ff",
                   }}
-                  loading={loading}
-                  onClick={() => {
-                    const logData = { entradas, salidas, variableTop };
-                    if (calculationMethod === "DEA-M") {
-                      logData.anoInicial = anoInicial;
-                      logData.anoFinal = anoFinal;
+                  loading={localLoading}
+                  onClick={async () => {
+                    if (calculationMethod === "DEA-M" && !variableTop) {
+                      message.error(
+                        "Debes seleccionar una Variable Top para el análisis DEA-M."
+                      );
+                      return;
                     }
-                    console.log("Calculando con:", logData);
-                    fetchData(); // Llamar a la función de la API
+                    setLocalLoading(true);
+                    await fetchData();
+                    setLocalLoading(false);
                   }}
                 >
-                  {loading ? "Calculando..." : "Calcular"}
+                  {localLoading ? "Calculando..." : "Calcular"}
                 </Button>
               </ActionTooltip>
             </>
