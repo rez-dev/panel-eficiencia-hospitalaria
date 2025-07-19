@@ -10,6 +10,7 @@ import {
   ClockCircleOutlined,
   SearchOutlined,
   CalendarOutlined,
+  RocketFilled,
 } from "@ant-design/icons";
 import {
   Layout,
@@ -267,42 +268,56 @@ const EficienciaView = ({ onNavigate }) => {
     return null;
   };
 
+  // Mapeo explícito de iconos por título de KPI
+  const kpiIconMap = {
+    "ET Promedio": <LineChartOutlined />,
+    "Hospitales críticos": <TeamOutlined />,
+    "Variable clave": <TrophyOutlined />,
+    Varianza: <EditFilled />,
+    "Slack más alto promedio": <EditFilled />,
+    "Total hospitales": <TeamOutlined />,
+    "ΔProd Promedio": <LineChartOutlined />,
+    ΔEficiencia: <ClockCircleOutlined />,
+    ΔTecnología: <RocketFilled />,
+    "Hosp. Mejorados": <TeamOutlined />,
+  };
+
   // Configuración de KPIs por método de cálculo
   const kpiConfigs = {
     SFA: [
       {
         title: "ET Promedio",
-        value: 0.742,
-        precision: 3,
+        value: "--",
+        precision: 2,
         color: "#1890ff",
-        icon: <LineChartOutlined />,
+        icon: kpiIconMap["ET Promedio"],
         gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
         border: "#e8f4f8",
       },
       {
         title: "Hospitales críticos",
-        value: 12,
-        precision: 0,
+        value: "--",
+        precision: 1,
         color: "#1890ff",
-        icon: <TrophyOutlined />,
+        icon: kpiIconMap["Hospitales críticos"],
         gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
         border: "#e8f4f8",
       },
       {
         title: "Variable clave",
-        value: 3,
+        value: "--",
         precision: 0,
         color: "#1890ff",
-        icon: <TeamOutlined />,
+        icon: kpiIconMap["Variable clave"],
         gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
         border: "#e8f4f8",
       },
       {
         title: "Varianza",
-        value: 0.156,
-        precision: 3,
+        value: "--",
+        precision: 2,
         color: "#1890ff",
-        icon: <ClockCircleOutlined />,
+        icon: kpiIconMap["Varianza"],
         gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
         border: "#e8f4f8",
       },
@@ -310,37 +325,37 @@ const EficienciaView = ({ onNavigate }) => {
     DEA: [
       {
         title: "ET Promedio",
-        value: 0.85,
-        precision: 3,
+        value: "--",
+        precision: 2,
         color: "#1890ff",
-        icon: <LineChartOutlined />,
+        icon: kpiIconMap["ET Promedio"],
         gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
         border: "#e8f4f8",
       },
       {
         title: "Hospitales críticos",
-        value: 6,
-        precision: 0,
+        value: "--",
+        precision: 1,
         color: "#1890ff",
-        icon: <TrophyOutlined />,
+        icon: kpiIconMap["Hospitales críticos"],
         gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
         border: "#e8f4f8",
       },
       {
         title: "Slack más alto promedio",
-        value: 15.4,
-        precision: 1,
+        value: "--",
+        precision: 0,
         color: "#1890ff",
-        icon: <TeamOutlined />,
+        icon: kpiIconMap["Slack más alto promedio"],
         gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
         border: "#e8f4f8",
       },
       {
-        title: "Total Hospitales",
-        value: 0,
+        title: "Total hospitales",
+        value: "--",
         precision: 0,
         color: "#1890ff",
-        icon: <ClockCircleOutlined />,
+        icon: kpiIconMap["Total hospitales"],
         gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
         border: "#e8f4f8",
       },
@@ -351,17 +366,16 @@ const EficienciaView = ({ onNavigate }) => {
         value: "--",
         precision: 1,
         color: "#1890ff",
-        icon: <LineChartOutlined />,
+        icon: kpiIconMap["ΔProd Promedio"],
         gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
         border: "#e8f4f8",
-        suffix: "%",
       },
       {
         title: "ΔEficiencia",
         value: "--",
         precision: 3,
         color: "#1890ff",
-        icon: <TrophyOutlined />,
+        icon: kpiIconMap["ΔEficiencia"],
         gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
         border: "#e8f4f8",
       },
@@ -370,7 +384,7 @@ const EficienciaView = ({ onNavigate }) => {
         value: "--",
         precision: 3,
         color: "#1890ff",
-        icon: <TeamOutlined />,
+        icon: kpiIconMap["ΔTecnología"],
         gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
         border: "#e8f4f8",
       },
@@ -379,10 +393,9 @@ const EficienciaView = ({ onNavigate }) => {
         value: "--",
         precision: 1,
         color: "#1890ff",
-        icon: <ClockCircleOutlined />,
+        icon: kpiIconMap["Hosp. Mejorados"],
         gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
         border: "#e8f4f8",
-        suffix: "%",
       },
     ],
   };
@@ -402,7 +415,7 @@ const EficienciaView = ({ onNavigate }) => {
           value: metrics.et_promedio || 0,
           precision: 2,
           color: "#1890ff",
-          icon: <LineChartOutlined />,
+          icon: kpiIconMap["ET Promedio"],
           gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
           border: "#e8f4f8",
         },
@@ -412,7 +425,7 @@ const EficienciaView = ({ onNavigate }) => {
           precision: 1,
           suffix: "%",
           color: "#1890ff",
-          icon: <TrophyOutlined />,
+          icon: kpiIconMap["Hospitales críticos"],
           gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
           border: "#e8f4f8",
         },
@@ -439,7 +452,7 @@ const EficienciaView = ({ onNavigate }) => {
           })(),
           precision: 0,
           color: "#1890ff",
-          icon: <TeamOutlined />,
+          icon: kpiIconMap["Variable clave"],
           gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
           border: "#e8f4f8",
         },
@@ -448,7 +461,7 @@ const EficienciaView = ({ onNavigate }) => {
           value: metrics.varianza || 0,
           precision: 2,
           color: "#1890ff",
-          icon: <ClockCircleOutlined />,
+          icon: kpiIconMap["Varianza"],
           gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
           border: "#e8f4f8",
         },
@@ -460,7 +473,7 @@ const EficienciaView = ({ onNavigate }) => {
           value: metrics.delta_prod_promedio || 0,
           precision: 1,
           color: "#1890ff",
-          icon: <LineChartOutlined />,
+          icon: kpiIconMap["ΔProd Promedio"],
           gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
           border: "#e8f4f8",
           suffix: "%",
@@ -470,7 +483,7 @@ const EficienciaView = ({ onNavigate }) => {
           value: metrics.delta_eficiencia_promedio || 0,
           precision: 3,
           color: "#1890ff",
-          icon: <TrophyOutlined />,
+          icon: kpiIconMap["ΔEficiencia"],
           gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
           border: "#e8f4f8",
         },
@@ -479,7 +492,7 @@ const EficienciaView = ({ onNavigate }) => {
           value: metrics.delta_tecnologia_promedio || 0,
           precision: 3,
           color: "#1890ff",
-          icon: <TeamOutlined />,
+          icon: kpiIconMap["ΔTecnología"],
           gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
           border: "#e8f4f8",
         },
@@ -488,7 +501,7 @@ const EficienciaView = ({ onNavigate }) => {
           value: metrics.pct_hosp_mejorados || 0,
           precision: 1,
           color: "#1890ff",
-          icon: <ClockCircleOutlined />,
+          icon: kpiIconMap["Hosp. Mejorados"],
           gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
           border: "#e8f4f8",
           suffix: "%",
@@ -501,7 +514,7 @@ const EficienciaView = ({ onNavigate }) => {
           value: metrics.et_promedio || 0,
           precision: 2,
           color: "#1890ff",
-          icon: <LineChartOutlined />,
+          icon: kpiIconMap["ET Promedio"],
           gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
           border: "#e8f4f8",
         },
@@ -511,7 +524,7 @@ const EficienciaView = ({ onNavigate }) => {
           precision: 1,
           suffix: "%",
           color: "#1890ff",
-          icon: <TrophyOutlined />,
+          icon: kpiIconMap["Hospitales críticos"],
           gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
           border: "#e8f4f8",
         },
@@ -538,7 +551,7 @@ const EficienciaView = ({ onNavigate }) => {
           })(),
           precision: 0,
           color: "#1890ff",
-          icon: <TeamOutlined />,
+          icon: kpiIconMap["Slack más alto promedio"],
           gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
           border: "#e8f4f8",
         },
@@ -547,7 +560,7 @@ const EficienciaView = ({ onNavigate }) => {
           value: responseData.results ? responseData.results.length : 0,
           precision: 0,
           color: "#1890ff",
-          icon: <ClockCircleOutlined />,
+          icon: kpiIconMap["Total hospitales"],
           gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
           border: "#e8f4f8",
         },
@@ -1008,7 +1021,12 @@ const EficienciaView = ({ onNavigate }) => {
           render: (value) => {
             return (
               <span>
-                {typeof value === "number" ? value.toFixed(3) : "0.000"}
+                {typeof value === "number"
+                  ? value.toLocaleString("es-CL", {
+                      minimumFractionDigits: 3,
+                      maximumFractionDigits: 3,
+                    })
+                  : "0,000"}
               </span>
             );
           },
@@ -1035,7 +1053,12 @@ const EficienciaView = ({ onNavigate }) => {
           render: (value) => {
             return (
               <span>
-                {typeof value === "number" ? value.toFixed(3) : "0.000"}
+                {typeof value === "number"
+                  ? value.toLocaleString("es-CL", {
+                      minimumFractionDigits: 3,
+                      maximumFractionDigits: 3,
+                    })
+                  : "0,000"}
               </span>
             );
           },
@@ -1063,7 +1086,14 @@ const EficienciaView = ({ onNavigate }) => {
             const numValue = typeof value === "number" ? value : 0;
             const color =
               numValue > 1 ? "#52c41a" : numValue < 1 ? "#ff4d4f" : "#666";
-            return <span style={{ color }}>{numValue.toFixed(3)}</span>;
+            return (
+              <span style={{ color }}>
+                {numValue.toLocaleString("es-CL", {
+                  minimumFractionDigits: 3,
+                  maximumFractionDigits: 3,
+                })}
+              </span>
+            );
           },
           sorter: (a, b) => (a.EFFCH || 0) - (b.EFFCH || 0),
           sortDirections: ["descend", "ascend"],
@@ -1089,7 +1119,14 @@ const EficienciaView = ({ onNavigate }) => {
             const numValue = typeof value === "number" ? value : 0;
             const color =
               numValue > 1 ? "#52c41a" : numValue < 1 ? "#ff4d4f" : "#666";
-            return <span style={{ color }}>{numValue.toFixed(3)}</span>;
+            return (
+              <span style={{ color }}>
+                {numValue.toLocaleString("es-CL", {
+                  minimumFractionDigits: 3,
+                  maximumFractionDigits: 3,
+                })}
+              </span>
+            );
           },
           sorter: (a, b) => (a.TECH || 0) - (b.TECH || 0),
           sortDirections: ["descend", "ascend"],
@@ -1117,7 +1154,10 @@ const EficienciaView = ({ onNavigate }) => {
               numValue > 1 ? "#52c41a" : numValue < 1 ? "#ff4d4f" : "#666";
             return (
               <span style={{ color, fontWeight: "bold" }}>
-                {numValue.toFixed(3)}
+                {numValue.toLocaleString("es-CL", {
+                  minimumFractionDigits: 3,
+                  maximumFractionDigits: 3,
+                })}
               </span>
             );
           },
@@ -1145,7 +1185,15 @@ const EficienciaView = ({ onNavigate }) => {
             const numValue = typeof value === "number" ? value : 0;
             const color =
               numValue > 0 ? "#52c41a" : numValue < 0 ? "#ff4d4f" : "#666";
-            return <span style={{ color }}>{numValue.toFixed(1)}%</span>;
+            return (
+              <span style={{ color }}>
+                {numValue.toLocaleString("es-CL", {
+                  minimumFractionDigits: 1,
+                  maximumFractionDigits: 1,
+                })}
+                %
+              </span>
+            );
           },
           sorter: (a, b) => (a.pctDeltaProd || 0) - (b.pctDeltaProd || 0),
           sortDirections: ["descend", "ascend"],
@@ -1172,7 +1220,20 @@ const EficienciaView = ({ onNavigate }) => {
           dataIndex: "eficiencia",
           key: "eficiencia",
           width: "20%",
-          render: (value) => `${value}%`,
+          render: (value) => {
+            if (typeof value === "string" && value.endsWith("%")) {
+              // Ya está formateado
+              return value;
+            }
+            const num = parseFloat(value);
+            if (isNaN(num)) return value;
+            return (
+              num.toLocaleString("es-CL", {
+                minimumFractionDigits: 1,
+                maximumFractionDigits: 1,
+              }) + "%"
+            );
+          },
           sorter: (a, b) => parseFloat(a.eficiencia) - parseFloat(b.eficiencia),
           sortDirections: ["descend", "ascend"],
           showSorterTooltip: false,
@@ -1193,7 +1254,11 @@ const EficienciaView = ({ onNavigate }) => {
           dataIndex: "percentil",
           key: "percentil",
           width: "20%",
-          render: (value) => `${value}°`,
+          render: (value) => {
+            const num = parseInt(value);
+            if (isNaN(num)) return value;
+            return num.toLocaleString("es-CL") + "°";
+          },
           sorter: (a, b) => a.percentil - b.percentil,
           sortDirections: ["descend", "ascend"],
           showSorterTooltip: false,
@@ -1800,8 +1865,15 @@ const EficienciaView = ({ onNavigate }) => {
                               {kpi.title}
                             </span>
                           }
-                          value={kpi.value}
-                          precision={kpi.precision}
+                          value={
+                            typeof kpi.value === "number"
+                              ? kpi.value.toLocaleString("es-CL", {
+                                  minimumFractionDigits: kpi.precision,
+                                  maximumFractionDigits: kpi.precision,
+                                })
+                              : kpi.value
+                          }
+                          precision={0}
                           valueStyle={{
                             color: "#1890ff",
                             fontSize: "24px",

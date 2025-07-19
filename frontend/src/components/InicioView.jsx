@@ -311,7 +311,16 @@ const InicioView = ({ onNavigate }) => {
           </div>
           <Row gutter={[24, 24]}>
             <Col xs={24} lg={12}>
-              <Card title="📊 Eficiencia Técnica" bordered={false}>
+              <Card
+                title="📊 Eficiencia Técnica"
+                bordered={false}
+                style={{
+                  height: 200,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+              >
                 <Paragraph>
                   Analiza la eficiencia técnica de las instituciones de salud
                   utilizando metodologías avanzadas como SFA (Análisis de
@@ -325,7 +334,16 @@ const InicioView = ({ onNavigate }) => {
               </Card>
             </Col>
             <Col xs={24} lg={12}>
-              <Card title="🏥 Comparación de Hospitales" bordered={false}>
+              <Card
+                title="🏥 Comparación de Hospitales"
+                bordered={false}
+                style={{
+                  height: 200,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+              >
                 <Paragraph>
                   Compara el desempeño de diferentes instituciones de salud para
                   identificar mejores prácticas y oportunidades de mejora.
@@ -339,7 +357,16 @@ const InicioView = ({ onNavigate }) => {
           </Row>
           <Row gutter={[24, 24]} style={{ marginTop: "24px" }}>
             <Col xs={24} lg={12}>
-              <Card title="🔍 Análisis de Determinantes" bordered={false}>
+              <Card
+                title="🔍 Análisis de Determinantes"
+                bordered={false}
+                style={{
+                  height: 200,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+              >
                 <Paragraph>
                   Explora los factores que inciden sobre la eficiencia
                   hospitalaria.
@@ -351,7 +378,16 @@ const InicioView = ({ onNavigate }) => {
               </Card>
             </Col>
             <Col xs={24} lg={12}>
-              <Card title="🎯 PCA & Análisis de Clúster" bordered={false}>
+              <Card
+                title="🎯 PCA & Análisis de Clúster"
+                bordered={false}
+                style={{
+                  height: 200,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+              >
                 <Paragraph>
                   Agrupa instituciones similares y reduce la dimensionalidad de
                   los datos para facilitar el análisis.

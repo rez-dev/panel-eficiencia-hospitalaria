@@ -858,6 +858,12 @@ const ComparacionView = () => {
     ? allYears
     : [hospitalBYear, ...allYears];
 
+  const kpiIconMap = {
+    "Gap Insumos": <TeamOutlined />,
+    "Gap Productos": <TrophyOutlined />,
+    "Gap Eficiencia": <LineChartOutlined />,
+  };
+
   return (
     <Layout style={{ height: "calc(100vh - 64px)" }}>
       <Sider
@@ -1155,7 +1161,7 @@ const ComparacionView = () => {
                 >
                   <Radio.Button value="SFA">SFA</Radio.Button>
                   <Radio.Button value="DEA">DEA</Radio.Button>
-                  <Radio.Button value="DEA-M">DEA-M</Radio.Button>
+                  {/* <Radio.Button value="DEA-M">DEA-M</Radio.Button> */}
                 </Radio.Group>
               </ParameterTooltip>
             </div>
@@ -1240,7 +1246,6 @@ const ComparacionView = () => {
                           "0 4px 12px rgba(0, 0, 0, 0.1)";
                       }}
                     >
-                      {" "}
                       <KpiTooltip
                         tooltipData={getTooltip(
                           "comparacion",
@@ -1261,7 +1266,7 @@ const ComparacionView = () => {
                                 gap: "6px",
                               }}
                             >
-                              <EditFilled />
+                              {kpiIconMap["Gap Insumos"]}
                               Gap Insumos
                             </span>
                           }
@@ -1307,7 +1312,6 @@ const ComparacionView = () => {
                           "0 4px 12px rgba(0, 0, 0, 0.1)";
                       }}
                     >
-                      {" "}
                       <KpiTooltip
                         tooltipData={getTooltip(
                           "comparacion",
@@ -1328,7 +1332,7 @@ const ComparacionView = () => {
                                 gap: "6px",
                               }}
                             >
-                              <TrophyOutlined />
+                              {kpiIconMap["Gap Productos"]}
                               Gap Productos
                             </span>
                           }
@@ -1374,7 +1378,6 @@ const ComparacionView = () => {
                           "0 4px 12px rgba(0, 0, 0, 0.1)";
                       }}
                     >
-                      {" "}
                       <KpiTooltip
                         tooltipData={getTooltip(
                           "comparacion",
@@ -1395,7 +1398,7 @@ const ComparacionView = () => {
                                 gap: "6px",
                               }}
                             >
-                              <LineChartOutlined />
+                              {kpiIconMap["Gap Eficiencia"]}
                               Gap Eficiencia
                             </span>
                           }
