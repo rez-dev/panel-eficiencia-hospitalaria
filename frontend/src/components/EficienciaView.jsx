@@ -859,7 +859,7 @@ const EficienciaView = ({ onNavigate }) => {
     actions.clearHospitalesSeleccionados();
 
     // Agregar cada hospital al estado global
-    selectedHospitals.forEach((hospital) => {
+    selectedHospitals.forEach((hospital, idx) => {
       const hospitalData = {
         id: hospital.key,
         hospital: hospital.hospital,
@@ -868,11 +868,19 @@ const EficienciaView = ({ onNavigate }) => {
         region: hospital.region,
         lat: hospital.lat,
         lng: hospital.lng,
-        año: selectedYear,
+        año: hospital.año || selectedYear,
         // Agregar todos los datos adicionales del hospital
         ...hospital,
       };
       actions.addHospitalSeleccionado(hospitalData);
+      // Guardar el año seleccionado en el contexto global
+      if (selectedHospitals.length === 1) {
+        actions.setTemporalYearASelected(hospitalData.año);
+        actions.setTemporalYearBSelected(hospitalData.año);
+      } else {
+        if (idx === 0) actions.setTemporalYearASelected(hospitalData.año);
+        if (idx === 1) actions.setTemporalYearBSelected(hospitalData.año);
+      }
     });
 
     // Navegar a la vista de comparación

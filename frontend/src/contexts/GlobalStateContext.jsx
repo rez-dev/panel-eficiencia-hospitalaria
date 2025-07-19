@@ -19,6 +19,13 @@ const initialState = {
     DEAM: null, // DEA-Malmquist
   },
 
+  // Resultados de comparación
+  resultadosComparacion: {},
+  // Resultados de determinantes
+  resultadosDeterminantes: {},
+  // Resultados de PCA/Clustering
+  resultadosPcaCluster: {},
+
   // Selecciones para comparación
   hospitalesSeleccionados: [],
 
@@ -26,6 +33,8 @@ const initialState = {
   hospitalTemporalData: {
     yearA: null, // Datos del hospital para año A
     yearB: null, // Datos del hospital para año B
+    yearASelected: null, // Año seleccionado para A
+    yearBSelected: null, // Año seleccionado para B
     loading: false, // Estado de carga para datos temporales
     error: null, // Error específico para datos temporales
   },
@@ -57,10 +66,21 @@ const actionTypes = {
   SET_TEMPORAL_LOADING: "SET_TEMPORAL_LOADING",
   SET_TEMPORAL_ERROR: "SET_TEMPORAL_ERROR",
   CLEAR_TEMPORAL_DATA: "CLEAR_TEMPORAL_DATA",
+  SET_TEMPORAL_YEAR_A_SELECTED: "SET_TEMPORAL_YEAR_A_SELECTED",
+  SET_TEMPORAL_YEAR_B_SELECTED: "SET_TEMPORAL_YEAR_B_SELECTED",
   // Acciones para resultados completos de eficiencia
   SET_RESULTADO_SFA: "SET_RESULTADO_SFA",
   SET_RESULTADO_DEA: "SET_RESULTADO_DEA",
   SET_RESULTADO_DEAM: "SET_RESULTADO_DEAM",
+  // Acciones para resultados de comparación
+  SET_RESULTADOS_COMPARACION: "SET_RESULTADOS_COMPARACION",
+  CLEAR_RESULTADOS_COMPARACION: "CLEAR_RESULTADOS_COMPARACION",
+  // Acciones para resultados de determinantes
+  SET_RESULTADOS_DETERMINANTES: "SET_RESULTADOS_DETERMINANTES",
+  CLEAR_RESULTADOS_DETERMINANTES: "CLEAR_RESULTADOS_DETERMINANTES",
+  // Acciones para resultados de PCA/Clustering
+  SET_RESULTADOS_PCA_CLUSTER: "SET_RESULTADOS_PCA_CLUSTER",
+  CLEAR_RESULTADOS_PCA_CLUSTER: "CLEAR_RESULTADOS_PCA_CLUSTER",
 };
 
 // Reducer para manejar el estado
@@ -167,6 +187,23 @@ const globalStateReducer = (state, action) => {
         },
       };
 
+    case actionTypes.SET_TEMPORAL_YEAR_A_SELECTED:
+      return {
+        ...state,
+        hospitalTemporalData: {
+          ...state.hospitalTemporalData,
+          yearASelected: action.payload,
+        },
+      };
+    case actionTypes.SET_TEMPORAL_YEAR_B_SELECTED:
+      return {
+        ...state,
+        hospitalTemporalData: {
+          ...state.hospitalTemporalData,
+          yearBSelected: action.payload,
+        },
+      };
+
     // Acciones para resultados completos de eficiencia
     case actionTypes.SET_RESULTADO_SFA:
       return {
@@ -191,6 +228,39 @@ const globalStateReducer = (state, action) => {
           ...state.resultadosEficiencia,
           DEAM: action.payload,
         },
+      };
+    // Acciones para resultados de comparación
+    case actionTypes.SET_RESULTADOS_COMPARACION:
+      return {
+        ...state,
+        resultadosComparacion: action.payload,
+      };
+    case actionTypes.CLEAR_RESULTADOS_COMPARACION:
+      return {
+        ...state,
+        resultadosComparacion: {},
+      };
+    // Acciones para resultados de determinantes
+    case actionTypes.SET_RESULTADOS_DETERMINANTES:
+      return {
+        ...state,
+        resultadosDeterminantes: action.payload,
+      };
+    case actionTypes.CLEAR_RESULTADOS_DETERMINANTES:
+      return {
+        ...state,
+        resultadosDeterminantes: {},
+      };
+    // Acciones para resultados de PCA/Clustering
+    case actionTypes.SET_RESULTADOS_PCA_CLUSTER:
+      return {
+        ...state,
+        resultadosPcaCluster: action.payload,
+      };
+    case actionTypes.CLEAR_RESULTADOS_PCA_CLUSTER:
+      return {
+        ...state,
+        resultadosPcaCluster: {},
       };
 
     default:
@@ -297,6 +367,13 @@ export const GlobalStateProvider = ({ children }) => {
     dispatch({ type: actionTypes.CLEAR_TEMPORAL_DATA });
   };
 
+  const setTemporalYearASelected = (year) => {
+    dispatch({ type: actionTypes.SET_TEMPORAL_YEAR_A_SELECTED, payload: year });
+  };
+  const setTemporalYearBSelected = (year) => {
+    dispatch({ type: actionTypes.SET_TEMPORAL_YEAR_B_SELECTED, payload: year });
+  };
+
   // Acciones para resultados completos de eficiencia
   const setResultadoSFA = (resultado) => {
     dispatch({ type: actionTypes.SET_RESULTADO_SFA, payload: resultado });
@@ -306,6 +383,39 @@ export const GlobalStateProvider = ({ children }) => {
   };
   const setResultadoDEAM = (resultado) => {
     dispatch({ type: actionTypes.SET_RESULTADO_DEAM, payload: resultado });
+  };
+
+  // Acciones para resultados de comparación
+  const setResultadosComparacion = (resultados) => {
+    dispatch({
+      type: actionTypes.SET_RESULTADOS_COMPARACION,
+      payload: resultados,
+    });
+  };
+  const clearResultadosComparacion = () => {
+    dispatch({ type: actionTypes.CLEAR_RESULTADOS_COMPARACION });
+  };
+
+  // Acciones para resultados de determinantes
+  const setResultadosDeterminantes = (resultados) => {
+    dispatch({
+      type: actionTypes.SET_RESULTADOS_DETERMINANTES,
+      payload: resultados,
+    });
+  };
+  const clearResultadosDeterminantes = () => {
+    dispatch({ type: actionTypes.CLEAR_RESULTADOS_DETERMINANTES });
+  };
+
+  // Acciones para resultados de PCA/Clustering
+  const setResultadosPcaCluster = (resultados) => {
+    dispatch({
+      type: actionTypes.SET_RESULTADOS_PCA_CLUSTER,
+      payload: resultados,
+    });
+  };
+  const clearResultadosPcaCluster = () => {
+    dispatch({ type: actionTypes.CLEAR_RESULTADOS_PCA_CLUSTER });
   };
 
   const value = {
@@ -330,10 +440,21 @@ export const GlobalStateProvider = ({ children }) => {
       setTemporalLoading,
       setTemporalError,
       clearTemporalData,
+      setTemporalYearASelected,
+      setTemporalYearBSelected,
       // Acciones para resultados completos de eficiencia
       setResultadoSFA,
       setResultadoDEA,
       setResultadoDEAM,
+      // Acciones para resultados de comparación
+      setResultadosComparacion,
+      clearResultadosComparacion,
+      // Acciones para resultados de determinantes
+      setResultadosDeterminantes,
+      clearResultadosDeterminantes,
+      // Acciones para resultados de PCA/Clustering
+      setResultadosPcaCluster,
+      clearResultadosPcaCluster,
     },
   };
 

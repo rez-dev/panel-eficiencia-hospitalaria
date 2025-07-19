@@ -49,6 +49,7 @@ import CustomTooltip, {
 } from "./CustomTooltip";
 import { getTooltip } from "../data/tooltips";
 import ApiService from "../services/api";
+import { useGlobalState } from "../contexts/GlobalStateContext";
 
 const { Content, Sider } = Layout;
 const { Title } = Typography;
@@ -71,6 +72,7 @@ const DeterminantesView = ({ onNavigate }) => {
   ]);
   const [loading, setLoading] = useState(false);
   const [analysisResults, setAnalysisResults] = useState(null);
+  const { state, actions } = useGlobalState();
   const [normalizeChart, setNormalizeChart] = useState(true);
 
   const {
@@ -207,6 +209,7 @@ const DeterminantesView = ({ onNavigate }) => {
 
       console.log("Respuesta del backend:", data); // Debug
       setAnalysisResults(data);
+      actions.setResultadosDeterminantes(data);
       message.success("Análisis completado exitosamente");
     } catch (error) {
       console.error("Error al calcular análisis:", error);
@@ -215,6 +218,16 @@ const DeterminantesView = ({ onNavigate }) => {
       setLoading(false);
     }
   };
+
+  // Restaurar resultados guardados al montar la vista
+  useEffect(() => {
+    if (
+      state.resultadosDeterminantes &&
+      Object.keys(state.resultadosDeterminantes).length > 0
+    ) {
+      setAnalysisResults(state.resultadosDeterminantes);
+    }
+  }, [state.resultadosDeterminantes]);
 
   return (
     <Layout style={{ height: "calc(100vh - 64px)" }}>

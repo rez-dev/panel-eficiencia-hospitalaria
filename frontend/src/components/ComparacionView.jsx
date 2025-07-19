@@ -198,14 +198,21 @@ const ComparacionView = () => {
     hospitalTemporalData,
     loading,
     error,
+    resultadosComparacion, // <-- nuevo
   } = state;
 
   // Estados locales (mantener algunos para funcionalidad específica de esta vista)
   const [collapsed, setCollapsed] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
-  const [hospitalAYear, setHospitalAYear] = useState(2018);
-  const [hospitalBYear, setHospitalBYear] = useState(2014); // Preparar hospitales para comparación usando el estado global
+  const [hospitalAYear, setHospitalAYear] = useState(
+    hospitalTemporalData.yearASelected
+  );
+  const [hospitalBYear, setHospitalBYear] = useState(
+    hospitalTemporalData.yearBSelected
+  ); // Usar valores del contexto si existen
+  // Estado local para KPIs de comparación persistente
+  const [persistedComparisonKPIs, setPersistedComparisonKPIs] = useState(null);
   const hospitalsToCompare = () => {
     if (hospitalesSeleccionados && hospitalesSeleccionados.length > 0) {
       // Buscar los valores actualizados de eficiencia en state.hospitales si están disponibles
@@ -373,6 +380,7 @@ const ComparacionView = () => {
         maxSalidaVariable = maxSalidaGap.variable;
       }
 
+      // Al final del cálculo, solo retornar el resultado
       return {
         insumoGap: insumoGap,
         salidaGap: salidaGap,
@@ -440,41 +448,41 @@ const ComparacionView = () => {
     isTemporalComparison,
     inputcols,
     outputcols,
-  ]); // Effect para inicializar datos temporales cuando se carga por primera vez
+  ]);
+
+  // useEffect para persistir el resultado cuando cambie
   useEffect(() => {
-    if (isTemporalComparison && hospitalesSeleccionados.length === 1) {
-      const baseHospital = hospitalesSeleccionados[0];
-
-      // Solo inicializar si es la primera vez que se entra en modo temporal
-      // y no hay datos temporales previos
-      if (!hospitalTemporalData.yearA && !hospitalTemporalData.yearB) {
-        // Usar el año del hospital base si está disponible, sino usar los valores por defecto
-        const yearAToUse = baseHospital.año || hospitalAYear;
-        const yearBToUse = baseHospital.año || hospitalBYear;
-
-        actions.setTemporalYearA({
-          ...baseHospital,
-          año: yearAToUse,
-        });
-
-        actions.setTemporalYearB({
-          ...baseHospital,
-          año: yearBToUse,
-        });
-
-        // Solo actualizar los estados locales si es necesario
-        if (baseHospital.año && baseHospital.año !== hospitalAYear) {
-          setHospitalAYear(baseHospital.año);
-        }
-        if (baseHospital.año && baseHospital.año !== hospitalBYear) {
-          setHospitalBYear(baseHospital.año);
-        }
-      }
-    } else {
-      // Si no es comparación temporal, limpiar datos temporales
-      actions.clearTemporalData();
+    // Solo guardar si el valor es diferente al guardado en el contexto
+    if (
+      comparisonKPIs &&
+      Object.keys(comparisonKPIs).length > 0 &&
+      JSON.stringify(comparisonKPIs) !==
+        JSON.stringify(state.resultadosComparacion)
+    ) {
+      actions.setResultadosComparacion(comparisonKPIs);
+      setPersistedComparisonKPIs(comparisonKPIs);
     }
-  }, [isTemporalComparison, hospitalesSeleccionados, actions]);
+  }, [comparisonKPIs, actions, state.resultadosComparacion]);
+
+  // Restaurar resultados guardados al montar la vista
+  useEffect(() => {
+    if (
+      resultadosComparacion &&
+      Object.keys(resultadosComparacion).length > 0
+    ) {
+      setPersistedComparisonKPIs(resultadosComparacion);
+    }
+  }, [resultadosComparacion]);
+
+  // Restaurar años seleccionados cada vez que cambien en el contexto
+  useEffect(() => {
+    if (hospitalTemporalData.yearASelected) {
+      setHospitalAYear(hospitalTemporalData.yearASelected);
+    }
+    if (hospitalTemporalData.yearBSelected) {
+      setHospitalBYear(hospitalTemporalData.yearBSelected);
+    }
+  }, [hospitalTemporalData.yearASelected, hospitalTemporalData.yearBSelected]);
 
   // Función para obtener las props del filtro de búsqueda
   const getColumnSearchProps = (dataIndex) => ({
@@ -784,20 +792,16 @@ const ComparacionView = () => {
     if (!isTemporalComparison || !hospitalesSeleccionados[0]) return;
 
     const baseHospital = hospitalesSeleccionados[0];
-    console.log(
-      `Cambiando año ${
-        hospitalIndex === 0 ? "A" : "B"
-      } a ${year} para hospital ${baseHospital.hospital}`
-    );
-
     // Actualizar el estado local del año
     if (hospitalIndex === 0) {
       setHospitalAYear(year);
+      actions.setTemporalYearASelected(year);
     } else {
       setHospitalBYear(year);
+      actions.setTemporalYearBSelected(year);
     }
 
-    // Obtener datos del hospital para el nuevo año
+    // Obtener datos del hospital para el nuevo año (forzar recarga siempre)
     const hospitalData = await fetchTemporalData(baseHospital, year);
 
     if (hospitalData) {
@@ -824,13 +828,25 @@ const ComparacionView = () => {
       } else {
         actions.setTemporalYearB(updatedHospitalData);
       }
-
-      console.log(
-        `Datos actualizados para año ${hospitalIndex === 0 ? "A" : "B"}:`,
-        updatedHospitalData
-      );
+    } else {
+      // Si no hay datos, limpiar el hospital correspondiente
+      if (hospitalIndex === 0) {
+        actions.setTemporalYearA(null);
+      } else {
+        actions.setTemporalYearB(null);
+      }
     }
   };
+
+  // Opciones base de años
+  const allYears = [2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015, 2014];
+  // Opciones para año A y B, asegurando que el año seleccionado esté incluido
+  const yearAOptions = allYears.includes(hospitalAYear)
+    ? allYears
+    : [hospitalAYear, ...allYears];
+  const yearBOptions = allYears.includes(hospitalBYear)
+    ? allYears
+    : [hospitalBYear, ...allYears];
 
   return (
     <Layout style={{ height: "calc(100vh - 64px)" }}>
@@ -1239,7 +1255,10 @@ const ComparacionView = () => {
                               Gap Insumos
                             </span>
                           }
-                          value={comparisonKPIs.insumoGap}
+                          value={
+                            persistedComparisonKPIs?.insumoGap ||
+                            comparisonKPIs.insumoGap
+                          }
                           precision={1}
                           suffix="%"
                           valueStyle={{
@@ -1303,7 +1322,10 @@ const ComparacionView = () => {
                               Gap Productos
                             </span>
                           }
-                          value={comparisonKPIs.salidaGap}
+                          value={
+                            persistedComparisonKPIs?.salidaGap ||
+                            comparisonKPIs.salidaGap
+                          }
                           precision={1}
                           suffix="%"
                           valueStyle={{
@@ -1367,7 +1389,10 @@ const ComparacionView = () => {
                               Gap Eficiencia
                             </span>
                           }
-                          value={comparisonKPIs.eficienciaGap}
+                          value={
+                            persistedComparisonKPIs?.eficienciaGap ||
+                            comparisonKPIs.eficienciaGap
+                          }
                           precision={1}
                           suffix="%"
                           valueStyle={{
@@ -1455,9 +1480,11 @@ const ComparacionView = () => {
                           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         />{" "}
                         <MapLegend />
-                        {compareHospitals.map((hospital) => (
+                        {compareHospitals.map((hospital, index) => (
                           <Marker
-                            key={hospital.key}
+                            key={`${hospital.key || hospital.id}-${
+                              hospital.año || index
+                            }`}
                             position={[hospital.lat, hospital.lng]}
                             icon={getMarkerIcon(hospital.eficiencia)}
                           >
@@ -1504,7 +1531,9 @@ const ComparacionView = () => {
                           <Col
                             xs={24}
                             md={12}
-                            key={`${hospital.key}-${index}`}
+                            key={`${hospital.key || hospital.id}-${
+                              hospital.año || index
+                            }`}
                             style={{ display: "flex" }}
                           >
                             <Card
@@ -1576,18 +1605,13 @@ const ComparacionView = () => {
                                     }}
                                     size="small"
                                     style={{ width: "100px" }}
-                                    options={[
-                                      { value: 2023, label: "2023" },
-                                      { value: 2022, label: "2022" },
-                                      { value: 2021, label: "2021" },
-                                      { value: 2020, label: "2020" },
-                                      { value: 2019, label: "2019" },
-                                      { value: 2018, label: "2018" },
-                                      { value: 2017, label: "2017" },
-                                      { value: 2016, label: "2016" },
-                                      { value: 2015, label: "2015" },
-                                      { value: 2014, label: "2014" },
-                                    ]}
+                                    options={(index === 0
+                                      ? yearAOptions
+                                      : yearBOptions
+                                    ).map((y) => ({
+                                      value: y,
+                                      label: y.toString(),
+                                    }))}
                                   />
                                 )}
                               </div>{" "}

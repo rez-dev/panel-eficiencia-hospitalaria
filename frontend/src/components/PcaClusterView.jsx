@@ -155,6 +155,7 @@ const PcaClusterView = ({ onNavigate }) => {
       setMetrics(data.metrics);
       setComponentsMatrix(data.components_matrix);
       setClusterSummary(data.cluster_summary);
+      actions.setResultadosPcaCluster(data);
 
       console.log("Datos PCA + Clustering recibidos:", data);
       console.log("Components Matrix:", data.components_matrix);
@@ -203,6 +204,19 @@ const PcaClusterView = ({ onNavigate }) => {
       setNumComponents(3);
     }
   }, [numComponents]);
+  // Restaurar resultados guardados al montar la vista
+  useEffect(() => {
+    if (
+      state.resultadosPcaCluster &&
+      Object.keys(state.resultadosPcaCluster).length > 0
+    ) {
+      const data = state.resultadosPcaCluster;
+      setPcaData(data.results);
+      setMetrics(data.metrics);
+      setComponentsMatrix(data.components_matrix);
+      setClusterSummary(data.cluster_summary);
+    }
+  }, [state.resultadosPcaCluster]);
   // Funciones auxiliares para procesar datos del backend
   const getComponentsTableData = () => {
     if (!componentsMatrix || Object.keys(componentsMatrix).length === 0) {
