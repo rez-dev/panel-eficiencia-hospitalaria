@@ -673,7 +673,6 @@ const EficienciaView = ({ onNavigate }) => {
     actions.setLoading(true);
     actions.setError(null);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Espera 2 segundos
       const inputCols =
         entradas.length > 0
           ? entradas
