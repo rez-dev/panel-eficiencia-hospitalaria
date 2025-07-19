@@ -57,6 +57,26 @@ import ApiService from "../services/api";
 const { Content, Sider } = Layout;
 const { Title } = Typography;
 
+// Función utilitaria para formatear números con separador de miles (punto) y decimales con coma
+const formatNumber = (value, decimals = 1) => {
+  if (typeof value === "number" && !isNaN(value)) {
+    return value.toLocaleString("es-CL", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    });
+  }
+  if (typeof value === "string" && value !== "") {
+    const num = Number(value);
+    if (!isNaN(num)) {
+      return num.toLocaleString("es-CL", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      });
+    }
+  }
+  return value;
+};
+
 const PcaClusterView = ({ onNavigate }) => {
   // Estado global
   const { state, actions } = useGlobalState();
@@ -330,7 +350,7 @@ const PcaClusterView = ({ onNavigate }) => {
               color: value < 0 ? "#ff4d4f" : "#52c41a",
             }}
           >
-            {typeof value === "number" ? value.toFixed(4) : "0.0000"}
+            {typeof value === "number" ? formatNumber(value, 4) : "0.0000"}
           </span>
         ),
       });
@@ -960,7 +980,10 @@ const PcaClusterView = ({ onNavigate }) => {
                       }
                       value={
                         metrics?.total_variance_explained
-                          ? (metrics.total_variance_explained * 100).toFixed(1)
+                          ? formatNumber(
+                              metrics.total_variance_explained * 100,
+                              1
+                            )
                           : "--"
                       }
                       suffix={metrics?.total_variance_explained ? "%" : ""}
@@ -1025,7 +1048,13 @@ const PcaClusterView = ({ onNavigate }) => {
                           N° Clústeres
                         </span>
                       }
-                      value={metrics?.k_clusters || numClusters || "--"}
+                      value={
+                        metrics?.k_clusters !== undefined
+                          ? formatNumber(metrics.k_clusters, 0)
+                          : numClusters !== null
+                          ? formatNumber(numClusters, 0)
+                          : "--"
+                      }
                       valueStyle={{
                         color: "#1890ff",
                         fontSize: "24px",
@@ -1084,8 +1113,8 @@ const PcaClusterView = ({ onNavigate }) => {
                         </span>
                       }
                       value={
-                        metrics?.silhouette_score
-                          ? metrics.silhouette_score.toFixed(2)
+                        metrics?.silhouette_score !== undefined
+                          ? formatNumber(metrics.silhouette_score, 2)
                           : "--"
                       }
                       valueStyle={{
@@ -1492,7 +1521,7 @@ const PcaClusterView = ({ onNavigate }) => {
                           render: (value) => (
                             <span style={{ color: "#52c41a" }}>
                               {typeof value === "number"
-                                ? value.toFixed(2)
+                                ? formatNumber(value, 2)
                                 : "0.00"}
                             </span>
                           ),
@@ -1512,7 +1541,7 @@ const PcaClusterView = ({ onNavigate }) => {
                               }}
                             >
                               {typeof value === "number"
-                                ? value.toFixed(2)
+                                ? formatNumber(value, 2)
                                 : "0.00"}
                             </span>
                           ),
@@ -1532,7 +1561,7 @@ const PcaClusterView = ({ onNavigate }) => {
                               }}
                             >
                               {typeof value === "number"
-                                ? value.toFixed(2)
+                                ? formatNumber(value, 2)
                                 : "0.00"}
                             </span>
                           ),
@@ -1554,7 +1583,7 @@ const PcaClusterView = ({ onNavigate }) => {
                                     }}
                                   >
                                     {typeof value === "number"
-                                      ? value.toFixed(2)
+                                      ? formatNumber(value, 2)
                                       : "0.00"}
                                   </span>
                                 ),

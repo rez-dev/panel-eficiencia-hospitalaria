@@ -278,11 +278,9 @@ const ComparacionView = () => {
               eficiencia: eficienciaFormatted,
               percentil:
                 updatedHospital.percentil || selectedHospital.percentil,
-              // Mantener otros datos que puedan haberse actualizado
               region: updatedHospital.region || selectedHospital.region,
               lat: updatedHospital.latitud || selectedHospital.lat,
               lng: updatedHospital.longitud || selectedHospital.lng,
-              // Agregar datos originales
               ...updatedHospital,
             };
           }
@@ -296,20 +294,30 @@ const ComparacionView = () => {
       if (hospitalesSeleccionados.length === 1) {
         // Comparación temporal: mismo hospital, diferentes años
         const baseHospital = hospitalesSeleccionados[0];
-
         // Hospital Año A: usar datos temporales si están disponibles, sino usar datos base
         const hospitalYearA = hospitalTemporalData.yearA || {
           ...baseHospital,
           año: hospitalAYear,
         };
-
         // Hospital Año B: usar datos temporales si están disponibles, sino usar datos base
         const hospitalYearB = hospitalTemporalData.yearB || {
           ...baseHospital,
           año: hospitalBYear,
         };
-
-        return [hospitalYearA, hospitalYearB];
+        // Si ambos años son iguales, clona el objeto para que React los trate como instancias separadas
+        if (
+          (hospitalYearA.año || hospitalAYear) ===
+          (hospitalYearB.año || hospitalBYear)
+        ) {
+          return [
+            { ...hospitalYearA, año: hospitalAYear, _unique: "A" },
+            { ...hospitalYearB, año: hospitalBYear, _unique: "B" },
+          ];
+        }
+        return [
+          { ...hospitalYearA, año: hospitalAYear },
+          { ...hospitalYearB, año: hospitalBYear },
+        ];
       } else {
         // Si hay dos o más, usar los primeros dos con valores actualizados
         return hospitalesSeleccionados.slice(0, 2).map(getUpdatedHospital);
@@ -802,25 +810,30 @@ const ComparacionView = () => {
     if (!isTemporalComparison || !hospitalesSeleccionados[0]) return;
 
     const baseHospital = hospitalesSeleccionados[0];
-    // Actualizar el estado local del año
+
     if (hospitalIndex === 0) {
       setHospitalAYear(year);
       actions.setTemporalYearASelected(year);
+      // Si el año B es igual al nuevo año A, limpia el estado temporal de B para forzar recarga
+      if (year === hospitalBYear) {
+        actions.setTemporalYearB(null);
+      }
     } else {
       setHospitalBYear(year);
       actions.setTemporalYearBSelected(year);
+      // Si el año A es igual al nuevo año B, limpia el estado temporal de A para forzar recarga
+      if (year === hospitalAYear) {
+        actions.setTemporalYearA(null);
+      }
     }
 
     // Obtener datos del hospital para el nuevo año (forzar recarga siempre)
     const hospitalData = await fetchTemporalData(baseHospital, year);
 
     if (hospitalData) {
-      // Calcular eficiencia como se hace en EficienciaView
       const eficienciaField = calculationMethod === "SFA" ? "ET SFA" : "ET DEA";
       const eficiencia = hospitalData[eficienciaField] || 0;
       const eficienciaFormatted = (eficiencia * 100).toFixed(1);
-
-      // Crear objeto hospital con datos actualizados
       const updatedHospitalData = {
         ...baseHospital,
         ...hospitalData,
@@ -831,15 +844,12 @@ const ComparacionView = () => {
         lat: hospitalData.latitud || baseHospital.lat,
         lng: hospitalData.longitud || baseHospital.lng,
       };
-
-      // Guardar en el estado global
       if (hospitalIndex === 0) {
         actions.setTemporalYearA(updatedHospitalData);
       } else {
         actions.setTemporalYearB(updatedHospitalData);
       }
     } else {
-      // Si no hay datos, limpiar el hospital correspondiente
       if (hospitalIndex === 0) {
         actions.setTemporalYearA(null);
       } else {
@@ -862,6 +872,26 @@ const ComparacionView = () => {
     "Gap Insumos": <TeamOutlined />,
     "Gap Productos": <TrophyOutlined />,
     "Gap Eficiencia": <LineChartOutlined />,
+  };
+
+  // Función utilitaria para formatear números con separador de miles (punto) y decimales con coma
+  const formatNumber = (value, decimals = 1) => {
+    if (typeof value === "number" && !isNaN(value)) {
+      return value.toLocaleString("es-CL", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      });
+    }
+    if (typeof value === "string" && value !== "") {
+      const num = Number(value);
+      if (!isNaN(num)) {
+        return num.toLocaleString("es-CL", {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+        });
+      }
+    }
+    return value;
   };
 
   return (
@@ -1270,10 +1300,10 @@ const ComparacionView = () => {
                               Gap Insumos
                             </span>
                           }
-                          value={
+                          value={formatNumber(
                             persistedComparisonKPIs?.insumoGap ||
-                            comparisonKPIs.insumoGap
-                          }
+                              comparisonKPIs.insumoGap
+                          )}
                           precision={1}
                           suffix="%"
                           valueStyle={{
@@ -1336,10 +1366,10 @@ const ComparacionView = () => {
                               Gap Productos
                             </span>
                           }
-                          value={
+                          value={formatNumber(
                             persistedComparisonKPIs?.salidaGap ||
-                            comparisonKPIs.salidaGap
-                          }
+                              comparisonKPIs.salidaGap
+                          )}
                           precision={1}
                           suffix="%"
                           valueStyle={{
@@ -1402,10 +1432,10 @@ const ComparacionView = () => {
                               Gap Eficiencia
                             </span>
                           }
-                          value={
+                          value={formatNumber(
                             persistedComparisonKPIs?.eficienciaGap ||
-                            comparisonKPIs.eficienciaGap
-                          }
+                              comparisonKPIs.eficienciaGap
+                          )}
                           precision={1}
                           suffix="%"
                           valueStyle={{
@@ -1520,11 +1550,13 @@ const ComparacionView = () => {
                                     fontWeight: "bold",
                                   }}
                                 >
-                                  Eficiencia: {hospital.eficiencia}%
+                                  Eficiencia:{" "}
+                                  {formatNumber(hospital.eficiencia)}%
                                 </span>
                                 <br />
                                 <span style={{ color: "#666" }}>
-                                  Percentil: {hospital.percentil}°
+                                  Percentil:{" "}
+                                  {formatNumber(hospital.percentil, 0)}°
                                 </span>
                               </div>
                             </Popup>
@@ -1614,8 +1646,11 @@ const ComparacionView = () => {
                                           ? hospitalAYear
                                           : hospitalBYear
                                       }
-                                      onChange={(value) =>
-                                        handleYearChange(value, index)
+                                      onChange={
+                                        index === 0
+                                          ? undefined
+                                          : (value) =>
+                                              handleYearChange(value, index)
                                       }
                                       size="small"
                                       style={{ width: "80px" }}
@@ -1626,6 +1661,7 @@ const ComparacionView = () => {
                                         value: y,
                                         label: y.toString(),
                                       }))}
+                                      disabled={index === 0}
                                     />
                                   )}
                                 </div>
@@ -1675,7 +1711,7 @@ const ComparacionView = () => {
                                             index === 0 ? "#1890ff" : "#ff4d4f",
                                         }}
                                       >
-                                        {hospital.eficiencia}%
+                                        {formatNumber(hospital.eficiencia)}%
                                       </div>
                                     </div>
                                   </KpiTooltip>
@@ -1722,7 +1758,7 @@ const ComparacionView = () => {
                                             index === 0 ? "#1890ff" : "#ff4d4f",
                                         }}
                                       >
-                                        {hospital.percentil}°
+                                        {formatNumber(hospital.percentil, 0)}°
                                       </div>
                                     </div>
                                   </KpiTooltip>

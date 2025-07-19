@@ -54,6 +54,26 @@ import { useGlobalState } from "../contexts/GlobalStateContext";
 const { Content, Sider } = Layout;
 const { Title } = Typography;
 
+// Función utilitaria para formatear números con separador de miles (punto) y decimales con coma
+const formatNumber = (value, decimals = 1) => {
+  if (typeof value === "number" && !isNaN(value)) {
+    return value.toLocaleString("es-CL", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    });
+  }
+  if (typeof value === "string" && value !== "") {
+    const num = Number(value);
+    if (!isNaN(num)) {
+      return num.toLocaleString("es-CL", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      });
+    }
+  }
+  return value;
+};
+
 const DeterminantesView = ({ onNavigate }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [selectedYear, setSelectedYear] = useState(2023);
@@ -696,7 +716,11 @@ const DeterminantesView = ({ onNavigate }) => {
                           R²
                         </span>
                       }
-                      value={analysisResults?.r_cuadrado || "--"}
+                      value={
+                        analysisResults?.r_cuadrado !== undefined
+                          ? formatNumber(analysisResults.r_cuadrado, 3)
+                          : "--"
+                      }
                       precision={analysisResults?.r_cuadrado ? 3 : 0}
                       valueStyle={{
                         color: "#1890ff",
@@ -757,7 +781,14 @@ const DeterminantesView = ({ onNavigate }) => {
                           <TrophyOutlined />β significativos
                         </span>
                       }
-                      value={analysisResults?.variables_clave?.length || "--"}
+                      value={
+                        analysisResults?.variables_clave?.length !== undefined
+                          ? formatNumber(
+                              analysisResults.variables_clave.length,
+                              0
+                            )
+                          : "--"
+                      }
                       valueStyle={{
                         color: "#1890ff",
                         fontSize: "24px",
@@ -818,7 +849,11 @@ const DeterminantesView = ({ onNavigate }) => {
                           N° Observaciones
                         </span>
                       }
-                      value={analysisResults?.observaciones || "--"}
+                      value={
+                        analysisResults?.observaciones !== undefined
+                          ? formatNumber(analysisResults.observaciones, 0)
+                          : "--"
+                      }
                       valueStyle={{
                         color: "#1890ff",
                         fontSize: "24px",
@@ -1193,11 +1228,13 @@ const DeterminantesView = ({ onNavigate }) => {
                         width: "20%",
                         render: (value) => {
                           if (typeof value !== "number") return value;
-                          // Si el valor es muy pequeño, usar notación científica
                           if (Math.abs(value) < 0.001 && value !== 0) {
-                            return value.toExponential(3);
+                            const [mantissa, exponent] = value
+                              .toExponential(3)
+                              .split("e");
+                            return `${mantissa.replace(".", ",")}e${exponent}`;
                           }
-                          return value.toFixed(4);
+                          return formatNumber(value, 4);
                         },
                       },
                       {
@@ -1220,11 +1257,13 @@ const DeterminantesView = ({ onNavigate }) => {
                         width: "20%",
                         render: (value) => {
                           if (typeof value !== "number") return value;
-                          // Si el valor es muy pequeño, usar notación científica
                           if (Math.abs(value) < 0.001 && value !== 0) {
-                            return value.toExponential(3);
+                            const [mantissa, exponent] = value
+                              .toExponential(3)
+                              .split("e");
+                            return `${mantissa.replace(".", ",")}e${exponent}`;
                           }
-                          return value.toFixed(4);
+                          return formatNumber(value, 4);
                         },
                       },
                       {
@@ -1246,7 +1285,9 @@ const DeterminantesView = ({ onNavigate }) => {
                         key: "tStatistic",
                         width: "15%",
                         render: (value) =>
-                          typeof value === "number" ? value.toFixed(3) : value,
+                          typeof value === "number"
+                            ? formatNumber(value, 3)
+                            : value,
                       },
                       {
                         title: (
@@ -1268,11 +1309,16 @@ const DeterminantesView = ({ onNavigate }) => {
                           if (typeof value !== "number") return value;
 
                           let formattedValue;
-                          // Si el valor es muy pequeño, usar notación científica
                           if (Math.abs(value) < 0.001 && value !== 0) {
-                            formattedValue = value.toExponential(3);
+                            const [mantissa, exponent] = value
+                              .toExponential(3)
+                              .split("e");
+                            formattedValue = `${mantissa.replace(
+                              ".",
+                              ","
+                            )}e${exponent}`;
                           } else {
-                            formattedValue = value.toFixed(3);
+                            formattedValue = formatNumber(value, 3);
                           }
 
                           // Agregar símbolos de significancia
@@ -1356,8 +1402,11 @@ const DeterminantesView = ({ onNavigate }) => {
                       }}
                     >
                       <strong>Estadísticas del modelo:</strong>
-                      R² = {analysisResults?.r_cuadrado?.toFixed(3) || "--"} |
-                      R² ajustado ={" "}
+                      R² ={" "}
+                      {analysisResults?.r_cuadrado !== undefined
+                        ? formatNumber(analysisResults.r_cuadrado, 3)
+                        : "--"}{" "}
+                      | R² ajustado ={" "}
                       {analysisResults?.r_cuadrado_ajustado?.toFixed(3) || "--"}{" "}
                       | Variables significativas ={" "}
                       {analysisResults?.variables_clave?.length || "--"}
@@ -1370,8 +1419,10 @@ const DeterminantesView = ({ onNavigate }) => {
                         "Eficiencia Técnica"}
                       <br />
                       <strong>Observaciones:</strong>{" "}
-                      {analysisResults?.observaciones || "--"} |
-                      <strong>Mensaje:</strong>{" "}
+                      {analysisResults?.observaciones !== undefined
+                        ? formatNumber(analysisResults.observaciones, 0)
+                        : "--"}{" "}
+                      |<strong>Mensaje:</strong>{" "}
                       {analysisResults?.mensaje || "Análisis pendiente"}
                       <br />
                       <strong>Significancia:</strong> *** p&lt;0.001, **
