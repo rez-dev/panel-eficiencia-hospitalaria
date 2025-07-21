@@ -88,63 +88,6 @@ const InfoView = ({ onNavigate }) => {
             </Title>
             <ul>
               <li>
-                <strong>Días Camas Disponibles:</strong> Es el período
-                comprendido entre las 0 y las 24 horas de un día, durante el
-                cual una cama de hospital se mantiene a disposición para el uso
-                de pacientes hospitalizados.
-              </li>
-              <li>
-                <strong>Días Cama Ocupados:</strong> Es el período comprendido
-                entre las 0 y las 24 horas de un día, durante el cual una cama
-                de hospital se mantiene ocupada para ser usada con pacientes
-                hospitalizados.
-              </li>
-              <li>
-                <strong>Días de Estada:</strong> Es el número de días de
-                permanencia en el hospital de un paciente egresado, comprendido
-                entre la fecha de ingreso y la fecha de egreso.
-              </li>
-              <li>
-                <strong>Promedio Camas Disponibles:</strong> Es el número
-                promedio de camas que estuvieron en funcionamiento cada día en
-                un período dado. Se obtiene dividiendo los días camas
-                disponibles en el mes por el número de días del mes.
-              </li>
-              <li>
-                <strong>Número de Egresos:</strong> Corresponde a la cantidad de
-                pacientes a los/as que se ha retirado los servicios de
-                hospitalización de la cama ocupada en el hospital. El egreso
-                puede darse por alta médica, traslado a otro establecimiento,
-                fallecimiento, retiro voluntario u otro.
-              </li>
-              <li>
-                <strong>Egresos fallecidos:</strong> Es una subdivisión del
-                número de egresos, correspondiente a las personas que han
-                fallecido en un año dentro del proceso de hospitalización.
-              </li>
-              <li>
-                <strong>Índice Ocupacional:</strong> Se interpreta como el
-                porcentaje de ocupación de camas en un período determinado y
-                permite monitorear la eficiencia en la gestión hospitalaria.
-              </li>
-              <li>
-                <strong>Promedio Días de Estada:</strong> Corresponde al
-                promedio de días que el paciente permaneció hospitalizado en el
-                establecimiento y corresponde al número de días transcurridos
-                entre la fecha de ingreso y la fecha de egreso.
-              </li>
-              <li>
-                <strong>Índice de Rotación:</strong> Mide el número de pacientes
-                que pasan por cada cama hospitalaria en un período de tiempo
-                determinado. Es el mejor indicador para dar cuenta de la
-                productividad del recurso cama.
-              </li>
-              <li>
-                <strong>Tasa de letalidad:</strong> Establece la relación entre
-                los fallecidos por una enfermedad y los enfermos que padecen esa
-                enfermedad.
-              </li>
-              <li>
                 <strong>Consultas:</strong> Total de consultas médicas
                 ambulatorias realizadas
               </li>
@@ -159,6 +102,12 @@ const InfoView = ({ onNavigate }) => {
               <li>
                 <strong>Remuneraciones:</strong> Gastos en personal médico,
                 técnico y administrativo del hospital
+              </li>
+              <li>
+                <strong>Días Camas Disponibles:</strong> Es el período
+                comprendido entre las 0 y las 24 horas de un día, durante el
+                cual una cama de hospital se mantiene a disposición para el uso
+                de pacientes hospitalizados.
               </li>
               <li>
                 <strong>Consultas urgencias:</strong> Número de atenciones de
@@ -181,8 +130,31 @@ const InfoView = ({ onNavigate }) => {
                 según cartera de servicios y especialidades
               </li>
               <li>
-                <strong>Región:</strong> Ubicación geográfica del hospital según
-                división administrativa de Chile.
+                <strong>Índice Ocupacional:</strong> Se interpreta como el
+                porcentaje de ocupación de camas en un período determinado y
+                permite monitorear la eficiencia en la gestión hospitalaria.
+              </li>
+              <li>
+                <strong>Índice de Rotación:</strong> Mide el número de pacientes
+                que pasan por cada cama hospitalaria en un período de tiempo
+                determinado. Es el mejor indicador para dar cuenta de la
+                productividad del recurso cama.
+              </li>
+              <li>
+                <strong>Promedio Días de Estadía:</strong> Corresponde al
+                promedio de días que el paciente permaneció hospitalizado en el
+                establecimiento y corresponde al número de días transcurridos
+                entre la fecha de ingreso y la fecha de egreso.
+              </li>
+              <li>
+                <strong>Tasa de letalidad:</strong> Establece la relación entre
+                los fallecidos por una enfermedad y los enfermos que padecen esa
+                enfermedad.
+              </li>
+              <li>
+                <strong>Egresos fallecidos:</strong> Es una subdivisión del
+                número de egresos, correspondiente a las personas que han
+                fallecido en un año dentro del proceso de hospitalización.
               </li>
             </ul>
           </div>
