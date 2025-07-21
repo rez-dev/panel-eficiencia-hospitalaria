@@ -50,7 +50,12 @@ import {
   Pie,
   LabelList,
 } from "recharts";
-import { ParameterTooltip, KpiTooltip, ActionTooltip } from "./CustomTooltip";
+import {
+  ParameterTooltip,
+  KpiTooltip,
+  ActionTooltip,
+  ColumnTooltip,
+} from "./CustomTooltip";
 import { getTooltip } from "../data/tooltips";
 import ApiService from "../services/api";
 
@@ -328,7 +333,7 @@ const PcaClusterView = ({ onNavigate }) => {
 
     const columns = [
       {
-        title: "",
+        title: "Componente",
         dataIndex: "component",
         key: "component",
         width: "15%",
@@ -340,10 +345,25 @@ const PcaClusterView = ({ onNavigate }) => {
 
     features.forEach((feature) => {
       columns.push({
-        title: featureLabels[feature] || feature,
+        title: (
+          <ColumnTooltip
+            tooltipData={getTooltip("pcaCluster", "parametros", feature)}
+          >
+            <span
+              style={{
+                whiteSpace: "normal",
+                textAlign: "center",
+                display: "block",
+              }}
+            >
+              {featureLabels[feature] || feature}
+            </span>
+          </ColumnTooltip>
+        ),
         dataIndex: feature,
         key: feature,
-        width: `${85 / features.length}%`,
+        width: 140,
+        minWidth: 120,
         render: (value) => (
           <span
             style={{
@@ -601,23 +621,24 @@ const PcaClusterView = ({ onNavigate }) => {
               >
                 {" "}
                 <Slider
-                  min={1}
+                  min={2}
                   max={3}
                   value={numComponents}
-                  onChange={(value) => setNumComponents(Math.min(value, 3))}
+                  onChange={(value) =>
+                    setNumComponents(Math.min(Math.max(value, 2), 3))
+                  }
                   marks={{
-                    1: "1",
                     2: "2",
                     3: "3",
                   }}
                   style={{ flex: 1 }}
                 />
                 <InputNumber
-                  min={1}
+                  min={2}
                   max={3}
                   value={numComponents}
                   onChange={(value) =>
-                    setNumComponents(Math.min(value || 1, 3))
+                    setNumComponents(Math.min(Math.max(value || 2, 2), 3))
                   }
                   style={{ width: "60px" }}
                 />
@@ -1434,7 +1455,7 @@ const PcaClusterView = ({ onNavigate }) => {
                       dataSource={getComponentsTableData()}
                       pagination={false}
                       size="small"
-                      scroll={{ y: "calc(50% - 40px)" }}
+                      scroll={{ x: true }}
                       style={{ flex: 1 }}
                       locale={{
                         emptyText: state.loading ? (
@@ -1451,9 +1472,8 @@ const PcaClusterView = ({ onNavigate }) => {
                                     marginTop: "8px",
                                   }}
                                 >
-                                  La matriz de componentes está vacía. Verifique
-                                  que el análisis se haya ejecutado
-                                  correctamente.
+                                  La matriz de componentes está vacía. Presiona
+                                  el botón Calcular.
                                 </div>
                               )}
                           </div>
@@ -1494,7 +1514,19 @@ const PcaClusterView = ({ onNavigate }) => {
                     <Table
                       columns={[
                         {
-                          title: "Clúster",
+                          title: (
+                            <ColumnTooltip
+                              tooltipData={
+                                getTooltip(
+                                  "pcaCluster",
+                                  "tabla",
+                                  "caracterizacionClusters"
+                                )?.columnas?.cluster
+                              }
+                            >
+                              Clúster
+                            </ColumnTooltip>
+                          ),
                           dataIndex: "cluster",
                           key: "cluster",
                           width: numComponents >= 3 ? "12%" : "15%",
@@ -1505,7 +1537,19 @@ const PcaClusterView = ({ onNavigate }) => {
                           ),
                         },
                         {
-                          title: "N° Hospitales",
+                          title: (
+                            <ColumnTooltip
+                              tooltipData={
+                                getTooltip(
+                                  "pcaCluster",
+                                  "tabla",
+                                  "caracterizacionClusters"
+                                )?.columnas?.nHospitales
+                              }
+                            >
+                              N° Hospitales
+                            </ColumnTooltip>
+                          ),
                           dataIndex: "n_hospitales",
                           key: "n_hospitales",
                           width: numComponents >= 3 ? "15%" : "20%",
@@ -1514,7 +1558,19 @@ const PcaClusterView = ({ onNavigate }) => {
                           ),
                         },
                         {
-                          title: "ET Media",
+                          title: (
+                            <ColumnTooltip
+                              tooltipData={
+                                getTooltip(
+                                  "pcaCluster",
+                                  "tabla",
+                                  "caracterizacionClusters"
+                                )?.columnas?.etMedia
+                              }
+                            >
+                              ET Media
+                            </ColumnTooltip>
+                          ),
                           dataIndex: "te_media",
                           key: "te_media",
                           width: numComponents >= 3 ? "15%" : "20%",
@@ -1527,7 +1583,19 @@ const PcaClusterView = ({ onNavigate }) => {
                           ),
                         },
                         {
-                          title: "Media PC1",
+                          title: (
+                            <ColumnTooltip
+                              tooltipData={
+                                getTooltip(
+                                  "pcaCluster",
+                                  "tabla",
+                                  "caracterizacionClusters"
+                                )?.columnas?.pc1Media
+                              }
+                            >
+                              Media PC1
+                            </ColumnTooltip>
+                          ),
                           dataIndex: "pc1_media",
                           key: "pc1_media",
                           width: numComponents >= 3 ? "19%" : "22%",
@@ -1547,7 +1615,19 @@ const PcaClusterView = ({ onNavigate }) => {
                           ),
                         },
                         {
-                          title: "Media PC2",
+                          title: (
+                            <ColumnTooltip
+                              tooltipData={
+                                getTooltip(
+                                  "pcaCluster",
+                                  "tabla",
+                                  "caracterizacionClusters"
+                                )?.columnas?.pc2Media
+                              }
+                            >
+                              Media PC2
+                            </ColumnTooltip>
+                          ),
                           dataIndex: "pc2_media",
                           key: "pc2_media",
                           width: numComponents >= 3 ? "19%" : "23%",
@@ -1569,7 +1649,19 @@ const PcaClusterView = ({ onNavigate }) => {
                         ...(numComponents >= 3
                           ? [
                               {
-                                title: "Media PC3",
+                                title: (
+                                  <ColumnTooltip
+                                    tooltipData={
+                                      getTooltip(
+                                        "pcaCluster",
+                                        "tabla",
+                                        "caracterizacionClusters"
+                                      )?.columnas?.pc3Media
+                                    }
+                                  >
+                                    Media PC3
+                                  </ColumnTooltip>
+                                ),
                                 dataIndex: "pc3_media",
                                 key: "pc3_media",
                                 width: "20%",
@@ -1600,7 +1692,19 @@ const PcaClusterView = ({ onNavigate }) => {
                         emptyText: state.loading ? (
                           <Spin size="small" />
                         ) : (
-                          "No hay datos disponibles"
+                          <div style={{ padding: "20px", textAlign: "center" }}>
+                            <div>No hay datos disponibles</div>
+                            <div
+                              style={{
+                                fontSize: "12px",
+                                color: "#999",
+                                marginTop: "8px",
+                              }}
+                            >
+                              La matriz de componentes está vacía. Presiona el
+                              botón Calcular.
+                            </div>
+                          </div>
                         ),
                       }}
                     />

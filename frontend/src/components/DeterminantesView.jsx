@@ -397,11 +397,29 @@ const DeterminantesView = ({ onNavigate }) => {
                   }}
                 />
                 <ParameterTooltip
-                  tooltipData={getTooltip(
-                    "determinantes",
-                    "secciones",
-                    "variablesIndependientes"
-                  )}
+                  tooltipData={{
+                    title: "Variables Independientes",
+                    content:
+                      getTooltip(
+                        "determinantes",
+                        "secciones",
+                        "variablesIndependientes"
+                      )?.content || "",
+                    options: {
+                      Complejidad:
+                        "Nivel de complejidad hospitalaria según cartera de servicios y especialidades.",
+                      "Índice Ocupacional":
+                        "Porcentaje de ocupación de camas en un período determinado.",
+                      "Índice de Rotación":
+                        "Número de pacientes que pasan por cada cama hospitalaria en un período de tiempo determinado.",
+                      "Promedio Días Estadía":
+                        "Promedio de días que el paciente permaneció hospitalizado.",
+                      Letalidad:
+                        "Relación entre los fallecidos por una enfermedad y los enfermos que la padecen.",
+                      "Egresos Fallecidos":
+                        "Personas que han fallecido en un año dentro del proceso de hospitalización.",
+                    },
+                  }}
                 >
                   <Title
                     level={5}
@@ -1195,12 +1213,18 @@ const DeterminantesView = ({ onNavigate }) => {
                       {
                         title: (
                           <ColumnTooltip
-                            tooltipData={getTooltip(
-                              "determinantes",
-                              "tabla",
-                              "columnas",
-                              "variable"
-                            )}
+                            tooltipData={{
+                              title: "Variable",
+                              content: [
+                                getTooltip(
+                                  "determinantes",
+                                  "tabla",
+                                  "columnas",
+                                  "variable"
+                                )?.content || "",
+                                "\nComplejidad: Nivel de complejidad hospitalaria según cartera de servicios y especialidades.\nÍndice Ocupacional: Porcentaje de ocupación de camas en un período determinado.\nÍndice de Rotación: Número de pacientes que pasan por cada cama hospitalaria en un período de tiempo determinado.\nPromedio Días Estadía: Promedio de días que el paciente permaneció hospitalizado.\nLetalidad: Relación entre los fallecidos por una enfermedad y los enfermos que la padecen.\nEgresos Fallecidos: Personas que han fallecido en un año dentro del proceso de hospitalización.",
+                              ].join(" "),
+                            }}
                           >
                             <span style={{ cursor: "help" }}>Variable</span>
                           </ColumnTooltip>
@@ -1292,12 +1316,18 @@ const DeterminantesView = ({ onNavigate }) => {
                       {
                         title: (
                           <ColumnTooltip
-                            tooltipData={getTooltip(
-                              "determinantes",
-                              "tabla",
-                              "columnas",
-                              "pValor"
-                            )}
+                            tooltipData={{
+                              title: "P-Valor",
+                              content: [
+                                getTooltip(
+                                  "determinantes",
+                                  "tabla",
+                                  "columnas",
+                                  "pValor"
+                                )?.content || "",
+                                "*** p<0.001, ** p<0.01, * p<0.05, NS = No significativo",
+                              ].join(" "),
+                            }}
                           >
                             <span style={{ cursor: "help" }}>P-Valor</span>
                           </ColumnTooltip>
@@ -1372,6 +1402,7 @@ const DeterminantesView = ({ onNavigate }) => {
                         : "Selecciona las variables y haz clic en 'Calcular' para ver los resultados del análisis econométrico",
                     }}
                   />
+                  {/*
                   <CustomTooltip
                     title={
                       getTooltip(
@@ -1429,6 +1460,7 @@ const DeterminantesView = ({ onNavigate }) => {
                       p&lt;0.01, * p&lt;0.05, NS = No significativo
                     </div>
                   </CustomTooltip>
+                  */}
                 </div>
               </Col>
             </Row>

@@ -123,7 +123,7 @@ export const tooltips = {
         },
         percentil: {
           title: "Percentil",
-          content: "Posición relativa del hospital en el ranking de eficiencia. Percentil 1° = más eficiente, percentil 100° = menos eficiente."
+          content: "Indica la posición del hospital respecto a los demás según su eficiencia técnica. Un percentil alto significa que el hospital es más eficiente en comparación con el resto; un percentil bajo indica menor eficiencia."
         },
         effT: {
           title: "EFF_t",
@@ -160,7 +160,7 @@ export const tooltips = {
       },
       percentil: {
         title: "Percentil de Eficiencia",
-        content: "Posición relativa del hospital en el ranking de eficiencia. Percentil 1 = más eficiente, percentil 100 = menos eficiente."
+        content: "Indica la posición del hospital respecto a los demás según su eficiencia técnica. Un percentil alto significa que el hospital es más eficiente en comparación con el resto; un percentil bajo indica menor eficiencia."
       },
       malmquist: {
         title: "Índice Malmquist",
