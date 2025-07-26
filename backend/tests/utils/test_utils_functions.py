@@ -302,99 +302,152 @@ class TestPCAKmeans:
         assert 'k' in result_dict  # Nombre real del campo
 
 
-class TestMalmquistIndex:
-    """Pruebas para calculate_dea_malmquist_fast."""
-    
-    def test_malmquist_basic_functionality(self):
-        """Prueba funcionalidad básica del índice Malmquist."""
+class TestMalmquistCalculations:
+    """Tests para cálculos del índice de Malmquist"""
+
+    def test_malmquist_basic_calculation(self):
         # Datos para período t
         df_t = pd.DataFrame({
-            'input1': [100, 150, 200],
-            'output1': [50, 75, 90],
-            'hospital_id': [1, 2, 3]
+            'hospital_id': [101100, 102100, 103100],
+            'bienesyservicios': [19779704, 27881106, 29969438],
+            'remuneraciones': [10982608, 15394204, 15065061],
+            'diascamadisponibles': [113311, 161383, 196717],
+            'consultas': [184208, 149392, 154729]
         })
-        
-        # Datos para período t+1
         df_t1 = pd.DataFrame({
-            'input1': [110, 160, 190],
-            'output1': [55, 80, 95],
-            'hospital_id': [1, 2, 3]
+            'hospital_id': [101100, 102100, 103100],
+            'bienesyservicios': [20000000, 28000000, 30000000],
+            'remuneraciones': [11000000, 16000000, 15500000],
+            'diascamadisponibles': [115000, 165000, 200000],
+            'consultas': [190000, 155000, 160000]
         })
-        
-        input_cols = ['input1']
-        output_cols = ['output1']
-        
-        result_df, result_dict = utils.calculate_dea_malmquist_fast(
-            df_t=df_t,
-            df_t1=df_t1,
-            input_cols=input_cols,
-            output_cols=output_cols
-        )
-        
-        # Verificaciones básicas
-        assert isinstance(result_df, pd.DataFrame)
-        assert isinstance(result_dict, dict)
-        assert 'Malmquist' in result_df.columns  # Nombre real de la columna
-        assert 'EFFCH' in result_df.columns  # Efficiency change
-        assert 'TECH' in result_df.columns   # Technology change
-        assert 'Malmquist_mean' in result_dict  # Nombre real de la métrica
-    
-    def test_malmquist_empty_dataframes(self):
-        """Prueba Malmquist con DataFrames vacíos."""
-        df_empty = pd.DataFrame()
-        input_cols = ['input1']
-        output_cols = ['output1']
-        
-        with pytest.raises(Exception):
-            utils.calculate_dea_malmquist_fast(
-                df_empty, df_empty, input_cols, output_cols
-            )
+        input_cols = ['bienesyservicios', 'remuneraciones', 'diascamadisponibles']
+        output_cols = ['consultas']
+        df_result, summary = utils.calculate_dea_malmquist_fast(df_t, df_t1, input_cols, output_cols)
+        assert isinstance(df_result, pd.DataFrame)
+        assert len(df_result) == 3
+        expected_columns = ['EFF_t', 'EFF_t1', 'EFFCH', 'TECH', 'Malmquist', '%ΔProd']
+        for col in expected_columns:
+            assert col in df_result.columns
+        assert list(df_result.index) == [101100, 102100, 103100]
+        for col in expected_columns:
+            assert df_result[col].dtype in [np.float64, float]
+        assert (df_result['EFF_t'] >= 0).all()
+        assert (df_result['EFF_t1'] >= 0).all()
+        expected_effch = df_result['EFF_t1'] / df_result['EFF_t']
+        np.testing.assert_array_almost_equal(df_result['EFFCH'], expected_effch, decimal=6)
+        expected_malmquist = df_result['EFFCH'] * df_result['TECH']
+        np.testing.assert_array_almost_equal(df_result['Malmquist'], expected_malmquist, decimal=6)
+        expected_pct_delta = (df_result['Malmquist'] - 1) * 100
+        np.testing.assert_array_almost_equal(df_result['%ΔProd'], expected_pct_delta, decimal=6)
+        assert isinstance(summary, dict)
+        expected_summary_keys = ['EFFCH_mean', 'TECH_mean', 'Malmquist_mean', 'pctΔProd_mean', 'n_hospitals']
+        for key in expected_summary_keys:
+            assert key in summary
+        assert summary['n_hospitals'] == 3
+        for key in ['EFFCH_mean', 'TECH_mean', 'Malmquist_mean', 'pctΔProd_mean']:
+            assert isinstance(summary[key], float)
 
+    def test_malmquist_different_parameters(self):
+        import pandas as pd
+        df_t = pd.DataFrame({
+            'hospital_id': [1, 2, 3],
+            'input1': [100, 120, 80],
+            'input2': [200, 180, 160],
+            'output1': [50, 60, 40]
+        })
+        df_t1 = pd.DataFrame({
+            'hospital_id': [1, 2, 3],
+            'input1': [95, 115, 85],
+            'input2': [190, 175, 155],
+            'output1': [55, 65, 45]
+        })
+        df_result_vrs, summary_vrs = utils.calculate_dea_malmquist_fast(
+            df_t, df_t1, input_cols=['input1', 'input2'], output_cols=['output1'], rts="VRS", orientation="out"
+        )
+        assert len(df_result_vrs) == 3
+        assert summary_vrs['n_hospitals'] == 3
+        df_result_no_cross, summary_no_cross = utils.calculate_dea_malmquist_fast(
+            df_t, df_t1, input_cols=['input1', 'input2'], output_cols=['output1'], use_cross=False
+        )
+        assert (df_result_no_cross['TECH'] == 1.0).all()
+        assert summary_no_cross['TECH_mean'] == 1.0
 
-class TestDeterminantAnalysis:
-    """Pruebas para determinant_analysis."""
-    
-    def test_determinant_analysis_basic_functionality(self):
-        """Prueba funcionalidad básica del análisis de determinantes."""
-        df = pd.DataFrame({
-            'efficiency': [0.8, 0.9, 0.7, 0.85, 0.75, 0.95],
-            'region_id': [1, 2, 1, 3, 2, 3],
-            'complejidad': [1, 2, 2, 3, 1, 3],
-            'size_proxy': [100, 200, 150, 300, 120, 250],
-            'hospital_id': [1, 2, 3, 4, 5, 6]
+    def test_malmquist_top_n_filter(self):
+        import pandas as pd
+        df_t = pd.DataFrame({
+            'hospital_id': [1, 2, 3, 4, 5],
+            'bienesyservicios': [100000, 200000, 150000, 300000, 80000],
+            'remuneraciones': [50000, 100000, 75000, 150000, 40000],
+            'consultas': [1000, 2000, 1500, 3000, 800]
         })
-        
-        result_dict = utils.determinant_analysis(
-            df=df,
-            dependent='efficiency',
-            independents=['region_id', 'complejidad', 'size_proxy']
-        )
-        
-        # Verificaciones básicas
-        assert isinstance(result_dict, tuple)  # Retorna tupla (df, dict)
-        result_df, result_meta = result_dict
-        assert isinstance(result_df, pd.DataFrame)
-        assert isinstance(result_meta, dict)
-    
-    def test_determinant_analysis_categorical_variables(self):
-        """Prueba análisis de determinantes con variables categóricas."""
-        df = pd.DataFrame({
-            'efficiency': [0.8, 0.9, 0.7, 0.85],
-            'region_id': [1, 2, 3, 1],
-            'complejidad': [1, 2, 1, 2],
-            'hospital_id': [1, 2, 3, 4]
+        df_t1 = pd.DataFrame({
+            'hospital_id': [1, 2, 3, 4, 5],
+            'bienesyservicios': [105000, 210000, 155000, 310000, 85000],
+            'remuneraciones': [52000, 105000, 78000, 155000, 42000],
+            'consultas': [1100, 2100, 1600, 3200, 900]
         })
-        
-        result_dict = utils.determinant_analysis(
-            df=df,
-            dependent='efficiency',
-            independents=['region_id', 'complejidad']
+        df_result_top, summary_top = utils.calculate_dea_malmquist_fast(
+            df_t, df_t1, input_cols=['bienesyservicios', 'remuneraciones'], output_cols=['consultas'], top_input_col='bienesyservicios', top_n=3
         )
-        
-        assert isinstance(result_dict, tuple)
-        result_df, result_meta = result_dict
-        assert isinstance(result_df, pd.DataFrame)
-        assert isinstance(result_meta, dict)
+        assert len(df_result_top) == 3
+        assert summary_top['n_hospitals'] == 3
+        expected_ids = [4, 2, 3]
+        assert sorted(df_result_top.index.tolist()) == sorted(expected_ids)
+        df_result_max, summary_max = utils.calculate_dea_malmquist_fast(
+            df_t, df_t1, input_cols=['bienesyservicios', 'remuneraciones'], output_cols=['consultas'], max_dmus=2
+        )
+        assert len(df_result_max) == 2
+        assert summary_max['n_hospitals'] == 2
+        df_result_ids, summary_ids = utils.calculate_dea_malmquist_fast(
+            df_t, df_t1, input_cols=['bienesyservicios', 'remuneraciones'], output_cols=['consultas'], top_ids=[1, 3, 5]
+        )
+        assert len(df_result_ids) == 3
+        assert sorted(df_result_ids.index.tolist()) == [1, 3, 5]
+
+    def test_malmquist_error_cases(self):
+        import pandas as pd
+        import pytest
+        df_t = pd.DataFrame({
+            'hospital_id': [1, 2, 3],
+            'input1': [100, 120, 80],
+            'output1': [50, 60, 40]
+        })
+        df_t1 = pd.DataFrame({
+            'hospital_id': [4, 5, 6],
+            'input1': [95, 115, 85],
+            'output1': [55, 65, 45]
+        })
+        with pytest.raises(ValueError, match="No hay hospitales comunes"):
+            utils.calculate_dea_malmquist_fast(df_t, df_t1, input_cols=['input1'], output_cols=['output1'])
+        df_t1_fixed = pd.DataFrame({
+            'hospital_id': [1, 2, 3],
+            'input1': [95, 115, 85],
+            'output1': [55, 65, 45]
+        })
+        with pytest.raises(ValueError, match="top_input_col debe ser uno de input_cols"):
+            utils.calculate_dea_malmquist_fast(df_t, df_t1_fixed, input_cols=['input1'], output_cols=['output1'], top_input_col='columna_inexistente')
+        with pytest.raises(ValueError, match="No quedan hospitales tras aplicar el filtro"):
+            utils.calculate_dea_malmquist_fast(df_t, df_t1_fixed, input_cols=['input1'], output_cols=['output1'], top_ids=[999])
+
+    def test_malmquist_with_zero_values(self):
+        import pandas as pd
+        df_t = pd.DataFrame({
+            'hospital_id': [1, 2, 3, 4],
+            'input1': [100, 0, 150, 200],
+            'input2': [50, 60, 75, 100],
+            'output1': [30, 40, 0, 60]
+        })
+        df_t1 = pd.DataFrame({
+            'hospital_id': [1, 2, 3, 4],
+            'input1': [105, 50, 155, 210],
+            'input2': [52, 62, 78, 105],
+            'output1': [32, 42, 45, 65]
+        })
+        df_result, summary = utils.calculate_dea_malmquist_fast(df_t, df_t1, input_cols=['input1', 'input2'], output_cols=['output1'])
+        assert len(df_result) == 2
+        assert sorted(df_result.index.tolist()) == [1, 4]
+        assert summary['n_hospitals'] == 2
 
 
 class TestUtilityFunctions:

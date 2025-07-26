@@ -18,11 +18,11 @@ class HospitalBase(BaseModel):
     quirofanos: float = Field(..., description="Número de quirófanos")
     año: int = Field(..., description="Año de los datos")
     complejidad: int = Field(..., description="Nivel de complejidad del hospital")
-    indiceocupacional: float = Field(..., description="Índice de ocupación")
-    indicerotacion: float = Field(..., description="Índice de rotación")
-    promediodiasestadia: float = Field(..., description="Promedio de días de estadía")
-    letalidad: float = Field(..., description="Tasa de letalidad")
-    egresosfallecidos: float = Field(..., description="Número de egresos fallecidos")
+    indiceocupacional: Optional[float] = Field(None, description="Índice de ocupación")
+    indicerotacion: Optional[float] = Field(None, description="Índice de rotación")
+    promediodiasestadia: Optional[float] = Field(None, description="Promedio de días de estadía")
+    letalidad: Optional[float] = Field(None, description="Tasa de letalidad")
+    egresosfallecidos: Optional[float] = Field(None, description="Número de egresos fallecidos")
     region: Optional[str] = Field(None, description="Nombre de la región")
 
 class HospitalResponse(HospitalBase):
