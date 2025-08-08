@@ -1,12 +1,35 @@
-# React + Vite
+# Frontend (Vite + React)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interfaz del Panel de Eficiencia Hospitalaria. Consume la API del backend y visualiza indicadores y análisis.
 
-Currently, two official plugins are available:
+## Requisitos
+- Node.js 18+
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Scripts
+```bash
+npm run dev      # desarrollo
+npm run build    # compilación
+npm run preview  # previsualización de build
+npm run lint     # linting
+```
 
-## Expanding the ESLint configuration
+## Configuración
+- Variable: `VITE_APP_BACKEND_ADDRESS` (URL del backend, p.ej. `http://localhost:8000`).
+  - Puedes definirla en `frontend/.env` o como variable de entorno al ejecutar.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Ejecutar en local
+```bash
+npm install
+# Define la URL del backend
+# echo VITE_APP_BACKEND_ADDRESS=http://localhost:8000 > .env
+npm run dev
+```
+
+## Estructura
+- `src/components/`: vistas y componentes del panel
+- `src/services/api.js`: cliente para consumir la API (`VITE_APP_BACKEND_ADDRESS`)
+- `src/contexts/`: estado global
+
+## Buenas prácticas
+- Mantén `VITE_APP_BACKEND_ADDRESS` coherente con el `CORS_ORIGINS` del backend.
+- Reutiliza `ApiService` para llamadas a endpoints.
